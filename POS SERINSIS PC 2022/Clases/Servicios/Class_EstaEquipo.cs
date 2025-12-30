@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Invenpol_Parqueadero_Motos.Clases.Servicios
-{
+{///
     public class Class_EsteEquipo
     {
         public static void GuardarImagen_en_Equipo(byte[] Arreglo)
