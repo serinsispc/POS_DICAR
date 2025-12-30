@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="DBDicarDistribucionesDataSet2" targetNamespace="http://tempuri.org/DBDicarDistribucionesDataSet2.xsd" xmlns:mstns="http://tempuri.org/DBDicarDistribucionesDataSet2.xsd" xmlns="http://tempuri.org/DBDicarDistribucionesDataSet2.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" xmlns:msprop="urn:schemas-microsoft-com:xml-msprop" attributeFormDefault="qualified" elementFormDefault="qualified">
+  <xs:annotation>
+    <xs:appinfo source="urn:schemas-microsoft-com:xml-msdatasource">
+      <DataSource DefaultConnectionIndex="0" FunctionsComponentName="QueriesTableAdapter" Modifier="AutoLayout, AnsiClass, Class, Public" SchemaSerializationMode="IncludeSchema" xmlns="urn:schemas-microsoft-com:xml-msdatasource">
+        <Connections>
+          <Connection AppSettingsObjectName="Settings" AppSettingsPropertyName="DBDicarDistribucionesConnectionString" ConnectionStringObject="" IsAppSettingsProperty="true" Modifier="Assembly" Name="DBDicarDistribucionesConnectionString (Settings)" ParameterPrefix="@" PropertyReference="ApplicationSettings.POS_SERINSIS_PC_2022.Properties.Settings.GlobalReference.Default.DBDicarDistribucionesConnectionString" Provider="System.Data.SqlClient" />
+        </Connections>
+        <Tables>
+          <TableAdapter BaseClass="System.ComponentModel.Component" DataAccessorModifier="AutoLayout, AnsiClass, Class, Public" DataAccessorName="V_GastosTableAdapter" GeneratorDataComponentClassName="V_GastosTableAdapter" Name="V_Gastos" UserDataComponentName="V_GastosTableAdapter">
+            <MainSource>
+              <DbSource ConnectionRef="DBDicarDistribucionesConnectionString (Settings)" DbObjectName="DBDicarDistribuciones.dbo.V_Gastos" DbObjectType="View" FillMethodModifier="Public" FillMethodName="Fill" GenerateMethods="Both" GenerateShortCommands="false" GeneratorGetMethodName="GetData" GeneratorSourceName="Fill" GetMethodModifier="Public" GetMethodName="GetData" QueryType="Rowset" ScalarCallRetval="System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" UseOptimisticConcurrency="true" UserGetMethodName="GetData" UserSourceName="Fill">
+                <SelectCommand>
+                  <DbCommand CommandType="Text" ModifiedByUser="false">
+                    <CommandText>SELECT id, fecha, concepto, valor, VidBolsillo, VnombreBolsillo, idSede, idTipoGasto, nombreTipoGasto FROM dbo.V_Gastos</CommandText>
+                    <Parameters />
+                  </DbCommand>
+                </SelectCommand>
+              </DbSource>
+            </MainSource>
+            <Mappings>
+              <Mapping SourceColumn="id" DataSetColumn="id" />
+              <Mapping SourceColumn="fecha" DataSetColumn="fecha" />
+              <Mapping SourceColumn="concepto" DataSetColumn="concepto" />
+              <Mapping SourceColumn="valor" DataSetColumn="valor" />
+              <Mapping SourceColumn="VidBolsillo" DataSetColumn="VidBolsillo" />
+              <Mapping SourceColumn="VnombreBolsillo" DataSetColumn="VnombreBolsillo" />
+              <Mapping SourceColumn="idSede" DataSetColumn="idSede" />
+              <Mapping SourceColumn="idTipoGasto" DataSetColumn="idTipoGasto" />
+              <Mapping SourceColumn="nombreTipoGasto" DataSetColumn="nombreTipoGasto" />
+            </Mappings>
+            <Sources />
+          </TableAdapter>
+        </Tables>
+        <Sources />
+      </DataSource>
+    </xs:appinfo>
+  </xs:annotation>
+  <xs:element name="DBDicarDistribucionesDataSet2" msdata:IsDataSet="true" msdata:UseCurrentLocale="true" msprop:EnableTableAdapterManager="True" msprop:Generator_UserDSName="DBDicarDistribucionesDataSet2" msprop:Generator_DataSetName="DBDicarDistribucionesDataSet2">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="V_Gastos" msprop:Generator_RowEvHandlerName="V_GastosRowChangeEventHandler" msprop:Generator_RowDeletedName="V_GastosRowDeleted" msprop:Generator_RowDeletingName="V_GastosRowDeleting" msprop:Generator_RowEvArgName="V_GastosRowChangeEvent" msprop:Generator_TablePropName="V_Gastos" msprop:Generator_RowChangedName="V_GastosRowChanged" msprop:Generator_RowChangingName="V_GastosRowChanging" msprop:Generator_TableClassName="V_GastosDataTable" msprop:Generator_RowClassName="V_GastosRow" msprop:Generator_TableVarName="tableV_Gastos" msprop:Generator_UserTableName="V_Gastos">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="id" msprop:Generator_ColumnPropNameInRow="id" msprop:Generator_ColumnPropNameInTable="idColumn" msprop:Generator_ColumnVarNameInTable="columnid" msprop:Generator_UserColumnName="id" type="xs:int" />
+              <xs:element name="fecha" msprop:Generator_ColumnPropNameInRow="fecha" msprop:Generator_ColumnPropNameInTable="fechaColumn" msprop:Generator_ColumnVarNameInTable="columnfecha" msprop:Generator_UserColumnName="fecha" type="xs:dateTime" />
+              <xs:element name="concepto" msprop:Generator_ColumnPropNameInRow="concepto" msprop:Generator_ColumnPropNameInTable="conceptoColumn" msprop:Generator_ColumnVarNameInTable="columnconcepto" msprop:Generator_UserColumnName="concepto">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="2147483647" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="valor" msprop:Generator_ColumnPropNameInRow="valor" msprop:Generator_ColumnPropNameInTable="valorColumn" msprop:Generator_ColumnVarNameInTable="columnvalor" msprop:Generator_UserColumnName="valor" type="xs:decimal" />
+              <xs:element name="VidBolsillo" msprop:Generator_ColumnPropNameInRow="VidBolsillo" msprop:Generator_ColumnPropNameInTable="VidBolsilloColumn" msprop:Generator_ColumnVarNameInTable="columnVidBolsillo" msprop:Generator_UserColumnName="VidBolsillo" type="xs:int" />
+              <xs:element name="VnombreBolsillo" msprop:Generator_ColumnPropNameInRow="VnombreBolsillo" msprop:Generator_ColumnPropNameInTable="VnombreBolsilloColumn" msprop:Generator_ColumnVarNameInTable="columnVnombreBolsillo" msprop:Generator_UserColumnName="VnombreBolsillo" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="50" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="idSede" msprop:Generator_ColumnPropNameInRow="idSede" msprop:Generator_ColumnPropNameInTable="idSedeColumn" msprop:Generator_ColumnVarNameInTable="columnidSede" msprop:Generator_UserColumnName="idSede" type="xs:int" minOccurs="0" />
+              <xs:element name="idTipoGasto" msprop:Generator_ColumnPropNameInRow="idTipoGasto" msprop:Generator_ColumnPropNameInTable="idTipoGastoColumn" msprop:Generator_ColumnVarNameInTable="columnidTipoGasto" msprop:Generator_UserColumnName="idTipoGasto" type="xs:int" />
+              <xs:element name="nombreTipoGasto" msprop:Generator_ColumnPropNameInRow="nombreTipoGasto" msprop:Generator_ColumnPropNameInTable="nombreTipoGastoColumn" msprop:Generator_ColumnVarNameInTable="columnnombreTipoGasto" msprop:Generator_UserColumnName="nombreTipoGasto" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="50" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+    <xs:unique name="Constraint1" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:V_Gastos" />
+      <xs:field xpath="mstns:id" />
+    </xs:unique>
+  </xs:element>
+</xs:schema>

@@ -1,0 +1,70 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="DBDicarDistribucionesDataSet4" targetNamespace="http://tempuri.org/DBDicarDistribucionesDataSet4.xsd" xmlns:mstns="http://tempuri.org/DBDicarDistribucionesDataSet4.xsd" xmlns="http://tempuri.org/DBDicarDistribucionesDataSet4.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" xmlns:msprop="urn:schemas-microsoft-com:xml-msprop" attributeFormDefault="qualified" elementFormDefault="qualified">
+  <xs:annotation>
+    <xs:appinfo source="urn:schemas-microsoft-com:xml-msdatasource">
+      <DataSource DefaultConnectionIndex="0" FunctionsComponentName="QueriesTableAdapter" Modifier="AutoLayout, AnsiClass, Class, Public" SchemaSerializationMode="IncludeSchema" xmlns="urn:schemas-microsoft-com:xml-msdatasource">
+        <Connections>
+          <Connection AppSettingsObjectName="Settings" AppSettingsPropertyName="DBDicarDistribucionesConnectionString" ConnectionStringObject="" IsAppSettingsProperty="true" Modifier="Assembly" Name="DBDicarDistribucionesConnectionString (Settings)" ParameterPrefix="@" PropertyReference="ApplicationSettings.POS_SERINSIS_PC_2022.Properties.Settings.GlobalReference.Default.DBDicarDistribucionesConnectionString" Provider="System.Data.SqlClient" />
+        </Connections>
+        <Tables>
+          <TableAdapter BaseClass="System.ComponentModel.Component" DataAccessorModifier="AutoLayout, AnsiClass, Class, Public" DataAccessorName="V_CostoInventarioTableAdapter" GeneratorDataComponentClassName="V_CostoInventarioTableAdapter" Name="V_CostoInventario" UserDataComponentName="V_CostoInventarioTableAdapter">
+            <MainSource>
+              <DbSource ConnectionRef="DBDicarDistribucionesConnectionString (Settings)" DbObjectName="DBDicarDistribuciones.dbo.V_CostoInventario" DbObjectType="View" FillMethodModifier="Public" FillMethodName="Fill" GenerateMethods="Both" GenerateShortCommands="false" GeneratorGetMethodName="GetData" GeneratorSourceName="Fill" GetMethodModifier="Public" GetMethodName="GetData" QueryType="Rowset" ScalarCallRetval="System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" UseOptimisticConcurrency="true" UserGetMethodName="GetData" UserSourceName="Fill">
+                <SelectCommand>
+                  <DbCommand CommandType="Text" ModifiedByUser="false">
+                    <CommandText>SELECT id, codigoProducto, descripcionProducto, costoUnidad, inventarioActual, costoInventario FROM dbo.V_CostoInventario</CommandText>
+                    <Parameters />
+                  </DbCommand>
+                </SelectCommand>
+              </DbSource>
+            </MainSource>
+            <Mappings>
+              <Mapping SourceColumn="id" DataSetColumn="id" />
+              <Mapping SourceColumn="codigoProducto" DataSetColumn="codigoProducto" />
+              <Mapping SourceColumn="descripcionProducto" DataSetColumn="descripcionProducto" />
+              <Mapping SourceColumn="costoUnidad" DataSetColumn="costoUnidad" />
+              <Mapping SourceColumn="inventarioActual" DataSetColumn="inventarioActual" />
+              <Mapping SourceColumn="costoInventario" DataSetColumn="costoInventario" />
+            </Mappings>
+            <Sources />
+          </TableAdapter>
+        </Tables>
+        <Sources />
+      </DataSource>
+    </xs:appinfo>
+  </xs:annotation>
+  <xs:element name="DBDicarDistribucionesDataSet4" msdata:IsDataSet="true" msdata:UseCurrentLocale="true" msprop:EnableTableAdapterManager="True" msprop:Generator_UserDSName="DBDicarDistribucionesDataSet4" msprop:Generator_DataSetName="DBDicarDistribucionesDataSet4">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="V_CostoInventario" msprop:Generator_RowEvHandlerName="V_CostoInventarioRowChangeEventHandler" msprop:Generator_RowDeletedName="V_CostoInventarioRowDeleted" msprop:Generator_RowDeletingName="V_CostoInventarioRowDeleting" msprop:Generator_RowEvArgName="V_CostoInventarioRowChangeEvent" msprop:Generator_TablePropName="V_CostoInventario" msprop:Generator_RowChangedName="V_CostoInventarioRowChanged" msprop:Generator_RowChangingName="V_CostoInventarioRowChanging" msprop:Generator_TableClassName="V_CostoInventarioDataTable" msprop:Generator_RowClassName="V_CostoInventarioRow" msprop:Generator_TableVarName="tableV_CostoInventario" msprop:Generator_UserTableName="V_CostoInventario">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="id" msprop:Generator_ColumnPropNameInRow="id" msprop:Generator_ColumnPropNameInTable="idColumn" msprop:Generator_ColumnVarNameInTable="columnid" msprop:Generator_UserColumnName="id" type="xs:int" />
+              <xs:element name="codigoProducto" msprop:Generator_ColumnPropNameInRow="codigoProducto" msprop:Generator_ColumnPropNameInTable="codigoProductoColumn" msprop:Generator_ColumnVarNameInTable="columncodigoProducto" msprop:Generator_UserColumnName="codigoProducto" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="2147483647" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="descripcionProducto" msprop:Generator_ColumnPropNameInRow="descripcionProducto" msprop:Generator_ColumnPropNameInTable="descripcionProductoColumn" msprop:Generator_ColumnVarNameInTable="columndescripcionProducto" msprop:Generator_UserColumnName="descripcionProducto" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="2147483647" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="costoUnidad" msprop:Generator_ColumnPropNameInRow="costoUnidad" msprop:Generator_ColumnPropNameInTable="costoUnidadColumn" msprop:Generator_ColumnVarNameInTable="columncostoUnidad" msprop:Generator_UserColumnName="costoUnidad" type="xs:decimal" minOccurs="0" />
+              <xs:element name="inventarioActual" msdata:ReadOnly="true" msprop:Generator_ColumnPropNameInRow="inventarioActual" msprop:Generator_ColumnPropNameInTable="inventarioActualColumn" msprop:Generator_ColumnVarNameInTable="columninventarioActual" msprop:Generator_UserColumnName="inventarioActual" type="xs:decimal" minOccurs="0" />
+              <xs:element name="costoInventario" msdata:ReadOnly="true" msprop:Generator_ColumnPropNameInRow="costoInventario" msprop:Generator_ColumnPropNameInTable="costoInventarioColumn" msprop:Generator_ColumnVarNameInTable="columncostoInventario" msprop:Generator_UserColumnName="costoInventario" type="xs:decimal" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+    <xs:unique name="Constraint1" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:V_CostoInventario" />
+      <xs:field xpath="mstns:id" />
+    </xs:unique>
+  </xs:element>
+</xs:schema>
