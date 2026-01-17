@@ -1,68 +1,59 @@
-﻿using System;
+﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
+using RunApi;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using DAL.Modelo;
-using System.Data.SqlClient;
 
 namespace DAL.Controladores
 {
     public class controladorInventario
     {
-        public static bool CrearEditarEliminarInventario(Inventario objINventario,int Boton)
+        private const string SP_CRUD = "dbo.CRUD_Inventario";
+
+        private static string EscapeJsonForSql(string json)
+        {
+            return (json ?? string.Empty).Replace("'", "''");
+        }
+
+        // ==========================
+        // CRUD (NO lista) -> false, true
+        // Boton: 0=INSERT, 1=UPDATE, 2=DELETE
+        // ==========================
+        public static async Task<RespuestaCRUD> CrearEditarEliminarInventario(Inventario objINventario, int Boton)
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    if (Boton == 0)
-                    {
-                        cn.Inventario.Add(objINventario);
-                    }
-                    if (Boton == 1)
-                    {
-                        cn.Entry(objINventario).State = System.Data.Entity.EntityState.Modified;
-                    }
-                    if (Boton == 2)
-                    {
-                        cn.Entry(objINventario).State = System.Data.Entity.EntityState.Deleted;
-                    }
-                    cn.SaveChanges();
-                    return true;
-                }
+                var json = EscapeJsonForSql(JsonConvert.SerializeObject(objINventario));
+                var query = $"EXEC {SP_CRUD} N'{json}', {Boton}";
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                return JsonConvert.DeserializeObject<RespuestaCRUD>(respuesta);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
-                return false;
+                return new RespuestaCRUD { estado = false, idAfectado = 0, mensaje = error };
             }
         }
-        public static Inventario ConsultarId(int IdInventario)
+
+        // ==========================
+        // Consultar por ID (1 registro) -> false, true
+        // ==========================
+        public static async Task<Inventario> ConsultarId(int IdInventario)
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    return cn.Inventario.AsNoTracking().Where(x => x.id == IdInventario).FirstOrDefault();
-                }
-            }
-            catch(Exception ex)
-            {
-                string error = ex.Message;
-                return null;
-            }
-        }
-        public static Inventario ConsultarIdProducto_IdPresentacion(int IdPro,int IdPres,int IdSede)
-        {
-            try
-            {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    return cn.Inventario.AsNoTracking().Where(x => x.idProducto == IdPro && 
-                    x.idPresentacion==IdPres &&
-                    x.idSede== IdSede).FirstOrDefault();
-                }
+                var query = $@"
+SELECT TOP 1 *
+FROM Inventario WITH (NOLOCK)
+WHERE id = {IdInventario};";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+
+                var lista = JsonConvert.DeserializeObject<List<Inventario>>(jsonReal);
+                return (lista != null && lista.Count > 0) ? lista[0] : null;
             }
             catch (Exception ex)
             {
@@ -70,14 +61,27 @@ namespace DAL.Controladores
                 return null;
             }
         }
-        public static List<V_Inventario> ListaCompleta(int IdProducto,int IdSede)
+
+        // ==========================
+        // Consultar por Producto + Presentacion + Sede (1 registro) -> false, true
+        // ==========================
+        public static async Task<Inventario> ConsultarIdProducto_IdPresentacion(int IdPro, int IdPres, int IdSede)
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    return cn.V_Inventario.AsNoTracking().Where(x=>x.idProducto==IdProducto && x.idSede==IdSede).ToList();
-                }
+                var query = $@"
+SELECT TOP 1 *
+FROM Inventario WITH (NOLOCK)
+WHERE idProducto = {IdPro}
+  AND idPresentacion = {IdPres}
+  AND idSede = {IdSede}
+ORDER BY id DESC;";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+
+                var lista = JsonConvert.DeserializeObject<List<Inventario>>(jsonReal);
+                return (lista != null && lista.Count > 0) ? lista[0] : null;
             }
             catch (Exception ex)
             {
@@ -85,16 +89,55 @@ namespace DAL.Controladores
                 return null;
             }
         }
-        public static Inventario ConsultarGuid(int IdProducto,int IdSede)
+
+        // ==========================
+        // Lista completa desde V_Inventario (LISTA) -> true, true
+        // ==========================
+        public static async Task<List<V_Inventario>> ListaCompleta(int IdProducto, int IdSede)
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    return cn.Inventario.AsNoTracking().Where(x => x.idProducto == IdProducto && x.idSede == IdSede).FirstOrDefault();
-                }
+                var query = $@"
+SELECT *
+FROM V_Inventario WITH (NOLOCK)
+WHERE idProducto = {IdProducto}
+  AND idSede = {IdSede}
+ORDER BY id DESC;";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true); // 👈 LISTA
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+
+                return JsonConvert.DeserializeObject<List<V_Inventario>>(jsonReal);
             }
-            catch(Exception ex)
+            catch (Exception ex)
+            {
+                string error = ex.Message;
+                return null;
+            }
+        }
+
+        // ==========================
+        // Consultar "Guid" (tu método realmente trae 1 registro por producto+sede)
+        // 1 registro -> false, true
+        // ==========================
+        public static async Task<Inventario> ConsultarGuid(int IdProducto, int IdSede)
+        {
+            try
+            {
+                var query = $@"
+SELECT TOP 1 *
+FROM Inventario WITH (NOLOCK)
+WHERE idProducto = {IdProducto}
+  AND idSede = {IdSede}
+ORDER BY id DESC;";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+
+                var lista = JsonConvert.DeserializeObject<List<Inventario>>(jsonReal);
+                return (lista != null && lista.Count > 0) ? lista[0] : null;
+            }
+            catch (Exception ex)
             {
                 string error = ex.Message;
                 return null;

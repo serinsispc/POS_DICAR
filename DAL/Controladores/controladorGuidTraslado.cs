@@ -1,68 +1,91 @@
 ﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
+using RunApi;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace DAL.Controladores
 {
     public class controladorGuidTraslado
     {
-        public static bool CrearEditarEliminar_GuidTraslado(GuidTraslados objGuidTraslado,int Boton)
+        private const string SP_CRUD = "dbo.CRUD_GuidTraslados";
+
+        private static string EscapeJsonForSql(string json)
+        {
+            return (json ?? string.Empty).Replace("'", "''");
+        }
+
+        // ==========================
+        // CRUD (NO lista) -> false, true
+        // Boton: 0=INSERT, 1=UPDATE, 2=DELETE
+        // ==========================
+        public static async Task<RespuestaCRUD> CrearEditarEliminar_GuidTraslado(GuidTraslados objGuidTraslado, int Boton)
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    if (Boton == 0)
-                    {
-                        cn.GuidTraslados.Add(objGuidTraslado);
-                    }
-                    if (Boton == 1)
-                    {
-                        cn.Entry(objGuidTraslado).State = System.Data.Entity.EntityState.Modified;
-                    }
-                    if (Boton == 2)
-                    {
-                        cn.Entry(objGuidTraslado).State = System.Data.Entity.EntityState.Deleted;
-                    }
-                    cn.SaveChanges();
-                    return true;
-                }
+                var json = EscapeJsonForSql(JsonConvert.SerializeObject(objGuidTraslado));
+                var query = $"EXEC {SP_CRUD} N'{json}', {Boton}";
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                return JsonConvert.DeserializeObject<RespuestaCRUD>(respuesta);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
-                return false;
+                return new RespuestaCRUD { estado = false, idAfectado = 0, mensaje = error };
             }
         }
-        public static GuidTraslados Consultar_IdSede_Estado(int IdSede,int Estado)
+
+        // ==========================
+        // Consultar por IdSede + Estado (1 registro)
+        // NO lista -> false, true
+        // ==========================
+        public static async Task<GuidTraslados> Consultar_IdSede_Estado(int IdSede, int Estado)
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    return cn.GuidTraslados.AsNoTracking().Where(x =>
-                    x.idSedeTraslado == IdSede &&
-                    x.estadoGuidTraslado == Estado).FirstOrDefault();
-                }
+                var query = $@"
+SELECT TOP 1 *
+FROM GuidTraslados WITH (NOLOCK)
+WHERE idSedeTraslado = {IdSede}
+  AND estadoGuidTraslado = {Estado}
+ORDER BY id DESC;";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+
+                var lista = JsonConvert.DeserializeObject<List<GuidTraslados>>(jsonReal);
+                return (lista != null && lista.Count > 0) ? lista[0] : null;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
                 return null;
             }
         }
-        public static GuidTraslados Consultar_Guid(string GuidTex)
+
+        // ==========================
+        // Consultar por GuidTex (1 registro)
+        // NO lista -> false, true
+        // ==========================
+        public static async Task<GuidTraslados> Consultar_Guid(string GuidTex)
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    return cn.GuidTraslados.AsNoTracking().Where(x =>
-                    x.guidTex == GuidTex).FirstOrDefault();
-                }
+                var g = (GuidTex ?? string.Empty).Replace("'", "''");
+
+                var query = $@"
+SELECT TOP 1 *
+FROM GuidTraslados WITH (NOLOCK)
+WHERE guidTex = '{g}'
+ORDER BY id DESC;";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+
+                var lista = JsonConvert.DeserializeObject<List<GuidTraslados>>(jsonReal);
+                return (lista != null && lista.Count > 0) ? lista[0] : null;
             }
             catch (Exception ex)
             {
@@ -72,3 +95,4 @@ namespace DAL.Controladores
         }
     }
 }
+

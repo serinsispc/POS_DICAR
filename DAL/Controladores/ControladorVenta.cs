@@ -1,4 +1,6 @@
 ﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -12,283 +14,425 @@ namespace DAL.Controladores
 {
     public class ControladorVenta
     {
-        public static bool Crud(TablaVentas tablaVentas,int Boton)
+        public static bool Crud(TablaVentas tablaVentas, int Boton)
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    if (Boton == 0)
-                    {
-                        cn.TablaVentas.Add(tablaVentas);
-                    }
-                    if (Boton == 1)
-                    {
-                        cn.Entry(tablaVentas).State = System.Data.Entity.EntityState.Modified;
-                    }
-                    if (Boton == 2)
-                    {
-                        cn.Entry(tablaVentas).State = System.Data.Entity.EntityState.Deleted;
-                    }
-                    cn.SaveChanges();
+                // Serializar objeto a JSON
+                var json = JsonConvert.SerializeObject(tablaVentas);
+
+                // Escapar comillas simples para SQL
+                json = json.Replace("'", "''");
+
+                // Ejecutar SP
+                var query = $"EXEC dbo.CRUD_TablaVentas N'{json}', {Boton}";
+                var respuesta = Conection_SQL.ConsultaSQLServer(query, false, true)
+                                             .GetAwaiter()
+                                             .GetResult();
+
+                // Si el SP respondió algo, asumimos OK
+                if (!string.IsNullOrWhiteSpace(respuesta))
                     return true;
-                }
+
+                return false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
                 return false;
             }
         }
-        public static int HallarNumeroVenta(string Tipo,int IdSede)
+        public static int HallarNumeroVenta(string Tipo, int IdSede)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
+                // Evitar errores por comillas simples
+                Tipo = (Tipo ?? "").Replace("'", "''");
+
+                var query = $@"
+SELECT ISNULL(MAX(numeroVenta), 0) AS Numero
+FROM TablaVentas
+WHERE tipoFactura = '{Tipo}'
+  AND IdSede = {IdSede};
+";
+
+                // false = no lista | true = async
+                var respuesta = Conection_SQL
+                    .ConsultaSQLServer(query, false, true)
+                    .GetAwaiter()
+                    .GetResult();
+
+                if (string.IsNullOrWhiteSpace(respuesta))
+                    return 1;
+
+                // El resultado viene como JSON
+                var data = JsonConvert.DeserializeObject<List<dynamic>>(respuesta);
+
+                if (data != null && data.Count > 0 && data[0].Numero != null)
                 {
-                    int? Numero = cn.TablaVentas.AsNoTracking().Where(x=>x.tipoFactura==Tipo && x.IdSede==IdSede).Max(x => (int?)x.numeroVenta);
-                    if (Numero == null)
-                    {
-                        Numero = 0;
-                    }
-                    return Convert.ToInt32(Numero) + 1;
+                    return Convert.ToInt32(data[0].Numero) + 1;
                 }
+
+                return 1;
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
-                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    "Ocurrió un error de conexión.",
+                    "Error De conexión",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
                 return 0;
             }
-
         }
 
         public static TablaVentas ConsultaX_id(int IDVenta)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    return cn.TablaVentas.AsNoTracking().Where(x => x.id == IDVenta).FirstOrDefault();
-                }
+                var query = $"SELECT TOP 1 * FROM TablaVentas WHERE id = {IDVenta}";
+
+                var respuesta = Conection_SQL
+                    .ConsultaSQLServer(query, false, true)
+                    .GetAwaiter()
+                    .GetResult();
+
+                if (string.IsNullOrWhiteSpace(respuesta))
+                    return null;
+
+                var lista = Newtonsoft.Json.JsonConvert
+                    .DeserializeObject<List<TablaVentas>>(respuesta);
+
+                return (lista != null && lista.Count > 0) ? lista[0] : null;
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
-                //MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
         }
+
 
         public static V_TablaVentas ConsultaX_V_id(int IDVenta)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    return cn.V_TablaVentas.AsNoTracking().Where(x => x.id == IDVenta).FirstOrDefault();
-                }
+                var query = $"SELECT TOP 1 * FROM V_TablaVentas WHERE id = {IDVenta}";
+
+                var respuesta = Conection_SQL
+                    .ConsultaSQLServer(query, false, true)
+                    .GetAwaiter()
+                    .GetResult();
+
+                if (string.IsNullOrWhiteSpace(respuesta))
+                    return null;
+
+                var lista = Newtonsoft.Json.JsonConvert
+                    .DeserializeObject<List<V_TablaVentas>>(respuesta);
+
+                return (lista != null && lista.Count > 0) ? lista[0] : null;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
                 return null;
             }
         }
+
 
         public static TablaVentas ConsultaX_guid(Guid guidText)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    return cn.TablaVentas.AsNoTracking().Where(x => x.guidVenta == guidText).FirstOrDefault();
-                }
+                var query = $"SELECT TOP 1 * FROM TablaVentas WHERE guidVenta = '{guidText}'";
+
+                var respuesta = Conection_SQL
+                    .ConsultaSQLServer(query, false, true)
+                    .GetAwaiter()
+                    .GetResult();
+
+                if (string.IsNullOrWhiteSpace(respuesta))
+                    return null;
+
+                var lista = Newtonsoft.Json.JsonConvert
+                    .DeserializeObject<List<TablaVentas>>(respuesta);
+
+                return (lista != null && lista.Count > 0) ? lista[0] : null;
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
-                //MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
         }
-        public static decimal TotalVentasTiendaAño(DateTime Fecha,string TipoVenta,int IdSede)
+        public static decimal TotalVentasTiendaAño(DateTime Fecha, string TipoVenta, int IdSede)
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    decimal? Total = cn.V_TablaVentas.AsNoTracking().Where(x =>x.IdSede==IdSede && 
-                    x.estadoVenta!="ANULADA" && 
-                    //x.tipoVenta == TipoVenta && 
-                    x.fechaVenta.Year == Fecha.Year).Sum(y => (decimal?)y.totalVenta);
-                    if (Total == null)
-                    {
-                        Total = 0;
-                    }
-                    return Convert.ToDecimal(Total);
-                }
+                var inicio = new DateTime(Fecha.Year, 1, 1);
+                var fin = inicio.AddYears(1);
+
+                var query = $@"
+SELECT ISNULL(SUM(totalVenta), 0) AS Total
+FROM V_TablaVentas
+WHERE IdSede = {IdSede}
+  AND estadoVenta <> 'ANULADA'
+  AND fechaVenta >= '{inicio:yyyy-MM-dd HH:mm:ss}'
+  AND fechaVenta <  '{fin:yyyy-MM-dd HH:mm:ss}'
+";
+
+                var respuesta = Conection_SQL
+                    .ConsultaSQLServer(query, false, true)
+                    .GetAwaiter()
+                    .GetResult();
+
+                if (string.IsNullOrWhiteSpace(respuesta))
+                    return 0;
+
+                var data = Newtonsoft.Json.JsonConvert
+                    .DeserializeObject<List<dynamic>>(respuesta);
+
+                if (data != null && data.Count > 0 && data[0].Total != null)
+                    return Convert.ToDecimal(data[0].Total);
+
+                return 0;
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
-                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    "Ocurrió un error de conexión.",
+                    "Error De conexión",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
                 return 0;
             }
-
         }
+
         public static decimal CostoTiendaAño(DateTime Fecha, string TipoVenta, int IdSede)
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    decimal? Total = cn.V_TablaVentas.AsNoTracking().Where(x => x.IdSede == IdSede && 
-                    x.estadoVenta != "ANULADA" && 
-                    //x.tipoVenta == TipoVenta && 
-                    x.fechaVenta.Year == Fecha.Year).Sum(y => (decimal?)y.costoTotalVenta);
-                    if (Total == null)
-                    {
-                        Total = 0;
-                    }
-                    return Convert.ToDecimal(Total);
-                }
+                var inicio = new DateTime(Fecha.Year, 1, 1);
+                var fin = inicio.AddYears(1);
+
+                var query = $@"
+SELECT ISNULL(SUM(costoTotalVenta), 0) AS Total
+FROM V_TablaVentas
+WHERE IdSede = {IdSede}
+  AND estadoVenta <> 'ANULADA'
+  AND fechaVenta >= '{inicio:yyyy-MM-dd HH:mm:ss}'
+  AND fechaVenta <  '{fin:yyyy-MM-dd HH:mm:ss}'
+";
+
+                var respuesta = Conection_SQL
+                    .ConsultaSQLServer(query, false, true)
+                    .GetAwaiter()
+                    .GetResult();
+
+                if (string.IsNullOrWhiteSpace(respuesta))
+                    return 0;
+
+                var data = Newtonsoft.Json.JsonConvert
+                    .DeserializeObject<List<dynamic>>(respuesta);
+
+                if (data != null && data.Count > 0 && data[0].Total != null)
+                    return Convert.ToDecimal(data[0].Total);
+
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                string error = ex.Message;
+                MessageBox.Show(
+                    "Ocurrió un error de conexión.",
+                    "Error De conexión",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
+                return 0;
+            }
+        }
+
+        public static decimal TotalVentasTiendaMes(DateTime Fecha, string TipoVenta, int IdSede)
+        {
+            try
+            {
+                var inicio = new DateTime(Fecha.Year, Fecha.Month, 1);
+                var fin = inicio.AddMonths(1);
+
+                // Evitar problemas con comillas
+                TipoVenta = (TipoVenta ?? "").Replace("'", "''");
+
+                var query = $@"
+SELECT ISNULL(SUM(totalVenta), 0) AS Total
+FROM V_TablaVentas
+WHERE IdSede = {IdSede}
+  AND estadoVenta <> 'ANULADA'
+  AND tipoVenta = '{TipoVenta}'
+  AND fechaVenta >= '{inicio:yyyy-MM-dd HH:mm:ss}'
+  AND fechaVenta <  '{fin:yyyy-MM-dd HH:mm:ss}'
+";
+
+                var respuesta = Conection_SQL
+                    .ConsultaSQLServer(query, false, true)
+                    .GetAwaiter()
+                    .GetResult();
+
+                if (string.IsNullOrWhiteSpace(respuesta))
+                    return 0;
+
+                var data = Newtonsoft.Json.JsonConvert
+                    .DeserializeObject<List<dynamic>>(respuesta);
+
+                if (data != null && data.Count > 0 && data[0].Total != null)
+                    return Convert.ToDecimal(data[0].Total);
+
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                string error = ex.Message;
+                MessageBox.Show(
+                    "Ocurrió un error de conexión.",
+                    "Error De conexión",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
+                return 0;
+            }
+        }
+
+        // ✅ Costo tienda mes (SUM costoTotalVenta) - SCALAR
+        public static async Task<decimal> CostoTiendaMes(DateTime fecha, string tipoVenta, int idSede)
+        {
+            try
+            {
+                // Evita YEAR()/MONTH() para mejor rendimiento (usa rango)
+                var desde = new DateTime(fecha.Year, fecha.Month, 1);
+                var hasta = desde.AddMonths(1);
+
+                string query = $@"
+                SELECT ISNULL(SUM(CAST(costoTotalVenta AS decimal(18,2))), 0) AS Total
+                FROM V_TablaVentas
+                WHERE IdSede = {idSede}
+                  AND estadoVenta <> 'ANULADA'
+                  -- AND tipoVenta = '{EscapeSql(tipoVenta)}'
+                  AND fechaVenta >= '{desde:yyyy-MM-ddTHH:mm:ss}'
+                  AND fechaVenta <  '{hasta:yyyy-MM-ddTHH:mm:ss}';
+            ";
+
+                var json = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                // Esperamos que la API retorne algo como: [{"Total":12345.67}]
+                var rows = JsonConvert.DeserializeObject<System.Collections.Generic.List<ScalarDecimalRow>>(json);
+
+                return (rows != null && rows.Count > 0) ? rows[0].Total : 0m;
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return 0;
+                return 0m;
             }
-
         }
-        public static decimal TotalVentasTiendaMes(DateTime Fecha,string TipoVenta,int IdSede)
+
+        // ✅ Total ventas tienda día (SUM totalVenta) - SCALAR
+        public static async Task<decimal> TotalVentasTiendaDia(DateTime fecha, string tipoVenta, int idSede)
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    decimal? Total = cn.V_TablaVentas.AsNoTracking().Where(x =>x.IdSede==IdSede && x.estadoVenta != "ANULADA" &&
-                                                                    x.tipoVenta == TipoVenta &&
-                                                                    x.fechaVenta.Year == Fecha.Year &&
-                                                                     x.fechaVenta.Month == Fecha.Month).Sum(y => (decimal?)y.totalVenta);
-                    if (Total == null)
-                    {
-                        Total = 0;
-                    }
-                    return Convert.ToDecimal(Total);
-                }
+                var desde = fecha.Date;
+                var hasta = desde.AddDays(1);
+
+                string query = $@"
+                SELECT ISNULL(SUM(CAST(totalVenta AS decimal(18,2))), 0) AS Total
+                FROM V_TablaVentas
+                WHERE IdSede = {idSede}
+                  AND estadoVenta <> 'ANULADA'
+                  -- AND tipoVenta = '{EscapeSql(tipoVenta)}'
+                  AND fechaVenta >= '{desde:yyyy-MM-ddTHH:mm:ss}'
+                  AND fechaVenta <  '{hasta:yyyy-MM-ddTHH:mm:ss}';
+            ";
+
+                var json = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                var rows = JsonConvert.DeserializeObject<System.Collections.Generic.List<ScalarDecimalRow>>(json);
+
+                return (rows != null && rows.Count > 0) ? rows[0].Total : 0m;
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return 0;
+                return 0m;
             }
-
         }
-        public static decimal CostoTiendaMes(DateTime Fecha, string TipoVenta, int IdSede)
+
+        // ✅ Costo tienda día (SUM costoTotalVenta) - SCALAR
+        public static async Task<decimal> CostoTiendaDia(DateTime fecha, string tipoVenta, int idSede)
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    decimal? Total = cn.V_TablaVentas.AsNoTracking().Where(x => x.IdSede == IdSede && x.estadoVenta != "ANULADA" &&
-                                                                    //x.tipoVenta == TipoVenta &&
-                                                                    x.fechaVenta.Year == Fecha.Year &&
-                                                                     x.fechaVenta.Month == Fecha.Month).Sum(y => (decimal?)y.costoTotalVenta);
-                    if (Total == null)
-                    {
-                        Total = 0;
-                    }
-                    return Convert.ToDecimal(Total);
-                }
+                var desde = fecha.Date;
+                var hasta = desde.AddDays(1);
+
+                string query = $@"
+                SELECT ISNULL(SUM(CAST(costoTotalVenta AS decimal(18,2))), 0) AS Total
+                FROM V_TablaVentas
+                WHERE IdSede = {idSede}
+                  AND estadoVenta <> 'ANULADA'
+                  -- AND tipoVenta = '{EscapeSql(tipoVenta)}'
+                  AND fechaVenta >= '{desde:yyyy-MM-ddTHH:mm:ss}'
+                  AND fechaVenta <  '{hasta:yyyy-MM-ddTHH:mm:ss}';
+            ";
+
+                var json = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                var rows = JsonConvert.DeserializeObject<System.Collections.Generic.List<ScalarDecimalRow>>(json);
+
+                return (rows != null && rows.Count > 0) ? rows[0].Total : 0m;
+            }
+            catch (Exception ex)
+            {
+                string error = ex.Message;
+                //MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return 0m;
+            }
+        }
+
+        // ✅ Hallar último ID (MAX) - SCALAR
+        public static async Task<decimal> HallarUltimoID()
+        {
+            try
+            {
+                string query = @"
+                SELECT ISNULL(MAX(CAST(id AS decimal(18,0))), 0) AS Total
+                FROM TablaVentas;
+            ";
+
+                var json = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                var rows = JsonConvert.DeserializeObject<System.Collections.Generic.List<ScalarDecimalRow>>(json);
+
+                return (rows != null && rows.Count > 0) ? rows[0].Total : 0m;
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return 0;
+                return 0m;
             }
+        }
 
-        }
-        public static decimal TotalVentasTiendaDia(DateTime Fecha,string TipoVenta,int idSede)
+        // Modelo simple para leer {"Total":...}
+        private class ScalarDecimalRow
         {
-            try
-            {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    decimal? Total = cn.V_TablaVentas.AsNoTracking().Where(x =>
-                    x.IdSede == idSede &&
-                    x.estadoVenta != "ANULADA" &&
-                    //x.tipoVenta == TipoVenta &&
-                    x.fechaVenta.Year == Fecha.Year &&
-                    x.fechaVenta.Month == Fecha.Month &&
-                    x.fechaVenta.Day == Fecha.Day).Sum(y => (decimal?)y.totalVenta);
-                    if (Total == null)
-                    {
-                        Total = 0;
-                    }
-                    return Convert.ToDecimal(Total);
-                }
-            }
-            catch (Exception ex)
-            {
-                string error = ex.Message;
-                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return 0;
-            }
+            public decimal Total { get; set; }
+        }
 
-        }
-        public static decimal CostoTiendaDia(DateTime Fecha, string TipoVenta, int idSede)
-        {
-            try
-            {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    decimal? Total = cn.V_TablaVentas.AsNoTracking().Where(x =>
-                    x.IdSede == idSede &&
-                    x.estadoVenta != "ANULADA" &&
-                    //x.tipoVenta == TipoVenta &&
-                    x.fechaVenta.Year == Fecha.Year &&
-                    x.fechaVenta.Month == Fecha.Month &&
-                    x.fechaVenta.Day == Fecha.Day).Sum(y => (decimal?)y.costoTotalVenta);
-                    if (Total == null)
-                    {
-                        Total = 0;
-                    }
-                    return Convert.ToDecimal(Total);
-                }
-            }
-            catch (Exception ex)
-            {
-                string error = ex.Message;
-                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return 0;
-            }
-
-        }
-        public static decimal HallarUltimoID()
-        {
-            try
-            {
-                using(SistemaPOSEntities cn =new Modelo.SistemaPOSEntities())
-                {
-                    decimal? UltimoID = cn.TablaVentas.AsNoTracking().Max(x => x.id);
-                    if (UltimoID == null)
-                    {
-                        UltimoID = 0;
-                    }
-                    return Convert.ToDecimal(UltimoID);
-                }
-            }
-            catch(Exception ex)
-            {
-                string error = ex.Message;
-                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return 0;
-            }
-        }
+        // Escape simple por si luego activas el filtro tipoVenta
+        private static string EscapeSql(string input)
+            => (input ?? string.Empty).Replace("'", "''");
         public static DataTable FiltroX_H_Año(DateTime Fecha,int IdSede)
         {
             try
@@ -788,64 +932,20 @@ namespace DAL.Controladores
 
 
 
-        public static List<V_TablaVentas> listaCompleta(int IdSede)
+
+        public static async Task<List<V_TablaVentas>> listaCompleta(int idSede)
         {
             try
             {
-                using(SistemaPOSEntities cn =new Modelo.SistemaPOSEntities())
-                {
-                    return cn.V_TablaVentas.AsNoTracking().Where(x=>x.IdSede==IdSede && x.numeroVenta>0).ToList();
-                }
-            }
-            catch(Exception ex)
-            {
-                string error = ex.Message;
-                return null;
-            }
-        }
-        public static List<V_TablaVentas> filtroNumeroVenta(int NumeroV,int IdSede)
-        {
-            try
-            {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    return cn.V_TablaVentas.AsNoTracking().Where(x => x.numeroVenta == NumeroV && x.IdSede==IdSede).ToList();
-                }
-            }
-            catch(Exception ex)
-            {
-                string Error = ex.Message;
-                return null;
-            }
-        }
-        public static List<V_TablaVentas> filtroDia(DateTime Fecha,int IdSede)
-        {
-            try
-            {
-                using (SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    return cn.V_TablaVentas.AsNoTracking().Where(x => x.fechaVenta.Year == Fecha.Year &&
-                                                                  x.fechaVenta.Month == Fecha.Month &&
-                                                                  x.fechaVenta.Day == Fecha.Day &&
-                                                                  x.IdSede==IdSede).ToList();
-                }
-            }
-            catch(Exception ex)
-            {
-                string error = ex.Message;
-                return null;
-            }
-        }
-        public static List<V_TablaVentas> filtroMes(DateTime Fecha,int IDSede)
-        {
-            try
-            {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    return cn.V_TablaVentas.AsNoTracking().Where(x => x.fechaVenta.Year == Fecha.Year &&
-                                                                  x.fechaVenta.Month == Fecha.Month &&
-                                                                  x.IdSede==IDSede).ToList();
-                }
+                string query = $@"
+                SELECT *
+                FROM V_TablaVentas
+                WHERE IdSede = {idSede}
+                  AND numeroVenta > 0;
+            ";
+
+                var json = await Conection_SQL.ConsultaSQLServer(query, true, true);
+                return JsonConvert.DeserializeObject<List<V_TablaVentas>>(json);
             }
             catch (Exception ex)
             {
@@ -853,14 +953,20 @@ namespace DAL.Controladores
                 return null;
             }
         }
-        public static List<V_TablaVentas> filtroAño(DateTime Fecha,int IdSede)
+
+        public static async Task<List<V_TablaVentas>> filtroNumeroVenta(int numeroV, int idSede)
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    return cn.V_TablaVentas.AsNoTracking().Where(x => x.fechaVenta.Year == Fecha.Year && x.IdSede==IdSede).ToList();
-                }
+                string query = $@"
+                SELECT *
+                FROM V_TablaVentas
+                WHERE numeroVenta = {numeroV}
+                  AND IdSede = {idSede};
+            ";
+
+                var json = await Conection_SQL.ConsultaSQLServer(query, true, true);
+                return JsonConvert.DeserializeObject<List<V_TablaVentas>>(json);
             }
             catch (Exception ex)
             {
@@ -868,123 +974,24 @@ namespace DAL.Controladores
                 return null;
             }
         }
-        public static int HallarTotalVentasEfectivo (string TipoVenta,string EstadoVenta,int IdBase)
+
+        public static async Task<List<V_TablaVentas>> filtroDia(DateTime fecha, int idSede)
         {
             try
             {
-                ConexionSQL.AbrirConexion();
-                SqlCommand cmd = ConexionSQL.connection.CreateCommand();
-                cmd.CommandText = "select "+
-                "isnull(SUM(totalVenta), 0) - ISNULL(SUM(abonoTarjeta), 0) as totalVentasEfectivo "+
-                "from V_TablaVentas "+
-                "where tipoVenta = '"+ TipoVenta + "' and "+
-                "estadoVenta <> '"+ EstadoVenta + "' and "+
-                "idBaseCaja = " + IdBase;
-                DataTable dt = new DataTable();
-                SqlDataAdapter ad = new SqlDataAdapter(cmd);
-                ad.Fill(dt);
-                ConexionSQL.CerrarConexion();
-                if (dt.Rows.Count > 0)
-                {
-                    foreach(DataRow rows in dt.Rows)
-                    {
-                        return Convert.ToInt32(rows["totalVentasEfectivo"]);
-                    }
-                }
-                return 0;
-            }
-            catch(Exception ex)
-            {
-                string error = ex.Message;
-                return 0;
-            }
-        }
-        public static int HallarTotalVentasTarjeta(string TipoVenta, string EstadoVenta, int IdBase)
-        {
-            try
-            {
-                ConexionSQL.AbrirConexion();
-                SqlCommand cmd = ConexionSQL.connection.CreateCommand();
-                cmd.CommandText = "select " +
-                "isnull(SUM(abonoTarjeta), 0) as totalVentasTarjeta " +
-                "from V_TablaVentas " +
-                "where tipoVenta = '" + TipoVenta + "' and " +
-                "estadoVenta <> '" + EstadoVenta + "' and " +
-                "idBaseCaja = " + IdBase;
-                DataTable dt = new DataTable();
-                SqlDataAdapter ad = new SqlDataAdapter(cmd);
-                ad.Fill(dt);
-                ConexionSQL.CerrarConexion();
-                if (dt.Rows.Count > 0)
-                {
-                    foreach (DataRow rows in dt.Rows)
-                    {
-                        return Convert.ToInt32(rows["totalVentasTarjeta"]);
-                    }
-                }
-                return 0;
-            }
-            catch (Exception ex)
-            {
-                string error = ex.Message;
-                return 0;
-            }
-        }
-        public static V_R_VentaCliente ConsultarX_IdCleinte_EstadoVenta(int IdCliente,string estado)
-        {
-            try
-            {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    return cn.V_R_VentaCliente.AsNoTracking().Where(x => x.idCliente == IdCliente && x.estadoVenta == estado).FirstOrDefault();
-                }
-            }
-            catch(Exception ex)
-            {
-                string error = ex.Message;
-                return null;
-            }
-        }
-        public static List<V_FacturasCredito> ListaFacturasCredito(int IDCliente,int Id_Sede)
-        {
-            try
-            {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    return cn.V_FacturasCredito.AsEnumerable().Where(X=>
-                    X.IdSede==Id_Sede &&
-                    X.idCliente== IDCliente).ToList();
-                }
-            }
-            catch(Exception ex)
-            {
-                string error = ex.Message;
-                return null;
-            }
-        }
-        public static List<V_TablaVentas> filtrarVentas_0()
-        {
-            try
-            {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    return cn.V_TablaVentas.AsNoTracking().Where(x => x.totalVenta == 0).ToList();
-                }
-            }
-            catch(Exception ex)
-            {
-                string error = ex.Message;
-                return null;
-            }
-        }
-        public static V_TablaVentas ConsultarVentas_0()
-        {
-            try
-            {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    return cn.V_TablaVentas.AsNoTracking().Where(x =>x.totalVenta == 0).FirstOrDefault();
-                }
+                var desde = fecha.Date;
+                var hasta = desde.AddDays(1);
+
+                string query = $@"
+                SELECT *
+                FROM V_TablaVentas
+                WHERE IdSede = {idSede}
+                  AND fechaVenta >= '{desde:yyyy-MM-ddTHH:mm:ss}'
+                  AND fechaVenta <  '{hasta:yyyy-MM-ddTHH:mm:ss}';
+            ";
+
+                var json = await Conection_SQL.ConsultaSQLServer(query, true, true);
+                return JsonConvert.DeserializeObject<List<V_TablaVentas>>(json);
             }
             catch (Exception ex)
             {
@@ -992,5 +999,220 @@ namespace DAL.Controladores
                 return null;
             }
         }
+
+        public static async Task<List<V_TablaVentas>> filtroMes(DateTime fecha, int idSede)
+        {
+            try
+            {
+                var desde = new DateTime(fecha.Year, fecha.Month, 1);
+                var hasta = desde.AddMonths(1);
+
+                string query = $@"
+                SELECT *
+                FROM V_TablaVentas
+                WHERE IdSede = {idSede}
+                  AND fechaVenta >= '{desde:yyyy-MM-ddTHH:mm:ss}'
+                  AND fechaVenta <  '{hasta:yyyy-MM-ddTHH:mm:ss}';
+            ";
+
+                var json = await Conection_SQL.ConsultaSQLServer(query, true, true);
+                return JsonConvert.DeserializeObject<List<V_TablaVentas>>(json);
+            }
+            catch (Exception ex)
+            {
+                string error = ex.Message;
+                return null;
+            }
+        }
+
+        public static async Task<List<V_TablaVentas>> filtroAño(DateTime fecha, int idSede)
+        {
+            try
+            {
+                var desde = new DateTime(fecha.Year, 1, 1);
+                var hasta = desde.AddYears(1);
+
+                string query = $@"
+                SELECT *
+                FROM V_TablaVentas
+                WHERE IdSede = {idSede}
+                  AND fechaVenta >= '{desde:yyyy-MM-ddTHH:mm:ss}'
+                  AND fechaVenta <  '{hasta:yyyy-MM-ddTHH:mm:ss}';
+            ";
+
+                var json = await Conection_SQL.ConsultaSQLServer(query, true, true);
+                return JsonConvert.DeserializeObject<List<V_TablaVentas>>(json);
+            }
+            catch (Exception ex)
+            {
+                string error = ex.Message;
+                return null;
+            }
+        }
+
+        public static async Task<List<V_TablaVentas>> filtrarVentas_0()
+        {
+            try
+            {
+                string query = @"
+                SELECT *
+                FROM V_TablaVentas
+                WHERE totalVenta = 0;
+            ";
+
+                var json = await Conection_SQL.ConsultaSQLServer(query, true, true);
+                return JsonConvert.DeserializeObject<List<V_TablaVentas>>(json);
+            }
+            catch (Exception ex)
+            {
+                string error = ex.Message;
+                return null;
+            }
+        }
+
+        // =========================
+        //  Totales (SCALAR)
+        // =========================
+
+        public static async Task<int> HallarTotalVentasEfectivo(string tipoVenta, string estadoVenta, int idBase)
+        {
+            try
+            {
+                string query = $@"
+                SELECT 
+                    CAST(
+                        ISNULL(SUM(totalVenta), 0) - ISNULL(SUM(abonoTarjeta), 0)
+                    AS int) AS Total
+                FROM V_TablaVentas
+                WHERE tipoVenta = '{EscapeSql(tipoVenta)}'
+                  AND estadoVenta <> '{EscapeSql(estadoVenta)}'
+                  AND idBaseCaja = {idBase};
+            ";
+
+                var json = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                var rows = JsonConvert.DeserializeObject<List<ScalarIntRow>>(json);
+
+                return (rows != null && rows.Count > 0) ? rows[0].Total : 0;
+            }
+            catch (Exception ex)
+            {
+                string error = ex.Message;
+                return 0;
+            }
+        }
+
+        public static async Task<int> HallarTotalVentasTarjeta(string tipoVenta, string estadoVenta, int idBase)
+        {
+            try
+            {
+                string query = $@"
+                SELECT 
+                    CAST(ISNULL(SUM(abonoTarjeta), 0) AS int) AS Total
+                FROM V_TablaVentas
+                WHERE tipoVenta = '{EscapeSql(tipoVenta)}'
+                  AND estadoVenta <> '{EscapeSql(estadoVenta)}'
+                  AND idBaseCaja = {idBase};
+            ";
+
+                var json = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                var rows = JsonConvert.DeserializeObject<List<ScalarIntRow>>(json);
+
+                return (rows != null && rows.Count > 0) ? rows[0].Total : 0;
+            }
+            catch (Exception ex)
+            {
+                string error = ex.Message;
+                return 0;
+            }
+        }
+
+        // =========================
+        //  V_R_VentaCliente (1 item)
+        // =========================
+
+        public static async Task<V_R_VentaCliente> ConsultarX_IdCleinte_EstadoVenta(int idCliente, string estado)
+        {
+            try
+            {
+                string query = $@"
+                SELECT TOP 1 *
+                FROM V_R_VentaCliente
+                WHERE idCliente = {idCliente}
+                  AND estadoVenta = '{EscapeSql(estado)}';
+            ";
+
+                // Puede devolver lista de 1
+                var json = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                var rows = JsonConvert.DeserializeObject<List<V_R_VentaCliente>>(json);
+
+                return (rows != null && rows.Count > 0) ? rows[0] : null;
+            }
+            catch (Exception ex)
+            {
+                string error = ex.Message;
+                return null;
+            }
+        }
+
+        // =========================
+        //  V_FacturasCredito (LISTA)
+        // =========================
+
+        public static async Task<List<V_FacturasCredito>> ListaFacturasCredito(int idCliente, int idSede)
+        {
+            try
+            {
+                string query = $@"
+                SELECT *
+                FROM V_FacturasCredito
+                WHERE IdSede = {idSede}
+                  AND idCliente = {idCliente};
+            ";
+
+                var json = await Conection_SQL.ConsultaSQLServer(query, true, true);
+                return JsonConvert.DeserializeObject<List<V_FacturasCredito>>(json);
+            }
+            catch (Exception ex)
+            {
+                string error = ex.Message;
+                return null;
+            }
+        }
+
+        // =========================
+        //  ConsultarVentas_0 (1 item)
+        // =========================
+
+        public static async Task<V_TablaVentas> ConsultarVentas_0()
+        {
+            try
+            {
+                string query = @"
+                SELECT TOP 1 *
+                FROM V_TablaVentas
+                WHERE totalVenta = 0;
+            ";
+
+                var json = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                var rows = JsonConvert.DeserializeObject<List<V_TablaVentas>>(json);
+
+                return (rows != null && rows.Count > 0) ? rows[0] : null;
+            }
+            catch (Exception ex)
+            {
+                string error = ex.Message;
+                return null;
+            }
+        }
+
+        // =========================
+        //  Helpers
+        // =========================
+
+        private class ScalarIntRow
+        {
+            public int Total { get; set; }
+        }
+
     }
 }

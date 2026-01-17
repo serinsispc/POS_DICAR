@@ -1,28 +1,37 @@
 ﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace DAL.Controladores
 {
     public class ControladorEstadoInventario
     {
-        public static List<EstadoInventario> listaCompleta()
+        // ==========================
+        // LISTA COMPLETA
+        // ==========================
+        public static async Task<List<EstadoInventario>> listaCompleta()
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    return cn.EstadoInventario.AsNoTracking().ToList();
-                }
+                var query = @"
+SELECT *
+FROM EstadoInventario WITH (NOLOCK)
+ORDER BY id;";
+
+                // 👈 LISTA → true, true
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                // Tu patrón: viene JSON serializado como string
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+
+                return JsonConvert.DeserializeObject<List<EstadoInventario>>(jsonReal);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
-                //MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
         }

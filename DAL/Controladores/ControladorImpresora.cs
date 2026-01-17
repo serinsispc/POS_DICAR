@@ -1,23 +1,33 @@
 ﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace DAL.Controladores
 {
     public class ControladorImpresora
     {
-        public static List<Impresora> listaCompleta()
+        // ==========================
+        // LISTA COMPLETA
+        // ==========================
+        public static async Task<List<Impresora>> listaCompleta()
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    return cn.Impresora.AsNoTracking().ToList();
-                }
+                var query = @"
+SELECT *
+FROM Impresora WITH (NOLOCK)
+ORDER BY nombre_impresora;";
+
+                // 👈 LISTAS → true, true
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                // Patrón actual: JSON serializado como string
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+
+                return JsonConvert.DeserializeObject<List<Impresora>>(jsonReal);
             }
             catch (Exception ex)
             {
@@ -25,7 +35,6 @@ namespace DAL.Controladores
                 //MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
-
         }
     }
 }

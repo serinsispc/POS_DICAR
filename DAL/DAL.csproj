@@ -551,6 +551,10 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RespuestaCRUD.cs" />
+    <Compile Include="SQL\Conection_SQL.cs" />
+    <Compile Include="SQL\JsonHelper.cs" />
+    <Compile Include="SQL\RespuestaSQL.cs" />
     <Compile Include="SQL\Tables\Licencia.cs" />
     <Compile Include="SQL\Views\V_Presentacion.cs" />
     <Compile Include="SQL\Views\V_Proveedor.cs" />

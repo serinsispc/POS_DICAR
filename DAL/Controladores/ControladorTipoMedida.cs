@@ -1,8 +1,7 @@
-﻿using DAL.Modelo;
+﻿using DAL.SQL;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -10,63 +9,127 @@ namespace DAL.Controladores
 {
     public class ControladorTipoMedida
     {
-        public static bool CrearEditarEliminarTipoMedida(TipoMedida objTipo,int Boto)
+        // ============================
+        // CRUD (INSERT/UPDATE/DELETE)
+        // funcion: 0=INSERT, 1=UPDATE, 2=DELETE
+        // ============================
+        public static async Task<RespuestaCRUD> Crud(string json, int funcion)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    if (Boto == 0)
-                    {
-                        cn.TipoMedida.Add(objTipo);
-                    }
-                    if (Boto == 1)
-                    {
-                        cn.Entry(objTipo).State = System.Data.Entity.EntityState.Modified;
-                    }
-                    if (Boto == 2)
-                    {
-                        cn.Entry(objTipo).State = System.Data.Entity.EntityState.Deleted;
-                    }
-                    cn.SaveChanges();
-                    return true;
-                }
+                // Escapar comillas simples para SQL
+                json = EscapeJsonForSql(json);
+
+                var query = $"EXEC dbo.CRUD_TipoMedida N'{json}', {funcion}";
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                return JsonConvert.DeserializeObject<RespuestaCRUD>(respuesta);
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
-                return false;
+                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                return new RespuestaCRUD()
+                {
+                    estado = false,
+                    idAfectado = 0,
+                    mensaje = error
+                };
             }
         }
-        public static List<V_TipoMedida> listaCompleta()
+
+        // Helper: serializa el objeto y llama Crud(json, funcion)
+        public static async Task<RespuestaCRUD> CrearEditarEliminarTipoMedida(TipoMedida objTipo, int Boto)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    return cn.V_TipoMedida.AsNoTracking().ToList();
-                }
-            }
-            catch(Exception ex)
-            {
-                string error = ex.Message;
-                return null;
-            }
-        }
-        public static TipoMedida ConsultarID(int IdTipo)
-        {
-            try
-            {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    return cn.TipoMedida.AsNoTracking().Where(x=>x.id==IdTipo).FirstOrDefault();
-                }
+                var json = JsonConvert.SerializeObject(objTipo);
+                return await Crud(json, Boto);
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
+                MessageBox.Show("Ocurrió un error.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                return new RespuestaCRUD()
+                {
+                    estado = false,
+                    idAfectado = 0,
+                    mensaje = error
+                };
+            }
+        }
+
+        // ============================
+        // LISTA COMPLETA (VIEW)
+        // ============================
+        public static async Task<List<V_TipoMedida>> ListaCompleta()
+        {
+            try
+            {
+                var query = "SELECT * FROM V_TipoMedida";
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true);
+                return JsonConvert.DeserializeObject<List<V_TipoMedida>>(respuesta);
+            }
+            catch (Exception ex)
+            {
+                string error = ex.Message;
+                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
         }
+
+        // ============================
+        // CONSULTAR POR ID (TABLA)
+        // ============================
+        public static async Task<TipoMedida> ConsultarID(int IdTipo)
+        {
+            try
+            {
+                var query = $"SELECT TOP 1 * FROM TipoMedida WHERE id = {IdTipo}";
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                // Si ConsultaSQLServer retorna JSON de lista/tabla, lo más seguro es deserializar a lista y tomar 1
+                var lista = JsonConvert.DeserializeObject<List<TipoMedida>>(respuesta);
+                return (lista != null && lista.Count > 0) ? lista[0] : null;
+            }
+            catch (Exception ex)
+            {
+                string error = ex.Message;
+                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return null;
+            }
+        }
+
+        // ============================
+        // Escape para JSON embebido en SQL
+        // ============================
+        private static string EscapeJsonForSql(string json)
+        {
+            return string.IsNullOrEmpty(json) ? "" : json.Replace("'", "''");
+        }
+    }
+
+    // Ajusta esto a tu modelo real si ya lo tienes definido
+    public class RespuestaCRUD
+    {
+        public bool estado { get; set; }
+        public int idAfectado { get; set; }
+        public string mensaje { get; set; }
+    }
+
+    // Ajusta estos modelos a los tuyos (normalmente ya existen en DAL.Modelo)
+    public class TipoMedida
+    {
+        public int id { get; set; }
+        public string nombreTipoMedida { get; set; }
+        public string letraTipoMedida { get; set; }
+    }
+
+    public class V_TipoMedida
+    {
+        public int id { get; set; }
+        public string nombreTipoMedida { get; set; }
+        public string letraTipoMedida { get; set; }
     }
 }

@@ -1,37 +1,44 @@
-﻿using System;
+﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
+using RunApi;
+using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DAL.Modelo;
 using System.Windows.Forms;
-using System.Data;
-using System.Data.SqlClient;
 
 namespace DAL.Controladores.Tienda
 {
     public class ConotroladorCategoria
     {
-        public static bool Crear_Editar_Eliminar_Categoria(CategoriaProducto objCategoria, int Boton)
+        public static async Task<bool> Crear_Editar_Eliminar_Categoria(CategoriaProducto objCategoria, int Boton)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
+                var json = JsonConvert.SerializeObject(objCategoria);
+
+                // Si estás usando tu ajustador, déjalo como siempre:
+                // json = AjustarJoson.Ajustar(json);
+
+                // Escapar comillas simples para SQL
+                json = json.Replace("'", "''");
+
+                var query = $"EXEC dbo.CRUD_CategoriaProducto N'{json}', {Boton}";
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true); // respuesta unica
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    if (Boton == 0)
-                    {
-                        cn.CategoriaProducto.Add(objCategoria);
-                    }
-                    if (Boton == 1)
-                    {
-                        cn.Entry(objCategoria).State = System.Data.Entity.EntityState.Modified;
-                    }
-                    if (Boton == 2)
-                    {
-                        cn.Entry(objCategoria).State = System.Data.Entity.EntityState.Deleted;
-                    }
-                    return true;
+                    var r = JsonConvert.DeserializeObject<RespuestaCRUD>(resp);
+
+                    // Si en tu RespuestaCRUD "estado" es int, usa: r.estado == 1
+                    return r != null && r.estado;
                 }
+
+                return false;
             }
             catch (Exception ex)
             {
@@ -39,13 +46,21 @@ namespace DAL.Controladores.Tienda
                 return false;
             }
         }
-        public static List<v_CategoriaProducto> listaCompleta()
+        public static async Task<List<v_CategoriaProducto>> listaCompleta()
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
+                var query = @"select * from v_CategoriaProducto";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true); // true = lista
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    return cn.v_CategoriaProducto.AsNoTracking().ToList();
+                    return JsonConvert.DeserializeObject<List<v_CategoriaProducto>>(resp);
+                }
+                else
+                {
+                    return null;
                 }
             }
             catch (Exception ex)
@@ -54,25 +69,30 @@ namespace DAL.Controladores.Tienda
                 return null;
             }
         }
-        public static DataTable Lista()
+
+        public static async Task<List<v_CategoriaProducto>> Lista()
         {
             try
             {
-                ConexionSQL.AbrirConexion();
-                SqlCommand command = ConexionSQL.connection.CreateCommand();
-                command.CommandText = "select *from v_CategoriaProducto";
-                DataTable dataTable = new DataTable();
-                SqlDataAdapter adapter = new SqlDataAdapter(command);
-                ConexionSQL.CerrarConexion();
-                adapter.Fill(dataTable);
-                return dataTable;
+                var query = @"select * from v_CategoriaProducto";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true); // true = lista
+
+                if (!string.IsNullOrEmpty(resp))
+                {
+                    return JsonConvert.DeserializeObject<List<v_CategoriaProducto>>(resp);
+                }
+                else
+                {
+                    return null;
+                }
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
-                //MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
         }
+
     }
 }

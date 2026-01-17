@@ -1,4 +1,6 @@
-﻿using DAL.Modelo;
+﻿using DAL.Controladores.OrdenServicio;
+using DAL.Modelo;
+using DAL.SQL;
 using Newtonsoft.Json;
 using RunApi;
 using System;
@@ -16,19 +18,9 @@ namespace DAL.Controladores.Version_Software
         {
             try
             {
-                var api = new ClassAPI();
-
-                // Endpoint definido en el controlador API:
-                var url = $"/api/VersionSoftware/Consultar/{VersionActual}";
-
-                // Si no pasas NombreDB, usa la default de ClassAPI (DBDicarDistribuciones)
-                var respuesta = await api.HttpWebRequestPostAsync(url);
-
-                if (string.IsNullOrWhiteSpace(respuesta))
-                    return null;
-
-                var version = JsonConvert.DeserializeObject<VersionSoftware>(respuesta);
-                return version;
+                var query = $"select top 1  *from VersionSoftware where id_versionsoftware={VersionActual}";
+                var resultado = await Conection_SQL.ConsultaSQLServer(query,false,true);
+                return JsonConvert.DeserializeObject<VersionSoftware>(resultado);
             }
             catch (Exception ex)
             {
@@ -42,20 +34,11 @@ namespace DAL.Controladores.Version_Software
         {
             try
             {
-                var api = new ClassAPI();
-
-                // Endpoint que definimos en el controlador:
-                var url = "/api/VersionSoftware/UltimaVersion";
-
-                // No necesitamos cuerpo JSON, ni cambiar la DB (usa la default de ClassAPI si no pasas NombreDB)
-                var respuesta = await api.HttpWebRequestPostAsync(url);
-
-                if (string.IsNullOrWhiteSpace(respuesta))
-                    return 0;
-
-                // La API devuelve solo un número: ej. 5
-                int ultima = JsonConvert.DeserializeObject<int>(respuesta);
-                return ultima;
+                var query = $"select MAX(id_versionsoftware) from VersionSoftware";
+                var resultado = await Conection_SQL.ConsultaSQLServer(query,false,true);
+                var obj = JsonConvert.DeserializeObject<dynamic>(resultado);
+                int numero = obj.Column1;
+                return numero;
             }
             catch (Exception ex)
             {
@@ -65,45 +48,53 @@ namespace DAL.Controladores.Version_Software
                 return 0;
             }
         }
-        public static bool Crear_Editar_Eliminar_Version(VersionSoftware objVersion,int Boton)
+
+        // Escape de comillas simples para SQL
+        private static string EscapeJsonForSql(string json)
+            => (json ?? string.Empty).Replace("'", "''");
+
+        // =========================
+        // CRUD (INSERT/UPDATE/DELETE)
+        // Boton: 0=INSERT, 1=UPDATE, 2=DELETE
+        // =========================
+        public static async Task<bool> Crear_Editar_Eliminar_Version(VersionSoftware objVersion, int boton)
         {
             try
             {
-                using (SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    if(Boton == 0)
-                    {
-                        cn.VersionSoftware.Add(objVersion);
-                    }
-                    if(Boton == 1)
-                    {
-                        cn.Entry(objVersion).State = System.Data.Entity.EntityState.Modified;
-                    }
-                    if (Boton == 2)
-                    {
-                        cn.Entry(objVersion).State = System.Data.Entity.EntityState.Deleted;
-                    }
-                    cn.SaveChanges();
-                    return true;
-                }
+                // Serializa el objeto a JSON
+                var json = JsonConvert.SerializeObject(objVersion);
+                json = EscapeJsonForSql(json);
+
+                // Ejecuta SP (no-lista)
+                var query = $"EXEC dbo.CRUD_VersionSoftware N'{json}', {boton}";
+                var respJson = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                // El SP normalmente retorna algo tipo [{"estado":true,"idAfectado":1,"mensaje":"..."}]
+                var respList = JsonConvert.DeserializeObject<List<RespuestaCRUD>>(respJson);
+                var resp = (respList != null && respList.Count > 0) ? respList[0] : null;
+
+                return resp.estado;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
         }
-        public static List<VersionSoftware> listaCompleta()
+
+        // =========================
+        // LISTA COMPLETA (SELECT lista)
+        // =========================
+        public static async Task<List<VersionSoftware>> listaCompleta()
         {
             try
             {
-                using(SistemaPOSEntities cn=new Modelo.SistemaPOSEntities())
-                {
-                    return cn.VersionSoftware.AsNoTracking().ToList();
-                }
+                string query = "SELECT * FROM dbo.VersionSoftware;";
+                var json = await Conection_SQL.ConsultaSQLServer(query, true, true);
+                return JsonConvert.DeserializeObject<List<VersionSoftware>>(json);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
                 //MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);

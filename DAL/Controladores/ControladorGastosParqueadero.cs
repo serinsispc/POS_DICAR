@@ -1,8 +1,9 @@
 ﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
+using RunApi;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -10,310 +11,305 @@ namespace DAL.Controladores
 {
     public class ControladorGastos
     {
-        /// <summary>
-        /// Prosediiento encargado de crear, editar y eliminar dependiendo el caso
-        /// </summary>
-        /// <param name="objGastoP"></param>
-        /// <param name="Boton"></param>
-        /// <returns></returns>
-        public static bool Guardar_Editar_Eliminar_Gasto(Gastos objGastoP,int Boton)
+        private const string SP_CRUD = "dbo.CRUD_Gastos";
+
+        private static string EscapeJsonForSql(string json)
+        {
+            return (json ?? string.Empty).Replace("'", "''");
+        }
+
+        // ==========================
+        // CRUD (NO lista) -> false, true
+        // ==========================
+        public static async Task<RespuestaCRUD> Guardar_Editar_Eliminar_Gasto(Gastos objGastoP, int Boton)
         {
             try
             {
-                using(SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    if(Boton == 0)
-                    {
-                        cn.Gastos.Add(objGastoP);
-                    }
-                    if(Boton == 1)
-                    {
-                        cn.Entry(objGastoP).State = System.Data.Entity.EntityState.Modified;
-                    }
-                    if(Boton == 2)
-                    {
-                        cn.Entry(objGastoP).State = System.Data.Entity.EntityState.Deleted;
-                    }
-                    cn.SaveChanges();
-                    return true;
-                }
+                var json = EscapeJsonForSql(JsonConvert.SerializeObject(objGastoP));
+                var query = $"EXEC {SP_CRUD} N'{json}', {Boton}";
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                return JsonConvert.DeserializeObject<RespuestaCRUD>(respuesta);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return false;
+                return new RespuestaCRUD { estado = false, idAfectado = 0, mensaje = ex.Message };
             }
         }
-        /// <summary>
-        /// Consulta Toda la lista de gastos
-        /// </summary>
-        /// <returns></returns>
-        public static List<V_Gastos> ConsultaTodosLosGastos(int IdSede)
+
+        // ==========================
+        // LISTA COMPLETA (V_Gastos) -> true, true
+        // ==========================
+        public static async Task<List<V_Gastos>> ConsultaTodosLosGastos(int IdSede)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    return cn.V_Gastos.AsNoTracking().Where(x=>x.idSede==IdSede).ToList();
-                }
+                var query = $@"
+SELECT *
+FROM V_Gastos WITH (NOLOCK)
+WHERE idSede = {IdSede}
+ORDER BY fecha DESC, id DESC;";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true);
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+                return JsonConvert.DeserializeObject<List<V_Gastos>>(jsonReal);
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
                 return null;
             }
-
         }
-        /// <summary>
-        /// Consulta gasto por id
-        /// </summary>
-        /// <param name="pid"></param>
-        /// <returns></returns>
-        public static Gastos ConsultaGastoXId(int pid)
+
+        // ==========================
+        // CONSULTA POR ID (1 registro) -> false, true
+        // ==========================
+        public static async Task<Gastos> ConsultaGastoXId(int pid)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    return cn.Gastos.AsNoTracking().Where(x => x.id == pid).FirstOrDefault();
-                }
+                var query = $@"
+SELECT TOP 1 *
+FROM Gastos WITH (NOLOCK)
+WHERE id = {pid};";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+                var lista = JsonConvert.DeserializeObject<List<Gastos>>(jsonReal);
+                return (lista != null && lista.Count > 0) ? lista[0] : null;
             }
             catch (Exception ex)
             {
-                string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
-
         }
-        /// <summary>
-        /// Consulta gasto por fecha
-        /// </summary>
-        /// <param name="pFecha"></param>
-        /// <returns></returns>
-        public static List <V_Gastos> ConsultaGastoXFecha(DateTime pFecha)
+
+        // ==========================
+        // LISTA POR FECHA (día exacto) -> true, true
+        // Nota: tu método original NO filtraba por sede.
+        // ==========================
+        public static async Task<List<V_Gastos>> ConsultaGastoXFecha(DateTime pFecha)
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    return cn.V_Gastos.AsNoTracking().Where(x => x.fecha.Year == pFecha.Year &&
-                                                                         x.fecha.Month == pFecha.Month &&
-                                                                         x.fecha.Day == pFecha.Day).ToList();
-                }
+                var query = $@"
+SELECT *
+FROM V_Gastos WITH (NOLOCK)
+WHERE CAST(fecha AS date) = '{pFecha:yyyy-MM-dd}'
+ORDER BY fecha DESC, id DESC;";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true);
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+                return JsonConvert.DeserializeObject<List<V_Gastos>>(jsonReal);
             }
             catch (Exception ex)
             {
-                string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
-
         }
-        /// <summary>
-        /// Consulta el total de gastos del dia seleccionado 
-        /// </summary>
-        /// <param name="Fecha"></param>
-        /// <returns></returns>
-        public static int HallarTotalGastosDia(DateTime Fecha,int IdSede)
+
+        // ==========================
+        // SUMAS (NO lista) -> false, true
+        // ==========================
+        public static async Task<int> HallarTotalGastosDia(DateTime Fecha, int IdSede)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    int? Total = cn.Gastos.AsNoTracking().Where(x =>x.idSede==IdSede && x.fecha.Year == Fecha.Year &&
-                                                                               x.fecha.Month == Fecha.Month &&
-                                                                               x.fecha.Day == Fecha.Day).Sum(y => (int?)y.valor);
-                    if (Total == null)
-                    {
-                        Total = 0;
-                    }
-                    return Convert.ToInt32(Total);
-                }
+                var query = $@"
+SELECT ISNULL(SUM(CAST(valor AS INT)),0) AS total
+FROM Gastos WITH (NOLOCK)
+WHERE idSede = {IdSede}
+  AND CAST(fecha AS date) = '{Fecha:yyyy-MM-dd}';";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+                var row = JsonConvert.DeserializeObject<List<dynamic>>(jsonReal);
+                return Convert.ToInt32(row[0].total);
             }
             catch (Exception ex)
             {
-                string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return 0;
             }
-
         }
-        public static int HallarTotalGastoFull(int IdSede)
+
+        public static async Task<int> HallarTotalGastoFull(int IdSede)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    int? Total = cn.Gastos.AsNoTracking().Where(x=>x.idSede==IdSede).Sum(y => (int?)y.valor);
-                    if (Total == null)
-                    {
-                        Total = 0;
-                    }
-                    return Convert.ToInt32(Total);
-                }
+                var query = $@"
+SELECT ISNULL(SUM(CAST(valor AS INT)),0) AS total
+FROM Gastos WITH (NOLOCK)
+WHERE idSede = {IdSede};";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+                var row = JsonConvert.DeserializeObject<List<dynamic>>(jsonReal);
+                return Convert.ToInt32(row[0].total);
             }
             catch (Exception ex)
             {
-                string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return 0;
             }
-
         }
-        /// <summary>
-        /// sumar el total de gastos del mes
-        /// </summary>
-        /// <param name="Fecha"></param>
-        /// <returns></returns>
-        public static int HallarTotalGastosMes(DateTime Fecha,int IdSede)
+
+        public static async Task<int> HallarTotalGastosMes(DateTime Fecha, int IdSede)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    int? Total = cn.Gastos.AsNoTracking().Where(x =>x.idSede==IdSede && x.fecha.Year == Fecha.Year &&
-                                                                              x.fecha.Month == Fecha.Month).Sum(y => (int?)y.valor);
-                    if (Total == null)
-                    {
-                        Total = 0;
-                    }
-                    return Convert.ToInt32(Total);
-                }
+                var query = $@"
+SELECT ISNULL(SUM(CAST(valor AS INT)),0) AS total
+FROM Gastos WITH (NOLOCK)
+WHERE idSede = {IdSede}
+  AND YEAR(fecha) = {Fecha.Year}
+  AND MONTH(fecha) = {Fecha.Month};";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+                var row = JsonConvert.DeserializeObject<List<dynamic>>(jsonReal);
+                return Convert.ToInt32(row[0].total);
             }
             catch (Exception ex)
             {
-                string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return 0;
             }
-
         }
-        /// <summary>
-        /// suma total de gastos del año
-        /// </summary>
-        /// <param name="Fecha"></param>
-        /// <returns></returns>
-        public static int HallarTotalGastosAño(DateTime Fecha,int IdSede)
+
+        public static async Task<int> HallarTotalGastosAño(DateTime Fecha, int IdSede)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    int? Total = cn.Gastos.AsNoTracking().Where(x => x.idSede == IdSede && x.fecha.Year == Fecha.Year).Sum(y => (int?)y.valor);
-                    if (Total == null)
-                    {
-                        Total = 0;
-                    }
-                    return Convert.ToInt32(Total);
-                }
+                var query = $@"
+SELECT ISNULL(SUM(CAST(valor AS INT)),0) AS total
+FROM Gastos WITH (NOLOCK)
+WHERE idSede = {IdSede}
+  AND YEAR(fecha) = {Fecha.Year};";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+                var row = JsonConvert.DeserializeObject<List<dynamic>>(jsonReal);
+                return Convert.ToInt32(row[0].total);
             }
             catch (Exception ex)
             {
-                string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return 0;
             }
-
         }
-        /// <summary>
-        /// Huna todo los egresos del dia actual
-        /// </summary>
-        /// <param name="pfecha"></param>
-        /// <returns></returns>
-        public static int HallarValorEgresoParqueadero(DateTime pfecha)
+
+        // Igual a tu original: no filtra por sede
+        public static async Task<int> HallarValorEgresoParqueadero(DateTime pfecha)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    int? sumaegresoparqueadero = cn.Gastos.AsNoTracking().Where(x => x.fecha.Year == pfecha.Year &&
-                                                                                                x.fecha.Month == pfecha.Month &&
-                                                                                                x.fecha.Day == pfecha.Day).Sum(y => (int?)y.valor);
-                    if (sumaegresoparqueadero == null)
-                    {
-                        sumaegresoparqueadero = 0;
-                    }
-                    return Convert.ToInt32(sumaegresoparqueadero);
-                }
+                var query = $@"
+SELECT ISNULL(SUM(CAST(valor AS INT)),0) AS total
+FROM Gastos WITH (NOLOCK)
+WHERE CAST(fecha AS date) = '{pfecha:yyyy-MM-dd}';";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+                var row = JsonConvert.DeserializeObject<List<dynamic>>(jsonReal);
+                return Convert.ToInt32(row[0].total);
             }
             catch (Exception ex)
             {
-                string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return 0;
             }
-
         }
-        public static List<V_Gastos>FiltrarX_Año(DateTime FechaFiltro,int IdSede)
+
+        // ==========================
+        // FILTROS (V_Gastos) -> true, true
+        // ==========================
+        public static async Task<List<V_Gastos>> FiltrarX_Año(DateTime FechaFiltro, int IdSede)
         {
             try
             {
-                using (SistemaPOSEntities cn =new Modelo.SistemaPOSEntities())
-                {
-                    return cn.V_Gastos.AsNoTracking().Where(x =>x.idSede==IdSede && x.fecha.Year == FechaFiltro.Year).ToList();
-                }
+                var query = $@"
+SELECT *
+FROM V_Gastos WITH (NOLOCK)
+WHERE idSede = {IdSede}
+  AND YEAR(fecha) = {FechaFiltro.Year}
+ORDER BY fecha DESC, id DESC;";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true);
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+                return JsonConvert.DeserializeObject<List<V_Gastos>>(jsonReal);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
         }
-        public static List<V_Gastos> FiltrarX_Mes(DateTime FechaFiltro,int IdSede)
+
+        public static async Task<List<V_Gastos>> FiltrarX_Mes(DateTime FechaFiltro, int IdSede)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    return cn.V_Gastos.AsNoTracking().Where(x =>x.idSede ==IdSede && x.fecha.Year == FechaFiltro.Year&&
-                                                                     x.fecha.Month==FechaFiltro.Month).ToList();
-                }
+                var query = $@"
+SELECT *
+FROM V_Gastos WITH (NOLOCK)
+WHERE idSede = {IdSede}
+  AND YEAR(fecha) = {FechaFiltro.Year}
+  AND MONTH(fecha) = {FechaFiltro.Month}
+ORDER BY fecha DESC, id DESC;";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true);
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+                return JsonConvert.DeserializeObject<List<V_Gastos>>(jsonReal);
             }
             catch (Exception ex)
             {
-                string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
         }
-        public static List<V_Gastos> FiltrarX_Dia(DateTime FechaFiltro,int IdSede)
+
+        public static async Task<List<V_Gastos>> FiltrarX_Dia(DateTime FechaFiltro, int IdSede)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    return cn.V_Gastos.AsNoTracking().Where(x =>
-                    x.idSede ==IdSede && 
-                    x.fecha.Year == FechaFiltro.Year &&
-                    x.fecha.Month == FechaFiltro.Month&&
-                    x.fecha.Day==FechaFiltro.Day).ToList();
-                }
+                var query = $@"
+SELECT *
+FROM V_Gastos WITH (NOLOCK)
+WHERE idSede = {IdSede}
+  AND CAST(fecha AS date) = '{FechaFiltro:yyyy-MM-dd}'
+ORDER BY fecha DESC, id DESC;";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true);
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+                return JsonConvert.DeserializeObject<List<V_Gastos>>(jsonReal);
             }
             catch (Exception ex)
             {
-                string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
         }
-        public static int TotalGastosBolsillo(int Bolsillo,int idBase)
+
+        // ==========================
+        // TOTAL POR BOLSILLO (NO lista) -> false, true
+        // ==========================
+        public static async Task<int> TotalGastosBolsillo(int Bolsillo, int idBase)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    int? Gasto = cn.Gastos.AsNoTracking().Where(x =>
-                                                                         x.idBolsillo == Bolsillo &&
-                                                                         x.idBasecaja==idBase).Sum(x => (int?)x.valor);
-                    if (Gasto == null)
-                    {
-                        Gasto = 0;
-                    }
-                    return Convert.ToInt32(Gasto);
-                }
+                var query = $@"
+SELECT ISNULL(SUM(CAST(valor AS INT)),0) AS total
+FROM Gastos WITH (NOLOCK)
+WHERE idBolsillo = {Bolsillo}
+  AND idBasecaja = {idBase};";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+                var row = JsonConvert.DeserializeObject<List<dynamic>>(jsonReal);
+                return Convert.ToInt32(row[0].total);
             }
             catch (Exception ex)
             {

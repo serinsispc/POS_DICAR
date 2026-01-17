@@ -1,8 +1,8 @@
 ﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -10,16 +10,16 @@ namespace DAL.Controladores
 {
     public class ControladorUnidadMedida
     {
-        public static List<TipoMedida> ListaCompleta()
+        public static async Task<List<TipoMedida>> ListaCompleta()
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    return cn.TipoMedida.AsNoTracking().ToList();
-                }
+                var query = "SELECT * FROM TipoMedida";
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                return JsonConvert.DeserializeObject<List<TipoMedida>>(respuesta);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);

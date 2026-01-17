@@ -1,4 +1,7 @@
 ﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
+using RunApi;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,13 +13,19 @@ namespace DAL.Controladores.Administrador
 {
     public class ControladorAdminControl
     {
-        public static AdminControl Consultar()
+        public static async Task<AdminControl> Consultar()
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
+                var query = $"select top 1 *from AdminControl where tipo_admincontrol<>0";
+                var resp = await Conection_SQL.ConsultaSQLServer(query,false,true);
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    return cn.AdminControl.AsNoTracking().Where(x => x.tipo_admincontrol != 0).FirstOrDefault();
+                    return JsonConvert.DeserializeObject<AdminControl>(resp);
+                }
+                else
+                {
+                    return null;
                 }
             }
             catch(Exception ex)
@@ -27,31 +36,48 @@ namespace DAL.Controladores.Administrador
             }
 
         }
-        public static List<AdminControl> listaCompleta()
+        public static async Task<List<AdminControl>> listaCompleta()
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
+                var query = @"select * from AdminControl";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    return cn.AdminControl.AsNoTracking().ToList();
+                    return JsonConvert.DeserializeObject<List<AdminControl>>(resp);
                 }
+
+                return null;
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
-                //MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                // MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
-
         }
-        public static AdminControl Consultar2()
+
+        public static async Task<AdminControl> Consultar2()
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
+                var query = @"
+            select top 1 *
+            from AdminControl
+            where id_admincontrol > 1
+              and tipo_admincontrol <> 0
+        ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    return cn.AdminControl.AsNoTracking().Where(x => x.id_admincontrol > 1 && x.tipo_admincontrol != 0).FirstOrDefault();
+                    return JsonConvert.DeserializeObject<AdminControl>(resp);
                 }
+
+                return null;
             }
             catch (Exception ex)
             {
@@ -59,16 +85,26 @@ namespace DAL.Controladores.Administrador
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
-
         }
-        public static AdminControl ConsularXId(int ID)
+
+        public static async Task<AdminControl> ConsularXId(int ID)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
+                var query = $@"
+            select top 1 *
+            from AdminControl
+            where id_admincontrol > {ID}
+        ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    return cn.AdminControl.AsNoTracking().Where(x => x.id_admincontrol > ID).FirstOrDefault();
+                    return JsonConvert.DeserializeObject<AdminControl>(resp);
                 }
+
+                return null;
             }
             catch (Exception ex)
             {
@@ -76,29 +112,31 @@ namespace DAL.Controladores.Administrador
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
-
         }
-        public static bool Crear_Editar_Elimiar_Mensaje(AdminControl Obja, int Boton)
+
+        public static async Task<bool> Crear_Editar_Elimiar_Mensaje(AdminControl Obja, int Boton)
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
+                var json = JsonConvert.SerializeObject(Obja);
+
+                // Si usas tu ajustador, déjalo como siempre:
+                // json = AjustarJoson.Ajustar(json);
+
+                json = json.Replace("'", "''");
+
+                var query = $"EXEC dbo.CRUD_AdminControl N'{json}', {Boton}";
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true); // respuesta unica
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    if (Boton == 0)
-                    {
-                        cn.AdminControl.Add(Obja);
-                    }
-                    if (Boton == 1)
-                    {
-                        cn.Entry(Obja).State = System.Data.Entity.EntityState.Modified;
-                    }
-                    if (Boton == 2)
-                    {
-                        cn.Entry(Obja).State = System.Data.Entity.EntityState.Deleted;
-                    }
-                    cn.SaveChanges();
-                    return true;
+                    var r = JsonConvert.DeserializeObject<RespuestaCRUD>(resp);
+
+                    // Si estado es int: return r != null && r.estado == 1;
+                    return r != null && r.estado;
                 }
+
+                return false;
             }
             catch (Exception ex)
             {
@@ -107,5 +145,6 @@ namespace DAL.Controladores.Administrador
                 return false;
             }
         }
+
     }
 }

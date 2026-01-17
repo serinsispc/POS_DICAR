@@ -1,70 +1,77 @@
-﻿using System;
+﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
+using RunApi;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using DAL.Modelo;
+using System.Windows.Forms;
 
 namespace DAL.Controladores.Administrador
 {
     public class controladorSedeAsignada
     {
-        public static bool CrearEditarEliminanrSedeAsignada(SedesAsignadas objSedeAsignada,int Boton)
+        /// <summary>
+        /// 0=INSERT, 1=UPDATE, 2=DELETE
+        /// </summary>
+        public static async Task<RespuestaCRUD> Crud(SedesAsignadas objSedeAsignada, int funcion)
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    if(Boton == 0)
-                    {
-                        cn.SedesAsignadas.Add(objSedeAsignada);
-                    }
-                    if(Boton == 1)
-                    {
-                        cn.Entry(objSedeAsignada).State = System.Data.Entity.EntityState.Modified;
-                    }
-                    if (Boton == 2)
-                    {
-                        cn.Entry(objSedeAsignada).State = System.Data.Entity.EntityState.Deleted;
-                    }
-                    cn.SaveChanges();
-                    return true;
-                }
-            }
-            catch(Exception ex)
-            {
-                string error = ex.Message;
-                return false;
-            }
-        }
-        public static List<V_SedesAsignadas> listaCompleta()
-        {
-            try
-            {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    return cn.V_SedesAsignadas.AsNoTracking().ToList();
-                }
-            }
-            catch(Exception ex)
-            {
-                string error = ex.Message;
-                return null;
-            }
-        }
-        public static SedesAsignadas consultarUsuarioSede(int Idusuario,int IdSede)
-        {
-            try
-            {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    return cn.SedesAsignadas.AsNoTracking().Where(x => x.idusuarioAsignado == Idusuario &&
-                                                                     x.idSedeAsignada == IdSede).FirstOrDefault();
-                }
+                var json = JsonConvert.SerializeObject(objSedeAsignada);
+                json = json.Replace("'", "''"); // EscapeJsonForSql básico (tu patrón)
+
+                var query = $"EXEC dbo.CRUD_SedesAsignadas N'{json}', {funcion}";
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                return JsonConvert.DeserializeObject<RespuestaCRUD>(resp);
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
+                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                return new RespuestaCRUD()
+                {
+                    estado = false,
+                    mensaje = error
+                };
+            }
+        }
+
+        public static async Task<List<V_SedesAsignadas>> listaCompleta()
+        {
+            try
+            {
+                var query = "SELECT * FROM V_SedesAsignadas";
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true); // LISTA = true
+                return JsonConvert.DeserializeObject<List<V_SedesAsignadas>>(resp);
+            }
+            catch (Exception ex)
+            {
+                string error = ex.Message;
+                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return null;
+            }
+        }
+
+        public static async Task<SedesAsignadas> consultarUsuarioSede(int Idusuario, int IdSede)
+        {
+            try
+            {
+                var query =
+                    $"SELECT TOP 1 * FROM SedesAsignadas " +
+                    $"WHERE idusuarioAsignado = {Idusuario} AND idSedeAsignada = {IdSede}";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true); // single = false
+                return JsonConvert.DeserializeObject<SedesAsignadas>(resp);
+            }
+            catch (Exception ex)
+            {
+                string error = ex.Message;
+                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
         }

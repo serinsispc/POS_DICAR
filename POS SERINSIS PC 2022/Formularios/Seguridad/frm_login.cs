@@ -34,7 +34,6 @@ namespace SERINSI_PC.Formularios.Seguridad
         int IdUsuarioLogueado;
         private async void frm_login_Load(object sender, EventArgs e)
         {
-            //string ClaveLicencia = "WSC5Y-2HO96-SGR7U"; //Licencia HAROL
             string ClaveLicencia = "WSC5Y-2HO96-SGR5U"; //Licencia DrogueriaVariedadesYanilu
 
             Licencia objLicencia = new Licencia();
@@ -58,10 +57,6 @@ namespace SERINSI_PC.Formularios.Seguridad
                 {
                     MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
-                    //MessageBox.Show("Serinsis PC. Le informa que aún está pendiente la activación de su software.");
-                    //frmIngresarLicencia frm = new frmIngresarLicencia();
-                    //frm.LicenciaSoftware = ClaveLicencia;
-                    //frm.ShowDialog();
                 }
             }
             //*****************************************************************
@@ -113,7 +108,7 @@ namespace SERINSI_PC.Formularios.Seguridad
                 string error = ex.Message;
             }
         }
-        private void btnIngresar_Click(object sender, EventArgs e)
+        private async void btnIngresar_Click(object sender, EventArgs e)
         {
             if (txtUsuario.Text == "programador" && txtClave.Text == "emilio1990")
             {
@@ -124,17 +119,17 @@ namespace SERINSI_PC.Formularios.Seguridad
                 return;
             }
             //verificamos el estado del admincontrol
-            ConsultarMensaje();
+            await ConsultarMensaje();
             //creamos un objeto para consultar el usuario y la clave
             Usuario objUsuario = new Usuario();
-            objUsuario = ControladorUsuario.ConsultaUsuarioYClave(txtUsuario.Text, txtClave.Text);
+            objUsuario =await ControladorUsuario.ConsultaUsuarioYClave(txtUsuario.Text, txtClave.Text);
             if (objUsuario != null)//preguntamos si encontro resultado
             {
                 //llenamos lasvariables locales
                 IdUsuarioLogueado = objUsuario.id;
                 NombreUsuarioLogueado = objUsuario.nombreUsuario;
                 TipoUsuario objtipo = new TipoUsuario();
-                objtipo = controladorTipoUsuario.consultarID(Convert.ToInt32(objUsuario.idTipoUsuario));
+                objtipo =await controladorTipoUsuario.consultarID(Convert.ToInt32(objUsuario.idTipoUsuario));
                 if (objtipo != null)
                 {
                     TipoUsuario = objtipo.nombreTipoUsuario;
@@ -142,16 +137,16 @@ namespace SERINSI_PC.Formularios.Seguridad
 
                 VariablesPublicas.IdTipoUsuario = Convert.ToInt32(objUsuario.idTipoUsuario);
                 //Antes de ingresar al sistema verificamos cuantas sedes tiene asignadas el usuario
-                int Sedes = controladorSedesAsignadas.SumarSedesAsignadas(IdUsuarioLogueado);
+                int Sedes =await controladorSedesAsignadas.SumarSedesAsignadas(IdUsuarioLogueado);
                 if (Sedes == 1)
                 {
                     SedesAsignadas objSA = new SedesAsignadas();
-                    objSA = controladorSedesAsignadas.consultarIDUsuario(IdUsuarioLogueado);
+                    objSA =await controladorSedesAsignadas.consultarIDUsuario(IdUsuarioLogueado);
                     if (objSA != null)
                     {
                         VariablesPublicas.IdEmpresaLogueada = objSA.idSedeAsignada;
                         //ahora llamos la funcion para ingresar
-                        Ingresar();
+                        await Ingresar();
                     }
 
                 }
@@ -161,7 +156,7 @@ namespace SERINSI_PC.Formularios.Seguridad
                     lbSedes.Visible = true;
                     lbSedes.ValueMember = "V_idSedeAsignada";
                     lbSedes.DisplayMember = "v_nombre_empresa";
-                    lbSedes.DataSource = controladorSedesAsignadas.filtroXIdUsuario(IdUsuarioLogueado);
+                    lbSedes.DataSource =await controladorSedesAsignadas.filtroXIdUsuario(IdUsuarioLogueado);
                     lbSedes.SelectedIndex = 0;
                     lbSedes.Focus();
                 }
@@ -256,7 +251,7 @@ namespace SERINSI_PC.Formularios.Seguridad
             //}
         }
 
-        private void lbSedes_KeyDown(object sender, KeyEventArgs e)
+        private async void lbSedes_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Escape)
             {
@@ -268,7 +263,7 @@ namespace SERINSI_PC.Formularios.Seguridad
                 {
                     VariablesPublicas.IdEmpresaLogueada = Convert.ToInt32(lbSedes.SelectedValue);
                     lbSedes.Visible = false;
-                    Ingresar();
+                    await Ingresar();
                 }
             }
         }
@@ -278,9 +273,9 @@ namespace SERINSI_PC.Formularios.Seguridad
 
 
         #region Funciones
-        public void Ingresar()
+        public async Task Ingresar()
         {
-            Class_Informacion.CargarInformaionEmpresa();
+            await Class_Informacion.CargarInformaionEmpresa();
             //llenamos las variables globales
             VariablesPublicas.IdUsuarioLogueado = IdUsuarioLogueado;
             VariablesPublicas.NombreUsuarioActivo = NombreUsuarioLogueado;
@@ -296,11 +291,11 @@ namespace SERINSI_PC.Formularios.Seguridad
             frm.txtCargoUsuario.Text = VariablesPublicas.TipoUsuarioLogueado;
             frm.Show();
         }
-        private void ConsultarMensaje()
+        private async Task ConsultarMensaje()
         {
             //verificamos el estado del admincontrol
             AdminControl objAC = new AdminControl();
-            objAC = ControladorAdminControl.Consultar();
+            objAC =await ControladorAdminControl.Consultar();
             if (objAC != null)
             {
                 if (objAC.tipo_admincontrol == 1)
@@ -319,7 +314,7 @@ namespace SERINSI_PC.Formularios.Seguridad
                 }
             }
         }
-        private void VerificarConexionEquipo()
+        private async Task VerificarConexionEquipo()
         {
             ManagementObjectSearcher mos = new ManagementObjectSearcher("root\\CIMV2", "SELECT * FROM Win32_BaseBoard");
             foreach (ManagementObject mo in mos.Get())
@@ -333,7 +328,7 @@ namespace SERINSI_PC.Formularios.Seguridad
                     string version = mo.GetPropertyValue("version").ToString();
                     //consultamos el numero del serial da la boar
                     AutorizacionPC objAPC = new AutorizacionPC();
-                    objAPC = ControladorAutorizacionPC.ConsultarXSerial(SerialNumber, Manufacturer, Product, version, 1);
+                    objAPC =await ControladorAutorizacionPC.ConsultarXSerial(SerialNumber, Manufacturer, Product, version, 1);
                     if (objAPC == null)
                     {
                         MessageBox.Show("Sofinpro le informa que no hay autorización para este equipo." + Environment.NewLine + Environment.NewLine +

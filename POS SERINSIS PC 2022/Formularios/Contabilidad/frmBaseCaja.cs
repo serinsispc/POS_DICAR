@@ -22,14 +22,14 @@ namespace SERINSI_PC.Formularios.Contabilidad
             InitializeComponent();
         }
 
-        private void frmBaseCaja_Load(object sender, EventArgs e)
+        private async void frmBaseCaja_Load(object sender, EventArgs e)
         {
             cmbBolsillo.Items.Add("Caja Menor");
             cmbBolsillo.Items.Add("Banco");
             cmbBolsillo.SelectedIndex = 0;
             //en esta parte consultamos si hay una base de caja activa
             BaseCaja objBase = new BaseCaja();
-            objBase = ControladorBaseCaja.consultaBaseActiva("ACTIVA",VariablesPublicas.IdUsuarioLogueado,VariablesPublicas.IdEmpresaLogueada);
+            objBase =await ControladorBaseCaja.consultaBaseActiva("ACTIVA",VariablesPublicas.IdUsuarioLogueado,VariablesPublicas.IdEmpresaLogueada);
             if (objBase != null)
             {
                 MessageBox.Show("Serinsis PC le informa que ya hay una base activa por lo tanto no es posible crear una base nueva.", "Base Activa", MessageBoxButtons.OK, MessageBoxIcon.Information);

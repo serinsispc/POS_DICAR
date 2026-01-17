@@ -1,81 +1,65 @@
-﻿using System;
+﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
+using RunApi;
+using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
-using DAL.Modelo;
 
 namespace DAL.Controladores.Administrador
 {
     public class ControladorCategoriaProducto
     {
-        public static bool Crear_Editar_Eliminar_Categoria(CategoriaProducto objCategoria,int Boton)
+        public static async Task<bool> Crear_Editar_Eliminar_Categoria(CategoriaProducto objCategoria, int Boton)
         {
             try
             {
-                using(SistemaPOSEntities cn =new Modelo.SistemaPOSEntities())
+                var json = JsonConvert.SerializeObject(objCategoria);
+
+                // Si usas tu ajustador, déjalo como siempre:
+                // json = AjustarJoson.Ajustar(json);
+
+                json = json.Replace("'", "''");
+
+                var query = $"EXEC dbo.CRUD_CategoriaProducto N'{json}', {Boton}";
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    if(Boton == 0)
-                    {
-                        cn.CategoriaProducto.Add(objCategoria);
-                    }
-                    if (Boton == 1)
-                    {
-                        cn.Entry(objCategoria).State = System.Data.Entity.EntityState.Modified;
-                    }
-                    if (Boton == 2)
-                    {
-                        cn.Entry(objCategoria).State = System.Data.Entity.EntityState.Deleted;
-                    }
-                    cn.SaveChanges();
-                    return true;
+                    var r = JsonConvert.DeserializeObject<RespuestaCRUD>(resp);
+
+                    // Si estado es int: return r != null && r.estado == 1;
+                    return r != null && r.estado;
                 }
+
+                return false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
                 return false;
             }
         }
-        public static List<CategoriaProducto> ListaCompleta()
+
+        public static async Task<List<CategoriaProducto>> ListaCompleta()
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
+                var query = @"
+                    select *
+                    from CategoriaProducto
+                    order by nombreCategoria
+                ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    return cn.CategoriaProducto.AsNoTracking().OrderBy(x=>x.nombreCategoria).ToList();
+                    return JsonConvert.DeserializeObject<List<CategoriaProducto>>(resp);
                 }
-            }
-            catch(Exception ex)
-            {
-                string error = ex.Message;
-                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
                 return null;
-            }
-        }
-        public static CategoriaProducto ConsultarGuid(Guid guidCat)
-        {
-            try
-            {
-                using(SistemaPOSEntities cn =new Modelo.SistemaPOSEntities())
-                {
-                    return cn.CategoriaProducto.AsNoTracking().Where(x => x.guidCategoria == guidCat).FirstOrDefault();
-                }
-            }
-            catch(Exception ex)
-            {
-                string error = ex.Message;
-                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return null;
-            }
-        }
-        public static List< CategoriaProducto> FiltroX_Categoria(string Categoria)
-        {
-            try
-            {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    return cn.CategoriaProducto.AsNoTracking().Where(x => x.nombreCategoria.Contains(Categoria)).OrderBy(x=>x.nombreCategoria).ToList();
-                }
             }
             catch (Exception ex)
             {
@@ -84,14 +68,25 @@ namespace DAL.Controladores.Administrador
                 return null;
             }
         }
-        public static CategoriaProducto ConsultarMayorA(int IDCategoria)
+
+        public static async Task<CategoriaProducto> ConsultarGuid(Guid guidCat)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
+                var query = $@"
+                    select top 1 *
+                    from CategoriaProducto
+                    where guidCategoria = '{guidCat}'
+                ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    return cn.CategoriaProducto.AsNoTracking().Where(x => x.id >= IDCategoria).FirstOrDefault();
+                    return JsonConvert.DeserializeObject<CategoriaProducto>(resp);
                 }
+
+                return null;
             }
             catch (Exception ex)
             {
@@ -100,31 +95,114 @@ namespace DAL.Controladores.Administrador
                 return null;
             }
         }
-        public static CategoriaProducto ConsultarNombre(string nombre)
+
+        public static async Task<List<CategoriaProducto>> FiltroX_Categoria(string Categoria)
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
+                // Escape simple para LIKE (comillas)
+                var cat = (Categoria ?? "").Replace("'", "''");
+
+                var query = $@"
+                    select *
+                    from CategoriaProducto
+                    where nombreCategoria like '%{cat}%'
+                    order by nombreCategoria
+                ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    return cn.CategoriaProducto.AsNoTracking().Where(x => x.nombreCategoria == nombre).FirstOrDefault();
+                    return JsonConvert.DeserializeObject<List<CategoriaProducto>>(resp);
                 }
+
+                return null;
             }
-            catch(Exception ex)
+            catch (Exception ex)
+            {
+                string error = ex.Message;
+                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return null;
+            }
+        }
+
+        public static async Task<CategoriaProducto> ConsultarMayorA(int IDCategoria)
+        {
+            try
+            {
+                var query = $@"
+                    select top 1 *
+                    from CategoriaProducto
+                    where id >= {IDCategoria}
+                    order by id
+                ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
+                {
+                    return JsonConvert.DeserializeObject<CategoriaProducto>(resp);
+                }
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                string error = ex.Message;
+                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return null;
+            }
+        }
+
+        public static async Task<CategoriaProducto> ConsultarNombre(string nombre)
+        {
+            try
+            {
+                var nom = (nombre ?? "").Replace("'", "''");
+
+                var query = $@"
+                    select top 1 *
+                    from CategoriaProducto
+                    where nombreCategoria = '{nom}'
+                ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
+                {
+                    return JsonConvert.DeserializeObject<CategoriaProducto>(resp);
+                }
+
+                return null;
+            }
+            catch (Exception ex)
             {
                 string error = ex.Message;
                 return null;
             }
         }
-        public static CategoriaProducto ConsulatarID(int Id)
+
+        public static async Task<CategoriaProducto> ConsulatarID(int Id)
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
+                var query = $@"
+                    select top 1 *
+                    from CategoriaProducto
+                    where id = {Id}
+                ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    return cn.CategoriaProducto.AsNoTracking().Where(x => x.id == Id).FirstOrDefault();
+                    return JsonConvert.DeserializeObject<CategoriaProducto>(resp);
                 }
+
+                return null;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
                 return null;

@@ -29,12 +29,12 @@ namespace POS_SERINSIS_PC_2022.Formularios.Configuracion
             InitializeComponent();
         }
 
-        private void frmRutero_Load(object sender, EventArgs e)
+        private async void frmRutero_Load(object sender, EventArgs e)
         {
             //en esta aprte cargamos todas las listas
-            CargarListaRutero();
-            ListaCliente = ControladorClienteTienda.ListaCompleta();
-            ListaVendedor = controladorVendedor.Lista_Completa();
+            await CargarListaRutero();
+            ListaCliente =await ControladorClienteTienda.ListaCompleta();
+            ListaVendedor =await controladorVendedor.Lista_Completa();
 
             Cargar_CB_Dias();
             GestionarBotones(0);
@@ -48,9 +48,9 @@ namespace POS_SERINSIS_PC_2022.Formularios.Configuracion
             cbVendedor.DataSource = controladorVendedor.Lista_Completa();
             cbVendedor.SelectedIndex = -1;
         }
-        private void CargarListaRutero()
+        private async Task CargarListaRutero()
         {
-            ListaRutero = controladorRutero.ListaCompleta();
+            ListaRutero =await controladorRutero.ListaCompleta();
         }
         private void Cargar_CB_Dias()
         {
@@ -162,24 +162,24 @@ namespace POS_SERINSIS_PC_2022.Formularios.Configuracion
             SeleccionarRuta();
         }
 
-        private void btnGuardar_Click(object sender, EventArgs e)
+        private async void btnGuardar_Click(object sender, EventArgs e)
         {
             bool validar = ValidarCampos();
             if (validar == true)
             {
-                bool gestionar = GestionarRutero(0);
+                bool gestionar =await GestionarRutero(0);
                 if (gestionar == true)
                 {
-                    CargarListaRutero();
+                    await CargarListaRutero();
                     MessageBox.Show("¡Rutero Guardado correctamente...!","¡OK!",MessageBoxButtons.OK,MessageBoxIcon.Exclamation);
                     btnRefrescar.PerformClick();
                 }
             }
         }
-        private bool GestionarRutero(int Boton)
+        private async Task<bool> GestionarRutero(int Boton)
         {
             R_ClienteVendedor r_Cliente = new R_ClienteVendedor();
-            r_Cliente = controlador_R_ClienteVendedor.Consultar_IdRutero(IdRutero);
+            r_Cliente =await controlador_R_ClienteVendedor.Consultar_IdRutero(IdRutero);
             if (r_Cliente != null)
             {
                 if (Boton == 0)
@@ -196,7 +196,7 @@ namespace POS_SERINSIS_PC_2022.Formularios.Configuracion
             r_Cliente.idCliente = IdCliente_frm;
             r_Cliente.idVendedor = IdVendedor_frm;
             r_Cliente.idSemana = Convert.ToInt32(cbDia.SelectedValue);
-            return controlador_R_ClienteVendedor.Crud(r_Cliente,Boton);     
+            return await controlador_R_ClienteVendedor.Crud(r_Cliente,Boton);     
         }
         private bool ValidarCampos()
         {
@@ -210,32 +210,32 @@ namespace POS_SERINSIS_PC_2022.Formularios.Configuracion
             }
         }
 
-        private void btnEditar_Click(object sender, EventArgs e)
+        private async void btnEditar_Click(object sender, EventArgs e)
         {
             bool validar = ValidarCampos();
             if (validar == true)
             {
-                bool gestionar = GestionarRutero(1);
+                bool gestionar =await GestionarRutero(1);
                 if (gestionar == true)
                 {
-                    CargarListaRutero();
+                    await CargarListaRutero();
                     MessageBox.Show("¡Rutero Editado correctamente...!", "¡OK!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                     btnRefrescar.PerformClick();
                 }
             }
         }
 
-        private void btnEliminar_Click(object sender, EventArgs e)
+        private async void btnEliminar_Click(object sender, EventArgs e)
         {
 
 
             bool validar = ValidarCampos();
             if (validar == true)
             {
-                bool gestionar = GestionarRutero(2);
+                bool gestionar =await GestionarRutero(2);
                 if (gestionar == true)
                 {
-                    CargarListaRutero();
+                    await CargarListaRutero();
                     MessageBox.Show("¡Rutero Eliminado correctamente...!", "¡OK!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                     btnRefrescar.PerformClick();
                 }

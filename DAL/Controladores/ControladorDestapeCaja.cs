@@ -1,37 +1,39 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
+using RunApi;
+using System;
 using System.Threading.Tasks;
-using DAL.Modelo;
 
 namespace DAL.Controladores
 {
     public class ControladorDestapeCaja
     {
-        public static bool CrearEditarEliminarDestapeCaja(DestapeProducto objDP,int Boton)
+        public static async Task<bool> CrearEditarEliminarDestapeCaja(DestapeProducto objDP, int Boton)
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
+                var json = JsonConvert.SerializeObject(objDP);
+
+                // Si usas tu ajustador, déjalo como siempre:
+                // json = AjustarJoson.Ajustar(json);
+
+                json = json.Replace("'", "''");
+
+                var query = $"EXEC dbo.CRUD_DestapeProducto N'{json}', {Boton}";
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    if(Boton == 0)
-                    {
-                        cn.DestapeProducto.Add(objDP);
-                    }
-                    if (Boton == 1)
-                    {
-                        cn.Entry(objDP).State = System.Data.Entity.EntityState.Modified;
-                    }
-                    if (Boton == 2)
-                    {
-                        cn.Entry(objDP).State = System.Data.Entity.EntityState.Deleted;
-                    }
-                    cn.SaveChanges();
-                    return true;
+                    var r = JsonConvert.DeserializeObject<RespuestaCRUD>(resp);
+
+                    // Si estado es int: return r != null && r.estado == 1;
+                    return r != null && r.estado;
                 }
+
+                return false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
                 return false;

@@ -1,10 +1,9 @@
 ﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
+using RunApi;
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -12,63 +11,80 @@ namespace DAL.Controladores
 {
     public class ControladorPermisoSubModulo
     {
-        public static bool CrearEliminarPermisomodulo(PermisoSubModulo objPermiso, int Boton)
+        private const string SP_CRUD = "dbo.CRUD_PermisoSubModulo";
+
+        private static string EscapeJsonForSql(string json)
+        {
+            return (json ?? string.Empty).Replace("'", "''");
+        }
+
+        // =====================================================
+        // CRUD -> false, true
+        // Boton: 0=INSERT | 2=DELETE
+        // =====================================================
+        public static async Task<RespuestaCRUD> CrearEliminarPermisomodulo(PermisoSubModulo objPermiso, int Boton)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
+                var json = EscapeJsonForSql(JsonConvert.SerializeObject(objPermiso));
+                var query = $"EXEC {SP_CRUD} N'{json}', {Boton}";
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                return JsonConvert.DeserializeObject<RespuestaCRUD>(respuesta);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return new RespuestaCRUD
                 {
-                    if (Boton == 0)
-                    {
-                        cn.PermisoSubModulo.Add(objPermiso);
-                    }
-                    if (Boton == 2)
-                    {
-                        cn.Entry(objPermiso).State = System.Data.Entity.EntityState.Deleted;
-                    }
-                    cn.SaveChanges();
-                    return true;
-                }
+                    estado = false,
+                    idAfectado = 0,
+                    mensaje = ex.Message
+                };
+            }
+        }
+
+        // =====================================================
+        // LISTA -> true, true
+        // =====================================================
+        public static async Task<List<PermisoSubModulo>> filtroIdUsuario(int IdUsuario)
+        {
+            try
+            {
+                var query = $@"
+SELECT *
+FROM PermisoSubModulo WITH (NOLOCK)
+WHERE idUsuario = {IdUsuario}
+ORDER BY id DESC;";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true); // LISTA
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+                return JsonConvert.DeserializeObject<List<PermisoSubModulo>>(jsonReal);
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return false;
-            }
-        }
-        public static List<PermisoSubModulo> filtroIdUsuario(int IdUsuario)
-        {
-            try
-            {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    return cn.PermisoSubModulo.AsNoTracking().Where(x => x.idUsuario == IdUsuario).ToList();
-                }
-            }
-            catch (Exception ex)
-            {
-                string error = ex.Message;
-                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
         }
-        public static DataTable consultarIdusuario(int IdUsuario)
+
+        // =====================================================
+        // Antes devolvía DataTable.
+        // Ahora devolvemos LISTA (tu estándar) -> true, true
+        // =====================================================
+        public static async Task<List<PermisoSubModulo>> consultarIdusuario(int IdUsuario)
         {
             try
             {
-                ConexionSQL.AbrirConexion();
-                SqlCommand cmd = ConexionSQL.connection.CreateCommand();
-                cmd.CommandText = "select *from PermisoSubModulo where idUsuario="+IdUsuario;
-                DataTable dt = new DataTable();
-                SqlDataAdapter ad = new SqlDataAdapter(cmd);
-                ad.Fill(dt);
-                ConexionSQL.CerrarConexion();
-                if (dt.Rows.Count > 0)
-                {
-                    return dt;
-                }
-                return null;
+                var query = $@"
+SELECT *
+FROM PermisoSubModulo WITH (NOLOCK)
+WHERE idUsuario = {IdUsuario}
+ORDER BY id DESC;";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true); // LISTA
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+                return JsonConvert.DeserializeObject<List<PermisoSubModulo>>(jsonReal);
             }
             catch (Exception ex)
             {
@@ -76,16 +92,28 @@ namespace DAL.Controladores
                 return null;
             }
         }
-        public static PermisoSubModulo consultarIdSubModuloIdusuario(int IdUsuario,int IdSubmodulo)
+
+        // =====================================================
+        // 1 registro -> false, true
+        // =====================================================
+        public static async Task<PermisoSubModulo> consultarIdSubModuloIdusuario(int IdUsuario, int IdSubmodulo)
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    return cn.PermisoSubModulo.AsNoTracking().Where(x => x.idUsuario == IdUsuario && x.idSubModulo == IdSubmodulo).FirstOrDefault();
-                }
+                var query = $@"
+SELECT TOP 1 *
+FROM PermisoSubModulo WITH (NOLOCK)
+WHERE idUsuario = {IdUsuario}
+  AND idSubModulo = {IdSubmodulo}
+ORDER BY id DESC;";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+
+                var lista = JsonConvert.DeserializeObject<List<PermisoSubModulo>>(jsonReal);
+                return (lista != null && lista.Count > 0) ? lista[0] : null;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
                 return null;

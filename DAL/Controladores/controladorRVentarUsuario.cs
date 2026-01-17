@@ -1,91 +1,126 @@
 ﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
+using RunApi;
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace DAL.Controladores
 {
     public class controladorRVentarUsuario
     {
-        public static R_VentaUsuario Consultar_IdUsuario_IdVenta(int IdUser, int IdVenta, int IdEstado)
+        public static async Task<R_VentaUsuario> Consultar_IdUsuario_IdVenta(int IdUser, int IdVenta, int IdEstado)
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    return cn.R_VentaUsuario.AsNoTracking().Where(x => x.idUsuario == IdUser && x.idVenta == IdVenta && x.estado == IdEstado).FirstOrDefault();
-                }
+                var query = $@"
+select top 1 *
+from R_VentaUsuario
+where idUsuario = {IdUser}
+  and idVenta = {IdVenta}
+  and estado = {IdEstado};";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                return JsonConvert.DeserializeObject<R_VentaUsuario>(resp);
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
+                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
         }
-        public static bool CrearEditarEliminarR_VentaUsuario(R_VentaUsuario objR,int Boton)
+
+        public static async Task<RespuestaCRUD> Crud(string json, int funcion)
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    if (Boton == 0)
-                    {
-                        cn.R_VentaUsuario.Add(objR);
-                    }
-                    if (Boton == 1)
-                    {
-                        cn.Entry(objR).State = System.Data.Entity.EntityState.Modified;
-                    }
-                    if (Boton == 2)
-                    {
-                        cn.Entry(objR).State = System.Data.Entity.EntityState.Deleted;
-                    }
-                    cn.SaveChanges();
-                    return true;
-                }
+                json = json.Replace("'", "''"); // EscapeJsonForSql (tu patrón)
+                var query = $"EXEC dbo.CRUD_R_VentaUsuario N'{json}', {funcion}";
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                return JsonConvert.DeserializeObject<RespuestaCRUD>(resp);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                string error = ex.Message;
-                return false;
+                string mensaje = ex.Message;
+                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                return new RespuestaCRUD()
+                {
+                    estado = false,
+                    mensaje = mensaje
+                };
             }
         }
-        public static R_VentaUsuario Consultar_IdUsuario_Estado(int IdUser, int estado)
+
+        public static async Task<RespuestaCRUD> CrearEditarEliminarR_VentaUsuario(R_VentaUsuario objR, int Boton)
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
+                var json = JsonConvert.SerializeObject(objR);
+                // si tú tienes AjustarJoson.Ajustar(json) úsalo aquí:
+                // json = AjustarJoson.Ajustar(json);
+
+                return await Crud(json, Boton);
+            }
+            catch (Exception ex)
+            {
+                string mensaje = ex.Message;
+                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                return new RespuestaCRUD()
                 {
-                    return cn.R_VentaUsuario.AsNoTracking().Where(x => x.idUsuario == IdUser && x.estado == estado).FirstOrDefault();
-                }
+                    estado = false,
+                    mensaje = mensaje
+                };
+            }
+        }
+
+        public static async Task<R_VentaUsuario> Consultar_IdUsuario_Estado(int IdUser, int estado)
+        {
+            try
+            {
+                var query = $@"
+select top 1 *
+from R_VentaUsuario
+where idUsuario = {IdUser}
+  and estado = {estado};";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                return JsonConvert.DeserializeObject<R_VentaUsuario>(resp);
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
+                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
         }
-        public static DataTable Lista(int IdUser, int estado)
+
+        public static async Task<List<R_VentaUsuario>> Lista(int IdUser, int estado)
         {
             try
             {
-                ConexionSQL.AbrirConexion();
-                SqlCommand command = ConexionSQL.connection.CreateCommand();
-                command.CommandText = "select *from R_VentaUsuario where idUsuario=" + IdUser + " and estado=" + estado;
-                DataTable dataTable = new DataTable();
-                SqlDataAdapter adapter = new SqlDataAdapter(command);
-                ConexionSQL.CerrarConexion();
-                adapter.Fill(dataTable);
-                return dataTable;
+                var query = $@"
+select *
+from R_VentaUsuario
+where idUsuario = {IdUser}
+  and estado = {estado};";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
+                return JsonConvert.DeserializeObject<List<R_VentaUsuario>>(resp);
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
-                //MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
         }

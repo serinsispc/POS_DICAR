@@ -1,57 +1,70 @@
 ﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
+using RunApi;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace DAL.Controladores
 {
     public class controlador_R_ClienteVendedor
     {
-        public static bool Crud(R_ClienteVendedor r_Cliente,int Boton)
+        public static async Task<bool> Crud(R_ClienteVendedor r_Cliente, int Boton)
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
+                var json = JsonConvert.SerializeObject(r_Cliente);
+
+                // Si manejas tu ajustador, úsalo como siempre:
+                // json = AjustarJoson.Ajustar(json);
+
+                // Escapar comillas simples para SQL
+                json = json.Replace("'", "''");
+
+                var query = $"EXEC dbo.CRUD_R_ClienteVendedor N'{json}', {Boton}";
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    if (Boton == 0)
-                    {
-                        cn.R_ClienteVendedor.Add(r_Cliente);
-                    }
-                    if (Boton == 1)
-                    {
-                        cn.Entry(r_Cliente).State = System.Data.Entity.EntityState.Modified;
-                    }
-                    if (Boton == 2)
-                    {
-                        cn.Entry(r_Cliente).State = System.Data.Entity.EntityState.Deleted;
-                    }
-                    cn.SaveChanges();
-                    return true;
+                    var r = JsonConvert.DeserializeObject<RespuestaCRUD>(resp);
+
+                    // Si estado es int: return r != null && r.estado == 1;
+                    return r != null && r.estado;
                 }
+
+                return false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
                 return false;
             }
         }
-        public static R_ClienteVendedor Consultar_IdRutero(int IdRutero)
+
+        public static async Task<R_ClienteVendedor> Consultar_IdRutero(int IdRutero)
         {
             try
             {
-                using(SistemaPOSEntities cn = new SistemaPOSEntities())
+                var query = $@"
+                    select top 1 *
+                    from R_ClienteVendedor
+                    where id = {IdRutero}
+                ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    return cn.R_ClienteVendedor.AsNoTracking().Where(x => x.id == IdRutero).FirstOrDefault();
+                    return JsonConvert.DeserializeObject<R_ClienteVendedor>(resp);
                 }
+
+                return null;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
                 return null;
             }
         }
-
     }
 }

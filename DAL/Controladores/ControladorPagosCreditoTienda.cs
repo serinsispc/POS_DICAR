@@ -1,211 +1,270 @@
-﻿using System;
+﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
+using RunApi;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using DAL.Modelo;
 using System.Windows.Forms;
 
 namespace DAL.Controladores
 {
-    public  class ControladorPagosCreditoTienda
+    public class ControladorPagosCreditoTienda
     {
-        public static bool Crear_Editar_Eliminar_PagoCreditoTienda(PagosCreditoTienda objPCT,int Boton)
+        private const string SP_CRUD = "dbo.CRUD_PagosCreditoTienda";
+
+        private static string EscapeJsonForSql(string json)
+        {
+            return (json ?? string.Empty).Replace("'", "''");
+        }
+
+        // =====================================================
+        // CRUD (NO lista) -> false, true
+        // Boton: 0=INSERT | 1=UPDATE | 2=DELETE
+        // =====================================================
+        public static async Task<RespuestaCRUD> Crear_Editar_Eliminar_PagoCreditoTienda(PagosCreditoTienda objPCT, int Boton)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    if (Boton == 0)
-                    {
-                        cn.PagosCreditoTienda.Add(objPCT);
-                    }
-                    if (Boton == 1)
-                    {
-                        cn.Entry(objPCT).State = System.Data.Entity.EntityState.Modified;
-                    }
-                    if (Boton == 2)
-                    {
-                        cn.Entry(objPCT).State = System.Data.Entity.EntityState.Deleted;
-                    }
-                    cn.SaveChanges();
-                    return true;
-                }
+                var json = EscapeJsonForSql(JsonConvert.SerializeObject(objPCT));
+                var query = $"EXEC {SP_CRUD} N'{json}', {Boton}";
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                return JsonConvert.DeserializeObject<RespuestaCRUD>(respuesta);
             }
             catch (Exception ex)
             {
-                string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return false;
+                return new RespuestaCRUD
+                {
+                    estado = false,
+                    idAfectado = 0,
+                    mensaje = ex.Message
+                };
             }
         }
-        public static List<R_PagoCredito> FiltroX_Año(DateTime Fecha, int IdSede)
+
+        // =====================================================
+        // FILTROS (LISTAS) -> true, true
+        // Nota: aquí asumo que R_PagoCredito es una VISTA/REPORTE accesible con SELECT.
+        // =====================================================
+        public static async Task<List<R_PagoCredito>> FiltroX_Año(DateTime Fecha, int IdSede)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    return cn.R_PagoCredito.AsNoTracking().Where(x => x.idSedePagoCredito == IdSede && x.fecha_pago_credito_tienda_r_pago_credito.Value.Year == Fecha.Year).ToList();
-                }
+                var query = $@"
+SELECT *
+FROM R_PagoCredito WITH (NOLOCK)
+WHERE idSedePagoCredito = {IdSede}
+  AND YEAR(fecha_pago_credito_tienda_r_pago_credito) = {Fecha.Year}
+ORDER BY fecha_pago_credito_tienda_r_pago_credito DESC;";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true); // LISTA
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+                return JsonConvert.DeserializeObject<List<R_PagoCredito>>(jsonReal);
             }
             catch (Exception ex)
             {
-                string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                string error = ex.Message;
                 return null;
             }
         }
-        public static List<R_PagoCredito> FiltroX_Mes(DateTime Fecha, int IdSede)
+
+        public static async Task<List<R_PagoCredito>> FiltroX_Mes(DateTime Fecha, int IdSede)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    return cn.R_PagoCredito.AsNoTracking().Where(x => x.idSedePagoCredito == IdSede && x.fecha_pago_credito_tienda_r_pago_credito.Value.Year == Fecha.Year &&
-                    x.fecha_pago_credito_tienda_r_pago_credito.Value.Month == Fecha.Month).ToList();
-                }
+                var query = $@"
+SELECT *
+FROM R_PagoCredito WITH (NOLOCK)
+WHERE idSedePagoCredito = {IdSede}
+  AND YEAR(fecha_pago_credito_tienda_r_pago_credito) = {Fecha.Year}
+  AND MONTH(fecha_pago_credito_tienda_r_pago_credito) = {Fecha.Month}
+ORDER BY fecha_pago_credito_tienda_r_pago_credito DESC;";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true); // LISTA
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+                return JsonConvert.DeserializeObject<List<R_PagoCredito>>(jsonReal);
             }
             catch (Exception ex)
             {
-                string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                string error = ex.Message;
                 return null;
             }
         }
-        public static List<R_PagoCredito> FiltroX_Dia(DateTime Fecha, int IdSede)
+
+        public static async Task<List<R_PagoCredito>> FiltroX_Dia(DateTime Fecha, int IdSede)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    return cn.R_PagoCredito.AsNoTracking().Where(x => x.idSedePagoCredito == IdSede && x.fecha_pago_credito_tienda_r_pago_credito.Value.Year == Fecha.Year &&
-                    x.fecha_pago_credito_tienda_r_pago_credito.Value.Month == Fecha.Month &&
-                    x.fecha_pago_credito_tienda_r_pago_credito.Value.Day == Fecha.Day).ToList();
-                }
+                var query = $@"
+SELECT *
+FROM R_PagoCredito WITH (NOLOCK)
+WHERE idSedePagoCredito = {IdSede}
+  AND CONVERT(date, fecha_pago_credito_tienda_r_pago_credito) = CONVERT(date, '{Fecha:yyyy-MM-dd}')
+ORDER BY fecha_pago_credito_tienda_r_pago_credito DESC;";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true); // LISTA
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+                return JsonConvert.DeserializeObject<List<R_PagoCredito>>(jsonReal);
             }
             catch (Exception ex)
             {
-                string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                string error = ex.Message;
                 return null;
             }
         }
-        public static decimal SumarPagosX_Año(DateTime Fecha,int IdSede)
+
+        // =====================================================
+        // SUMAS (ESCALAR) -> false, true
+        // =====================================================
+        public static async Task<decimal> SumarPagosX_Año(DateTime Fecha, int IdSede)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    decimal? Pago=  cn.PagosCreditoTienda.AsNoTracking().Where(x =>x.idSede==IdSede && x.fecha_pago_credito_tienda.Value.Year == Fecha.Year).Sum(y=> y.valor_pago_credito_tienda);
-                    if (Pago == null)
-                    {
-                        Pago = 0;
-                    }
-                    return Convert.ToInt32(Pago);
-                }
+                var query = $@"
+SELECT ISNULL(SUM(CAST(valor_pago_credito_tienda AS DECIMAL(18,2))),0) AS total
+FROM PagosCreditoTienda WITH (NOLOCK)
+WHERE idSede = {IdSede}
+  AND YEAR(fecha_pago_credito_tienda) = {Fecha.Year};";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+
+                var row = JsonConvert.DeserializeObject<List<dynamic>>(jsonReal);
+                return Convert.ToDecimal(row[0].total);
             }
             catch (Exception ex)
             {
-                string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                string error = ex.Message;
                 return 0;
             }
         }
-        public static decimal SumarPagosX_Mes(DateTime Fecha,int IdSede)
+
+        public static async Task<decimal> SumarPagosX_Mes(DateTime Fecha, int IdSede)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    decimal? Pago = cn.PagosCreditoTienda.AsNoTracking().Where(x =>x.idSede==IdSede && x.fecha_pago_credito_tienda.Value.Year == Fecha.Year&&
-                    x.fecha_pago_credito_tienda.Value.Month==Fecha.Month).Sum(y => y.valor_pago_credito_tienda);
-                    if (Pago == null)
-                    {
-                        Pago = 0;
-                    }
-                    return Convert.ToDecimal(Pago);
-                }
+                var query = $@"
+SELECT ISNULL(SUM(CAST(valor_pago_credito_tienda AS DECIMAL(18,2))),0) AS total
+FROM PagosCreditoTienda WITH (NOLOCK)
+WHERE idSede = {IdSede}
+  AND YEAR(fecha_pago_credito_tienda) = {Fecha.Year}
+  AND MONTH(fecha_pago_credito_tienda) = {Fecha.Month};";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+
+                var row = JsonConvert.DeserializeObject<List<dynamic>>(jsonReal);
+                return Convert.ToDecimal(row[0].total);
             }
             catch (Exception ex)
             {
-                string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                string error = ex.Message;
                 return 0;
             }
         }
-        public static decimal SumarPagosX_Dia(DateTime Fecha, int IdSede)
+
+        public static async Task<decimal> SumarPagosX_Dia(DateTime Fecha, int IdSede)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    decimal? Pago = cn.PagosCreditoTienda.AsNoTracking().Where(x => 
-                    x.idSede == IdSede && x.fecha_pago_credito_tienda.Value.Year == Fecha.Year &&
-                    x.fecha_pago_credito_tienda.Value.Month == Fecha.Month &&
-                    x.fecha_pago_credito_tienda.Value.Day==Fecha.Day).Sum(y => y.valor_pago_credito_tienda);
-                    if (Pago == null)
-                    {
-                        Pago = 0;
-                    }
-                    return Convert.ToDecimal(Pago);
-                }
+                var query = $@"
+SELECT ISNULL(SUM(CAST(valor_pago_credito_tienda AS DECIMAL(18,2))),0) AS total
+FROM PagosCreditoTienda WITH (NOLOCK)
+WHERE idSede = {IdSede}
+  AND CONVERT(date, fecha_pago_credito_tienda) = CONVERT(date, '{Fecha:yyyy-MM-dd}');";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+
+                var row = JsonConvert.DeserializeObject<List<dynamic>>(jsonReal);
+                return Convert.ToDecimal(row[0].total);
             }
             catch (Exception ex)
             {
-                string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                string error = ex.Message;
                 return 0;
             }
         }
-        public static List<V_PagosCreditoTienda>FIltroXIdVenta(int IdVenta)
+
+        // =====================================================
+        // LISTA por IdVenta (VIEW) -> true, true
+        // =====================================================
+        public static async Task<List<V_PagosCreditoTienda>> FIltroXIdVenta(int IdVenta)
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    return cn.V_PagosCreditoTienda.AsNoTracking().Where(x => x.idVentaPago == IdVenta).ToList();
-                }
+                var query = $@"
+SELECT *
+FROM V_PagosCreditoTienda WITH (NOLOCK)
+WHERE idVentaPago = {IdVenta}
+ORDER BY id_pago_credito_tienda DESC;";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true); // LISTA
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+                return JsonConvert.DeserializeObject<List<V_PagosCreditoTienda>>(jsonReal);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                string error = ex.Message;
                 return null;
             }
         }
-        public static int pagoCCBolsilloFecha(int IdBase,int Bolsillo)
+
+        // =====================================================
+        // Total por Base/Bolsillo (ESCALAR sobre VIEW) -> false, true
+        // =====================================================
+        public static async Task<int> pagoCCBolsilloFecha(int IdBase, int Bolsillo)
         {
             try
             {
-                using(SistemaPOSEntities cn =new Modelo.SistemaPOSEntities())
-                {
-                    int? pagoCC = cn.V_PagosCreditoTienda.AsNoTracking().Where(x =>                    
-                       x.idBaseCaja==IdBase&&
-                       x.idBolsillo==Bolsillo).Sum(x =>(int?)x.valor_pago_credito_tienda);
-                    if (pagoCC == null)
-                    {
-                        pagoCC = 0;
-                    }
-                    return Convert.ToInt32(pagoCC);
-                }
+                var query = $@"
+SELECT ISNULL(SUM(CAST(valor_pago_credito_tienda AS INT)),0) AS total
+FROM V_PagosCreditoTienda WITH (NOLOCK)
+WHERE idBaseCaja = {IdBase}
+  AND idBolsillo = {Bolsillo};";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+
+                var row = JsonConvert.DeserializeObject<List<dynamic>>(jsonReal);
+                return Convert.ToInt32(row[0].total);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                string error = ex.Message;
                 return 0;
             }
         }
-        public static PagosCreditoTienda ConsultarId(int Id)
+
+        // =====================================================
+        // Consultar ID (1 registro) -> false, true
+        // =====================================================
+        public static async Task<PagosCreditoTienda> ConsultarId(int Id)
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    return cn.PagosCreditoTienda.AsNoTracking().Where(x => x.id_pago_credito_tienda == Id).FirstOrDefault();
-                }
+                var query = $@"
+SELECT TOP 1 *
+FROM PagosCreditoTienda WITH (NOLOCK)
+WHERE id_pago_credito_tienda = {Id}
+ORDER BY id_pago_credito_tienda DESC;";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+
+                var lista = JsonConvert.DeserializeObject<List<PagosCreditoTienda>>(jsonReal);
+                return (lista != null && lista.Count > 0) ? lista[0] : null;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
                 return null;

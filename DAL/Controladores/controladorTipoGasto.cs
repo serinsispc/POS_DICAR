@@ -1,71 +1,79 @@
 ﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
+using RunApi;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace DAL.Controladores
 {
     public class controladorTipoGasto
     {
-        public static bool Crud(TipoGasto tipoGasto, int Boton)
+        // 0=INSERT, 1=UPDATE, 2=DELETE
+        public static async Task<RespuestaCRUD> Crud(TipoGasto tipoGasto, int funcion)
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    if (Boton == 0)
-                    {
-                        cn.TipoGasto.Add(tipoGasto);
-                    }
-                    if (Boton == 1)
-                    {
-                        cn.Entry(tipoGasto).State = System.Data.Entity.EntityState.Modified;
-                    }
-                    if (Boton == 2)
-                    {
-                        cn.Entry(tipoGasto).State = System.Data.Entity.EntityState.Deleted;
-                    }
-                    cn.SaveChanges();
-                    return true;
-                }
+                var json = JsonConvert.SerializeObject(tipoGasto);
+                json = EscapeJsonForSql(json);
+
+                var query = $"EXEC dbo.CRUD_TipoGasto N'{json}', {funcion}";
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                return JsonConvert.DeserializeObject<RespuestaCRUD>(resp);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
-                return false;
+                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                return new RespuestaCRUD()
+                {
+                    estado = false,
+                    mensaje = error
+                };
             }
         }
-        public static List<V_TipoGasto> listaCompleta()
+
+        public static async Task<List<V_TipoGasto>> ListaCompleta()
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    return cn.V_TipoGasto.AsNoTracking().ToList();
-                }
+                var query = "SELECT * FROM V_TipoGasto";
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                return JsonConvert.DeserializeObject<List<V_TipoGasto>>(resp);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
+                //MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
         }
-        public static TipoGasto Consultar_id(int IdTipoGasto)
+
+        public static async Task<TipoGasto> Consultar_id(int idTipoGasto)
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    return cn.TipoGasto.AsNoTracking().Where(x => x.id == IdTipoGasto).FirstOrDefault();
-                }
+                var query = $"SELECT TOP 1 * FROM TipoGasto WHERE id = {idTipoGasto}";
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                return JsonConvert.DeserializeObject<TipoGasto>(resp);
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
                 return null;
             }
+        }
+
+        private static string EscapeJsonForSql(string json)
+        {
+            if (string.IsNullOrEmpty(json)) return json;
+            return json.Replace("'", "''");
         }
     }
 }

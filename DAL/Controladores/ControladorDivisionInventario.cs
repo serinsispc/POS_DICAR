@@ -1,89 +1,140 @@
-﻿using System;
+﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
+using RunApi;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using DAL.Modelo;
 using System.Windows.Forms;
 
 namespace DAL.Controladores.Tienda
 {
     public class ControladorBodega
     {
-        public static bool Crear_Editar_Eliminar_DivisionInventario(Bodega objDivisionInventario,int Boton)
+        private const string SP_CRUD = "dbo.CRUD_Bodega";
+
+        private static string EscapeJsonForSql(string json)
+        {
+            return (json ?? string.Empty).Replace("'", "''");
+        }
+
+        // ==========================
+        // CRUD por JSON (0=I,1=U,2=D)
+        // ==========================
+        public static async Task<RespuestaCRUD> Crud(string json, int funcion)
         {
             try
             {
-                using(SistemaPOSEntities cn=new SistemaPOSEntities())
-                {
-                    if(Boton == 0)
-                    {
-                        cn.Bodega.Add(objDivisionInventario);
-                    }
-                    if(Boton == 1)
-                    {
-                        cn.Entry(objDivisionInventario).State = System.Data.Entity.EntityState.Modified;
-                    }
-                    if (Boton == 2)
-                    {
-                        cn.Entry(objDivisionInventario).State = System.Data.Entity.EntityState.Modified;
-                    }
-                    cn.SaveChanges();
-                    return true;
-                }
+                json = EscapeJsonForSql(json);
+                var query = $"EXEC {SP_CRUD} N'{json}', {funcion}";
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                return JsonConvert.DeserializeObject<RespuestaCRUD>(respuesta);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                string error = ex.Message;
-                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return false;
+                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                return new RespuestaCRUD
+                {
+                    estado = false,
+                    idAfectado = 0,
+                    mensaje = ex.Message
+                };
             }
         }
-        public static List<Bodega>listaCompleta()
+
+        // ==========================
+        // Crear / Editar / Eliminar
+        // ==========================
+        public static async Task<RespuestaCRUD> Crear_Editar_Eliminar_DivisionInventario(Bodega objDivisionInventario, int Boton)
         {
             try
             {
-                using(SistemaPOSEntities cn =new Modelo.SistemaPOSEntities())
-                {
-                    return cn.Bodega.AsNoTracking().ToList();
-                }
+                var json = JsonConvert.SerializeObject(objDivisionInventario);
+                return await Crud(json, Boton); // 0 insert, 1 update, 2 delete
             }
-            catch(Exception ex)
+            catch (Exception ex)
+            {
+                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                return new RespuestaCRUD
+                {
+                    estado = false,
+                    idAfectado = 0,
+                    mensaje = ex.Message
+                };
+            }
+        }
+
+        // ==========================
+        // Lista completa
+        // ==========================
+        public static async Task<List<Bodega>> listaCompleta()
+        {
+            try
+            {
+                var query = "SELECT * FROM Bodega WITH (NOLOCK) ORDER BY nombreBodega";
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+                return JsonConvert.DeserializeObject<List<Bodega>>(jsonReal);
+            }
+            catch (Exception ex)
             {
                 string error = ex.Message;
-                //MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
         }
-        public static Bodega ConsultarX_IdVidision(int IdDivision)
+
+        // ==========================
+        // Consultar por ID
+        // ==========================
+        public static async Task<Bodega> ConsultarX_IdVidision(int IdDivision)
         {
             try
             {
-                using(SistemaPOSEntities cn=new Modelo.SistemaPOSEntities())
-                {
-                    return cn.Bodega.AsNoTracking().Where(x => x.id == IdDivision).FirstOrDefault();
-                }
+                var query = $"SELECT TOP 1 * FROM Bodega WITH (NOLOCK) WHERE id = {IdDivision}";
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+                var lista = JsonConvert.DeserializeObject<List<Bodega>>(jsonReal);
+
+                return (lista != null && lista.Count > 0) ? lista[0] : null;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                string error = ex.Message;
-                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
         }
-        public static List<Bodega> FiltroX_Division(string Division)
+
+        // ==========================
+        // Filtro por nombre (LIKE)
+        // ==========================
+        public static async Task<List<Bodega>> FiltroX_Division(string Division)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    return cn.Bodega.AsNoTracking().Where(x => x.nombreBodega.Contains(Division)).ToList();
-                }
+                var divEsc = (Division ?? string.Empty).Replace("'", "''");
+
+                var query = $@"
+SELECT *
+FROM Bodega WITH (NOLOCK)
+WHERE nombreBodega LIKE '%{divEsc}%'
+ORDER BY nombreBodega;";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+                return JsonConvert.DeserializeObject<List<Bodega>>(jsonReal);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                string error = ex.Message;
-                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
         }

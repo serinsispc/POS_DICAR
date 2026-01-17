@@ -439,11 +439,11 @@ namespace SERINSI_PC.Formularios.Ventas
             }
         }
         public decimal CantidadGramos = 0;
-        public void BuscarCodigo()
+        public async Task BuscarCodigo()
         {
             //procedemos a buscar el codigo
             List<v_productoVenta> objLista = new List<v_productoVenta>();
-            objLista = ControladorProducto.FiltroVentaProducto(txtCodigoBarra.Text, 1,VariablesPublicas.IdEmpresaLogueada);
+            objLista =await ControladorProducto.FiltroVentaProducto(txtCodigoBarra.Text, 1,VariablesPublicas.IdEmpresaLogueada);
             if (objLista != null)
             {
                 if (objLista.Count > 1)

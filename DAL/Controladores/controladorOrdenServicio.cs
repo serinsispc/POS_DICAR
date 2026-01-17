@@ -1,51 +1,64 @@
 ﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
+using RunApi;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace DAL.Controladores.Orden_Servicio
 {
     public class controladorOrdenServicio
     {
-        public static bool CrearEditarEliminarOrden(Modelo.OrdenServicio objOrden, int Boton)
+        private const string SP_CRUD = "dbo.CRUD_OrdenServicio";
+
+        private static string EscapeJsonForSql(string json)
+        {
+            return (json ?? string.Empty).Replace("'", "''");
+        }
+
+        // =====================================================
+        // CRUD (NO lista) -> false, true
+        // Boton: 0=INSERT | 1=UPDATE | 2=DELETE
+        // =====================================================
+        public static async Task<RespuestaCRUD> CrearEditarEliminarOrden(Modelo.OrdenServicio objOrden, int Boton)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    if (Boton == 0)
-                    {
-                        cn.OrdenServicio.Add(objOrden);
-                    }
-                    if (Boton == 1)
-                    {
-                        cn.Entry(objOrden).State = System.Data.Entity.EntityState.Modified;
-                    }
-                    if (Boton == 2)
-                    {
-                        cn.Entry(objOrden).State = System.Data.Entity.EntityState.Deleted;
-                    }
-                    cn.SaveChanges();
-                    return true;
-                }
+                var json = EscapeJsonForSql(JsonConvert.SerializeObject(objOrden));
+                var query = $"EXEC {SP_CRUD} N'{json}', {Boton}";
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                return JsonConvert.DeserializeObject<RespuestaCRUD>(respuesta);
             }
             catch (Exception ex)
             {
-                string error = ex.Message;
-                return false;
+                return new RespuestaCRUD
+                {
+                    estado = false,
+                    idAfectado = 0,
+                    mensaje = ex.Message
+                };
             }
         }
 
-        public static Modelo.OrdenServicio consultar_ID(int IDOrden)
+        // =====================================================
+        // CONSULTAR POR ID (1 registro) -> false, true
+        // =====================================================
+        public static async Task<Modelo.OrdenServicio> consultar_ID(int IDOrden)
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    return cn.OrdenServicio.AsNoTracking().Where(x => x.id == IDOrden).FirstOrDefault();
-                }
+                var query = $@"
+SELECT TOP 1 *
+FROM OrdenServicio WITH (NOLOCK)
+WHERE id = {IDOrden}
+ORDER BY id DESC;";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+
+                var lista = JsonConvert.DeserializeObject<List<Modelo.OrdenServicio>>(jsonReal);
+                return (lista != null && lista.Count > 0) ? lista[0] : null;
             }
             catch (Exception ex)
             {
@@ -53,19 +66,23 @@ namespace DAL.Controladores.Orden_Servicio
                 return null;
             }
         }
-        public static int HallarConsecutivo()
+
+        // =====================================================
+        // HALLAR CONSECUTIVO (MAX(numeroOrdenServicio)+1) -> false, true
+        // =====================================================
+        public static async Task<int> HallarConsecutivo()
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    int? numero = cn.OrdenServicio.AsNoTracking().Max(x => (int?)x.numeroOrdenServicio);
-                    if (numero == null)
-                    {
-                        numero = 0;
-                    }
-                    return Convert.ToInt32(numero) + 1;
-                }
+                var query = @"
+SELECT ISNULL(MAX(numeroOrdenServicio),0) + 1 AS consecutivo
+FROM OrdenServicio WITH (NOLOCK);";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+
+                var row = JsonConvert.DeserializeObject<List<dynamic>>(jsonReal);
+                return Convert.ToInt32(row[0].consecutivo);
             }
             catch (Exception ex)
             {

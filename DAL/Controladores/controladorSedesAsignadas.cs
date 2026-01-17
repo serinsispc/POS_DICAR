@@ -1,54 +1,70 @@
-﻿using System;
+﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
+using RunApi;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DAL.Modelo;
 
 namespace DAL.Controladores
 {
     public class controladorSedesAsignadas
     {
-        public static bool CrearEditarEliminarAsignacionSede(SedesAsignadas objAsignacion, int Boton)
+
+public static async Task<bool> CrearEditarEliminarAsignacionSede(SedesAsignadas objAsignacion, int Boton)
+    {
+        try
         {
-            try
+            var json = JsonConvert.SerializeObject(objAsignacion);
+
+            // Si ya tienes tu método AjustarJson, úsalo como vienes trabajando:
+            // json = AjustarJoson.Ajustar(json);
+
+            // Importante: escapar comillas simples para SQL
+            json = json.Replace("'", "''");
+
+            var query = $"EXEC dbo.CRUD_SedesAsignadas N'{json}', {Boton}";
+            var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+            // Espera un JSON como: { estado: 1/0, idAfectado: x, mensaje: "..." }
+            if (!string.IsNullOrEmpty(resp))
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    if (Boton == 0)
-                    {
-                        cn.SedesAsignadas.Add(objAsignacion);
-                    }
-                    if (Boton == 1)
-                    {
-                        cn.Entry(objAsignacion).State = System.Data.Entity.EntityState.Modified;
-                    }
-                    if (Boton == 2)
-                    {
-                        cn.Entry(objAsignacion).State = System.Data.Entity.EntityState.Deleted;
-                    }
-                    cn.SaveChanges();
-                    return true;
-                }
+                var r = JsonConvert.DeserializeObject<RespuestaCRUD>(resp);
+                return r != null && r.estado;
             }
-            catch(Exception ex)
-            {
-                string error = ex.Message;
-                return false;
-            }
+
+            return false;
         }
-        public  static int SumarSedesAsignadas(int IdUsuario)
+        catch (Exception ex)
+        {
+            string error = ex.Message;
+            return false;
+        }
+    }
+
+    public static async Task<int> SumarSedesAsignadas(int IdUsuario)
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
+                var query = $@"
+            select ISNULL(SUM(contadorAsignacion), 0) as total
+            from SedesAsignadas
+            where idusuarioAsignado = {IdUsuario}
+        ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    int? suma = cn.SedesAsignadas.AsNoTracking().Where(x => x.idusuarioAsignado == IdUsuario).Sum(x => (int?)x.contadorAsignacion);
-                    if (suma == null)
-                    {
-                        suma = 0;
-                    }
-                    return Convert.ToInt32(suma);
+                    var obj = JsonConvert.DeserializeObject<dynamic>(resp);
+                    int total = (int)obj.total;
+                    return total;
+                }
+                else
+                {
+                    return 0;
                 }
             }
             catch (Exception ex)
@@ -57,28 +73,26 @@ namespace DAL.Controladores
                 return 0;
             }
         }
-        public static List<V_SedesAsignadas> filtroXIdUsuario(int IdUsuario)
+
+        public static async Task<List<V_SedesAsignadas>> filtroXIdUsuario(int IdUsuario)
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
+                var query = $@"
+            select *
+            from V_SedesAsignadas
+            where v_idusuarioAsignado = {IdUsuario}
+        ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    return cn.V_SedesAsignadas.AsNoTracking().Where(x => x.v_idusuarioAsignado == IdUsuario).ToList();
+                    return JsonConvert.DeserializeObject<List<V_SedesAsignadas>>(resp);
                 }
-            }
-            catch(Exception ex)
-            {
-                string error = ex.Message;
-                return null;
-            }
-        }
-        public static SedesAsignadas consultarIDUsuario(int IdUsuario)
-        {
-            try
-            {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
+                else
                 {
-                    return cn.SedesAsignadas.AsNoTracking().Where(x => x.idusuarioAsignado == IdUsuario).FirstOrDefault();
+                    return null;
                 }
             }
             catch (Exception ex)
@@ -87,5 +101,34 @@ namespace DAL.Controladores
                 return null;
             }
         }
+
+        public static async Task<SedesAsignadas> consultarIDUsuario(int IdUsuario)
+        {
+            try
+            {
+                var query = $@"
+            select top 1 *
+            from SedesAsignadas
+            where idusuarioAsignado = {IdUsuario}
+        ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
+                {
+                    return JsonConvert.DeserializeObject<SedesAsignadas>(resp);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                string error = ex.Message;
+                return null;
+            }
+        }
+
     }
 }

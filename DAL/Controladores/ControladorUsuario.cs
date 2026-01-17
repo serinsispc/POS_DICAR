@@ -1,8 +1,8 @@
 ﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -10,49 +10,68 @@ namespace DAL.Controladores
 {
     public class ControladorUsuario
     {
-        /// <summary>
-        /// Controlador que se encarga de guardar, editar y eliminar un usuaio.
-        /// </summary>
-        /// <param name="objUsuario"></param>
-        /// <param name="Boton"></param>
-        /// <returns></returns>
-        public static bool GuardarEditarEliminar(Usuario objUsuario, int Boton)
+        // ============================
+        // CRUD (INSERT/UPDATE/DELETE)
+        // Boton: 0=INSERT, 1=UPDATE, 2=DELETE
+        // ============================
+        public static async Task<RespuestaCRUD> GuardarEditarEliminar(Usuario objUsuario, int Boton)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    if(Boton == 0)
-                    {
-                        cn.Usuario.Add(objUsuario);
-                    }
-                    if(Boton == 1)
-                    {
-                        cn.Entry(objUsuario).State = System.Data.Entity.EntityState.Modified;
-                    }
-                    if(Boton == 2)
-                    {
-                        cn.Entry(objUsuario).State = System.Data.Entity.EntityState.Deleted;
-                    }
-                    cn.SaveChanges();
-                    return true;
-                }
+                var json = JsonConvert.SerializeObject(objUsuario);
+                return await Crud(json, Boton);
             }
-            catch(Exception ex)
+            catch (Exception ex)
+            {
+                string error = ex.Message;
+                MessageBox.Show("Ocurrió un error.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                return new RespuestaCRUD()
+                {
+                    estado = false,
+                    idAfectado = 0,
+                    mensaje = error
+                };
+            }
+        }
+
+        // Método base con tu patrón: Crud(string json, int funcion)
+        public static async Task<RespuestaCRUD> Crud(string json, int funcion)
+        {
+            try
+            {
+                json = EscapeJsonForSql(json);
+
+                var query = $"EXEC dbo.CRUD_Usuario N'{json}', {funcion}";
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                return JsonConvert.DeserializeObject<RespuestaCRUD>(respuesta);
+            }
+            catch (Exception ex)
             {
                 string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return false;
+
+                return new RespuestaCRUD()
+                {
+                    estado = false,
+                    idAfectado = 0,
+                    mensaje = error
+                };
             }
         }
-        public static List<v_Usuario> listaCompleta()
+
+        // ============================
+        // LISTA COMPLETA (VIEW v_Usuario)
+        // ============================
+        public static async Task<List<v_Usuario>> listaCompleta()
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    return cn.v_Usuario.AsNoTracking().ToList();
-                }
+                var query = "SELECT * FROM v_Usuario";
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                return JsonConvert.DeserializeObject<List<v_Usuario>>(resp);
             }
             catch (Exception ex)
             {
@@ -60,23 +79,30 @@ namespace DAL.Controladores
                 //MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
-
         }
-        /// <summary>
-        /// Controlador que consulta la cuenta de usuario y la clave
-        /// </summary>
-        /// <param name="p_usuario"></param>
-        /// <param name="p_clave"></param>
-        /// <returns></returns>
-        public static Usuario ConsultaUsuarioYClave(string p_usuario,string p_clave)
+
+        // ============================
+        // CONSULTA POR CUENTA Y CLAVE
+        // ============================
+        public static async Task<Usuario> ConsultaUsuarioYClave(string p_usuario, string p_clave)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    return cn.Usuario.AsNoTracking().Where(x => x.cuentaUsuario == p_usuario &&
-                                                              x.claveUsuario == p_clave).FirstOrDefault();
-                }
+                // Escapar comillas simples
+                p_usuario = (p_usuario ?? "").Replace("'", "''");
+                p_clave = (p_clave ?? "").Replace("'", "''");
+
+                var query = $@"
+SELECT TOP 1 *
+FROM Usuario
+WHERE cuentaUsuario = '{p_usuario}'
+  AND claveUsuario  = '{p_clave}'";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                // Normalmente viene como JSON de tabla -> lista
+                var lista = JsonConvert.DeserializeObject<List<Usuario>>(resp);
+                return (lista != null && lista.Count > 0) ? lista[0] : null;
             }
             catch (Exception ex)
             {
@@ -84,58 +110,39 @@ namespace DAL.Controladores
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
-
         }
-        /// <summary>
-        /// controlados que consulta el id usuario 
-        /// </summary>
-        /// <param name="p_isUsuario"></param>
-        /// <returns></returns>
-        public static Usuario ConsultaUsuarioXId(int p_isUsuario)
+
+        // ============================
+        // CONSULTAR USUARIO POR ID
+        // ============================
+        public static async Task<Usuario> ConsultaUsuarioXId(int p_isUsuario)
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    return cn.Usuario.AsNoTracking().Where(x => x.id == p_isUsuario).FirstOrDefault();
-                }
+                var query = $"SELECT TOP 1 * FROM Usuario WHERE id = {p_isUsuario}";
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                var lista = JsonConvert.DeserializeObject<List<Usuario>>(resp);
+                return (lista != null && lista.Count > 0) ? lista[0] : null;
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
                 return null;
             }
-
         }
-        /// <summary>
-        /// controlador que se encarga de llamar toda la lista
-        /// </summary>
-        /// <returns></returns>
-        public static List<Usuario> ConsultaListaCompletaUsuario()
+
+        // ============================
+        // LISTA COMPLETA (TABLA Usuario)
+        // ============================
+        public static async Task<List<Usuario>> ConsultaListaCompletaUsuario()
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    return cn.Usuario.AsNoTracking().ToList();
-                }
-            }
-            catch (Exception ex)
-            {
-                string error = ex.Message;
-                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return null;
-            }
+                var query = "SELECT * FROM Usuario";
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
 
-        }
-        public static List<Usuario> FiltroX_Usuario(string Usuario)
-        {
-            try
-            {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    return cn.Usuario.AsNoTracking().Where(x => x.cuentaUsuario.Contains(Usuario)).ToList();
-                }
+                return JsonConvert.DeserializeObject<List<Usuario>>(resp);
             }
             catch (Exception ex)
             {
@@ -143,7 +150,36 @@ namespace DAL.Controladores
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
+        }
 
+        // ============================
+        // FILTRO POR CUENTA (LIKE)
+        // ============================
+        public static async Task<List<Usuario>> FiltroX_Usuario(string Usuario)
+        {
+            try
+            {
+                Usuario = (Usuario ?? "").Replace("'", "''");
+
+                var query = $"SELECT * FROM Usuario WHERE cuentaUsuario LIKE '%{Usuario}%'";
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                return JsonConvert.DeserializeObject<List<Usuario>>(resp);
+            }
+            catch (Exception ex)
+            {
+                string error = ex.Message;
+                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return null;
+            }
+        }
+
+        // ============================
+        // Escape JSON para SQL
+        // ============================
+        private static string EscapeJsonForSql(string json)
+        {
+            return string.IsNullOrEmpty(json) ? "" : json.Replace("'", "''");
         }
     }
 }

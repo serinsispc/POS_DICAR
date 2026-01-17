@@ -1,10 +1,10 @@
 ﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
+using RunApi;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace DAL.Controladores
 {
@@ -13,93 +13,109 @@ namespace DAL.Controladores
         /// <summary>
         /// Controlador que trae la lista de nombre de empresas.
         /// </summary>
-        /// <returns></returns>
-        public static List<Sede> listaCompleta()
+        public static async Task<List<Sede>> listaCompleta()
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    return cn.Sede.AsNoTracking().ToList();
-                }
+                var query = @"select * from Sede";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                if (!string.IsNullOrEmpty(resp))
+                    return JsonConvert.DeserializeObject<List<Sede>>(resp);
+
+                return null;
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
                 return null;
             }
-
         }
+
         /// <summary>
         /// controlador que se encarga de traer la informacion del parqueadero segun el id de empresa.
         /// </summary>
-        /// <param name="p_idEmpresa"></param>
-        /// <returns></returns>
-        public static Sede ConsultaXIdEmpresa(int p_idEmpresa)
+        public static async Task<Sede> ConsultaXIdEmpresa(int p_idEmpresa)
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    return cn.Sede.AsNoTracking().Where(x => x.id == p_idEmpresa).FirstOrDefault();
-                }
+                var query = $@"
+                    select top 1 *
+                    from Sede
+                    where id = {p_idEmpresa}
+                ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
+                    return JsonConvert.DeserializeObject<Sede>(resp);
+
+                return null;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
-                return null;   
+                return null;
             }
-
         }
+
         /// <summary>
-        /// controlador que se encarga de crear, editar y elimonar laconfiguracion del parqueadero
+        /// controlador que se encarga de crear, editar y elimonar la configuracion del parqueadero
         /// </summary>
-        /// <param name="objConfig"></param>
-        /// <param name="Evento"></param>
-        /// <returns></returns>
-        public static bool CrearEditarEliminarConfiguracion(Sede objConfig,int Evento)
+        public static async Task<bool> CrearEditarEliminarConfiguracion(Sede objConfig, int Evento)
         {
             try
             {
-                using(SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
+                var json = JsonConvert.SerializeObject(objConfig);
+
+                // Si usas tu ajustador, déjalo como siempre:
+                // json = AjustarJoson.Ajustar(json);
+
+                json = json.Replace("'", "''");
+
+                var query = $"EXEC dbo.CRUD_Sede N'{json}', {Evento}";
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    if(Evento == 0)
-                    {
-                        cn.Sede.Add(objConfig);
-                    }
-                    if(Evento == 1)
-                    {
-                        cn.Entry(objConfig).State = System.Data.Entity.EntityState.Modified;
-                    }
-                    if(Evento == 2)
-                    {
-                        cn.Entry(objConfig).State = System.Data.Entity.EntityState.Deleted;
-                    }
-                    cn.SaveChanges();
-                    return true;
+                    var r = JsonConvert.DeserializeObject<RespuestaCRUD>(resp);
+
+                    // Si estado es int: return r != null && r.estado == 1;
+                    return r != null && r.estado;
                 }
+
+                return false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
                 return false;
             }
         }
-        public static Sede datosCompletos()
+
+        public static async Task<Sede> datosCompletos()
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    return cn.Sede.AsNoTracking().Where(x=>x.id==1).FirstOrDefault();
-                }
+                var query = @"
+                    select top 1 *
+                    from Sede
+                    where id = 1
+                ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
+                    return JsonConvert.DeserializeObject<Sede>(resp);
+
+                return null;
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
                 return null;
             }
-
         }
     }
 }

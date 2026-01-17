@@ -1,5 +1,7 @@
 ﻿using DAL.Modelo;
-
+using DAL.SQL;
+using Newtonsoft.Json;
+using RunApi;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,27 +13,30 @@ namespace DAL.Controladores.Administrador
 {
     public class ControladorAutorizacionPC
     {
-        public static bool Crear_Editar_Eliminar_Equipo(AutorizacionPC objAE, int Boton)
+        public static async Task<bool> Crear_Editar_Eliminar_Equipo(AutorizacionPC objAE, int Boton)
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
+                var json = JsonConvert.SerializeObject(objAE);
+
+                // Si usas tu ajustador, déjalo como siempre:
+                // json = AjustarJoson.Ajustar(json);
+
+                // Escapar comillas simples para SQL
+                json = json.Replace("'", "''");
+
+                var query = $"EXEC dbo.CRUD_AutorizacionPC N'{json}', {Boton}";
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true); // respuesta unica
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    if (Boton == 0)
-                    {
-                        cn.AutorizacionPC.Add(objAE);
-                    }
-                    if (Boton == 1)
-                    {
-                        cn.Entry(objAE).State = System.Data.Entity.EntityState.Modified;
-                    }
-                    if (Boton == 2)
-                    {
-                        cn.Entry(objAE).State = System.Data.Entity.EntityState.Deleted;
-                    }
-                    cn.SaveChanges();
-                    return true;
+                    var r = JsonConvert.DeserializeObject<RespuestaCRUD>(resp);
+
+                    // Si estado es int: return r != null && r.estado == 1;
+                    return r != null && r.estado;
                 }
+
+                return false;
             }
             catch (Exception ex)
             {
@@ -40,34 +45,42 @@ namespace DAL.Controladores.Administrador
                 return false;
             }
         }
-        public static List<AutorizacionPC> listaCompleta()
+        public static async Task<List<AutorizacionPC>> listaCompleta()
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
+                var query = @"select * from AutorizacionPC";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true); // true = lista
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    return cn.AutorizacionPC.AsNoTracking().ToList();
+                    return JsonConvert.DeserializeObject<List<AutorizacionPC>>(resp);
                 }
+
+                return null;
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
-               //MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                // MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
-
         }
-        public static AutorizacionPC ConsultarXSerial(string Serial, string Manufacture, string Producto, string Vercion, int Estado)
+
+        public static async Task<AutorizacionPC> ConsultarXSerial(string Serial, string Manufacture, string Producto, string Vercion, int Estado)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
+                var query = $"select top 1 *from AutorizacionPC where serialnumber_pc='{Serial}' and Manufacturer_pc='{Manufacture}' and product_pc='{Producto}' and Version_pc='{Vercion}' and estado_equipo='{Estado}'";
+                var resp=await Conection_SQL.ConsultaSQLServer(query, false, true);
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    return cn.AutorizacionPC.AsNoTracking().Where(x => x.serialnumber_pc == Serial &&
-                                                                       x.Manufacturer_pc == Manufacture &&
-                                                                       x.product_pc == Producto &&
-                                                                       x.Version_pc == Vercion &&
-                                                                       x.estado_equipo == Estado).FirstOrDefault();
+                    return JsonConvert.DeserializeObject<AutorizacionPC>(resp);
+                }
+                else
+                {
+                    return null;
                 }
             }
             catch (Exception ex)

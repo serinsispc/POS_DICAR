@@ -1,22 +1,30 @@
 ﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
+using RunApi;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace DAL.Controladores
 {
     public class ControladorConsecutivoVenta
     {
-        public static ConsecutivoVentaUsado consultar_Consecutivo(int consecutivo)
+        public static async Task<ConsecutivoVentaUsado> consultar_Consecutivo(int consecutivo)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    return cn.ConsecutivoVentaUsado.AsNoTracking().Where(x => x.numeroConsecutivoVenta == consecutivo).FirstOrDefault();
-                }
+                var query = $@"
+                    select top 1 *
+                    from ConsecutivoVentaUsado
+                    where numeroConsecutivoVenta = {consecutivo}
+                ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
+                    return JsonConvert.DeserializeObject<ConsecutivoVentaUsado>(resp);
+
+                return null;
             }
             catch (Exception ex)
             {
@@ -24,33 +32,25 @@ namespace DAL.Controladores
                 return null;
             }
         }
-        public static ConsecutivoVentaUsado consultar_Consecutivo_IDUsuario_NumeroCaja(int consecutivo,int usuario,int numeroCaja)
+
+        public static async Task<ConsecutivoVentaUsado> consultar_Consecutivo_IDUsuario_NumeroCaja(int consecutivo, int usuario, int numeroCaja)
         {
             try
             {
-                using(SistemaPOSEntities cn =new Modelo.SistemaPOSEntities())
-                {
-                    return cn.ConsecutivoVentaUsado.AsNoTracking().Where(x => x.numeroConsecutivoVenta == consecutivo &&
-                                                                            x.idUsuarioVenta == usuario &&
-                                                                            x.numeroCajaActivaVenta == numeroCaja).FirstOrDefault();
-                }
-            }
-            catch(Exception ex)
-            {
-                string error = ex.Message;
+                var query = $@"
+                    select top 1 *
+                    from ConsecutivoVentaUsado
+                    where numeroConsecutivoVenta = {consecutivo}
+                      and idUsuarioVenta = {usuario}
+                      and numeroCajaActivaVenta = {numeroCaja}
+                ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
+                    return JsonConvert.DeserializeObject<ConsecutivoVentaUsado>(resp);
+
                 return null;
-            }
-        }
-        public static ConsecutivoVentaUsado consultar_IDUsuario_NumeroCaja(int usuario, int numeroCaja,int estado)
-        {
-            try
-            {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    return cn.ConsecutivoVentaUsado.AsNoTracking().Where(x =>x.estadoConsecutivoVenta==estado &&
-                                                                            x.idUsuarioVenta == usuario &&
-                                                                            x.numeroCajaActivaVenta == numeroCaja).FirstOrDefault();
-                }
             }
             catch (Exception ex)
             {
@@ -58,29 +58,58 @@ namespace DAL.Controladores
                 return null;
             }
         }
-        public static bool CrearEditarEliminarConsecutivo(ConsecutivoVentaUsado objconse,int Boton)
+
+        public static async Task<ConsecutivoVentaUsado> consultar_IDUsuario_NumeroCaja(int usuario, int numeroCaja, int estado)
         {
             try
             {
-                using(SistemaPOSEntities cn =new Modelo.SistemaPOSEntities())
-                {
-                    if(Boton == 0)
-                    {
-                        cn.ConsecutivoVentaUsado.Add(objconse);
-                    }
-                    if(Boton == 1)
-                    {
-                        cn.Entry(objconse).State = System.Data.Entity.EntityState.Modified;
-                    }
-                    if (Boton == 2)
-                    {
-                        cn.Entry(objconse).State = System.Data.Entity.EntityState.Deleted;
-                    }
-                    cn.SaveChanges();
-                    return true;
-                }
+                var query = $@"
+                    select top 1 *
+                    from ConsecutivoVentaUsado
+                    where estadoConsecutivoVenta = {estado}
+                      and idUsuarioVenta = {usuario}
+                      and numeroCajaActivaVenta = {numeroCaja}
+                ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
+                    return JsonConvert.DeserializeObject<ConsecutivoVentaUsado>(resp);
+
+                return null;
             }
-            catch(Exception ex)
+            catch (Exception ex)
+            {
+                string error = ex.Message;
+                return null;
+            }
+        }
+
+        public static async Task<bool> CrearEditarEliminarConsecutivo(ConsecutivoVentaUsado objconse, int Boton)
+        {
+            try
+            {
+                var json = JsonConvert.SerializeObject(objconse);
+
+                // Si usas tu ajustador, déjalo como siempre:
+                // json = AjustarJoson.Ajustar(json);
+
+                json = json.Replace("'", "''");
+
+                var query = $"EXEC dbo.CRUD_ConsecutivoVentaUsado N'{json}', {Boton}";
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
+                {
+                    var r = JsonConvert.DeserializeObject<RespuestaCRUD>(resp);
+
+                    // Si estado es int: return r != null && r.estado == 1;
+                    return r != null && r.estado;
+                }
+
+                return false;
+            }
+            catch (Exception ex)
             {
                 string error = ex.Message;
                 return false;

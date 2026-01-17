@@ -1,35 +1,38 @@
 ﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
+using RunApi;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace DAL.Controladores
 {
     public class controladorArchivoCompra
     {
-        public static bool CrearEditarEliminar(ArchivoCompras archivoCompras, int Boton)
+        public static async Task<bool> CrearEditarEliminar(ArchivoCompras archivoCompras, int Boton)
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
+                var json = JsonConvert.SerializeObject(archivoCompras);
+
+                // Si usas tu ajustador, déjalo como siempre:
+                // json = AjustarJoson.Ajustar(json);
+
+                json = json.Replace("'", "''");
+
+                var query = $"EXEC dbo.CRUD_ArchivoCompras N'{json}', {Boton}";
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    if(Boton == 0)
-                    {
-                        cn.ArchivoCompras.Add(archivoCompras);
-                    }
-                    if (Boton == 1)
-                    {
-                        cn.Entry(archivoCompras).State = System.Data.Entity.EntityState.Modified;
-                    }
-                    if (Boton == 2)
-                    {
-                        cn.Entry(archivoCompras).State = System.Data.Entity.EntityState.Deleted;
-                    }
-                    cn.SaveChanges();
-                    return true;
+                    var r = JsonConvert.DeserializeObject<RespuestaCRUD>(resp);
+
+                    // Si estado es int: return r != null && r.estado == 1;
+                    return r != null && r.estado;
                 }
+
+                return false;
             }
             catch (Exception ex)
             {
@@ -37,29 +40,25 @@ namespace DAL.Controladores
                 return false;
             }
         }
-        public static ArchivoCompras ConsultarGuidArchivo(Guid guid)
+
+        public static async Task<ArchivoCompras> ConsultarGuidArchivo(Guid guid)
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
+                var query = $@"
+                    select top 1 *
+                    from ArchivoCompras
+                    where guidArchivo = '{guid}'
+                ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    return cn.ArchivoCompras.AsNoTracking().Where(x => x.guidArchivo == guid).FirstOrDefault();
+                    return JsonConvert.DeserializeObject<ArchivoCompras>(resp);
                 }
-            }
-            catch(Exception ex)
-            {
-                string error = ex.Message;
+
                 return null;
-            }
-        }
-        public static ArchivoCompras ConsultarIdArchivo(int Id)
-        {
-            try
-            {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    return cn.ArchivoCompras.AsNoTracking().Where(x => x.id == Id).FirstOrDefault();
-                }
             }
             catch (Exception ex)
             {
@@ -67,14 +66,51 @@ namespace DAL.Controladores
                 return null;
             }
         }
-        public static List<V_ArchivoCompras> Listra_IdCompra(int IdCompra)
+
+        public static async Task<ArchivoCompras> ConsultarIdArchivo(int Id)
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
+                var query = $@"
+                    select top 1 *
+                    from ArchivoCompras
+                    where id = {Id}
+                ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    return cn.V_ArchivoCompras.AsNoTracking().Where(x => x.idCompra == IdCompra).ToList();
+                    return JsonConvert.DeserializeObject<ArchivoCompras>(resp);
                 }
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                string error = ex.Message;
+                return null;
+            }
+        }
+
+        public static async Task<List<V_ArchivoCompras>> Listra_IdCompra(int IdCompra)
+        {
+            try
+            {
+                var query = $@"
+                    select *
+                    from V_ArchivoCompras
+                    where idCompra = {IdCompra}
+                ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true); // true = lista
+
+                if (!string.IsNullOrEmpty(resp))
+                {
+                    return JsonConvert.DeserializeObject<List<V_ArchivoCompras>>(resp);
+                }
+
+                return null;
             }
             catch (Exception ex)
             {

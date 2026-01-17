@@ -1,4 +1,7 @@
 ﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
+using RunApi;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -40,27 +43,30 @@ namespace DAL.Controladores
                 return null;
             }
         }
-        public static bool GuardarEditarEliminarCompra(DetalleCompra objCompra, int Boton)
+
+        public static async Task<bool> GuardarEditarEliminarCompra(DetalleCompra objCompra, int Boton)
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
+                var json = JsonConvert.SerializeObject(objCompra);
+
+                // Si usas tu ajustador, déjalo como siempre:
+                // json = AjustarJoson.Ajustar(json);
+
+                json = json.Replace("'", "''");
+
+                var query = $"EXEC dbo.CRUD_DetalleCompra N'{json}', {Boton}";
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    if (Boton == 0)
-                    {
-                        cn.DetalleCompra.Add(objCompra);
-                    }
-                    if (Boton == 1)
-                    {
-                        cn.Entry(objCompra).State = System.Data.Entity.EntityState.Modified;
-                    }
-                    if (Boton == 2)
-                    {
-                        cn.Entry(objCompra).State = System.Data.Entity.EntityState.Deleted;
-                    }
-                    cn.SaveChanges();
-                    return true;
+                    var r = JsonConvert.DeserializeObject<RespuestaCRUD>(resp);
+
+                    // Si estado es int: return r != null && r.estado == 1;
+                    return r != null && r.estado;
                 }
+
+                return false;
             }
             catch (Exception ex)
             {
@@ -70,32 +76,37 @@ namespace DAL.Controladores
             }
         }
 
-        public static bool EliminarLista(int IdCompra)
+        public static async Task<bool> EliminarLista(int IdCompra)
         {
             try
             {
-                ConexionSQL.AbrirConexion();
-                SqlCommand command = ConexionSQL.connection.CreateCommand();
-                command.CommandText = "delete DetalleCompra where idCompra="+IdCompra;
-                command.ExecuteNonQuery();
-                ConexionSQL.CerrarConexion();
+                var query = $@"
+            DELETE FROM DetalleCompra
+            WHERE idCompra = {IdCompra}
+        ";
+
+                // No necesitamos resultado, solo ejecutar
+                await Conection_SQL.ConsultaSQLServer(query, false, true);
+
                 return true;
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
-                //MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
         }
-        public static List<DetalleVenta> ConsultaListaCompleta()
+        public static async Task<List<DetalleVenta>> ConsultaListaCompleta()
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    return cn.DetalleVenta.AsNoTracking().ToList();
-                }
+                var query = @"select * from DetalleVenta";
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                if (!string.IsNullOrEmpty(resp))
+                    return JsonConvert.DeserializeObject<List<DetalleVenta>>(resp);
+
+                return null;
             }
             catch (Exception ex)
             {
@@ -103,35 +114,38 @@ namespace DAL.Controladores
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
-
         }
 
-        public static List<DetalleCompra> Lista_XidCompra(int IdCompra)
+        public static async Task<List<DetalleCompra>> Lista_XidCompra(int IdCompra)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    return cn.DetalleCompra.AsNoTracking().Where(x => x.idCompra == IdCompra).ToList();
-                }
+                var query = $@"select * from DetalleCompra where idCompra = {IdCompra}";
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                if (!string.IsNullOrEmpty(resp))
+                    return JsonConvert.DeserializeObject<List<DetalleCompra>>(resp);
+
+                return null;
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
-                //MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
-
         }
 
-        public static DetalleCompra ConsultaXidCompra(int id)
+        public static async Task<DetalleCompra> ConsultaXidCompra(int id)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    return cn.DetalleCompra.AsNoTracking().Where(x => x.id == id).FirstOrDefault();
-                }
+                var query = $@"select top 1 * from DetalleCompra where id = {id}";
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
+                    return JsonConvert.DeserializeObject<DetalleCompra>(resp);
+
+                return null;
             }
             catch (Exception ex)
             {
@@ -139,21 +153,27 @@ namespace DAL.Controladores
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
-
         }
-        public static decimal SumaSubTotalCompra(int IdCompra)
+
+        public static async Task<decimal> SumaSubTotalCompra(int IdCompra)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
+                var query = $@"
+                select ISNULL(SUM(totalDetalle), 0) as total
+                from DetalleCompra
+                where idCompra = {IdCompra}
+            ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    decimal? Suma = cn.DetalleCompra.AsNoTracking().Where(X => X.idCompra == IdCompra).Sum(y => (decimal?)y.totalDetalle);
-                    if (Suma == null)
-                    {
-                        Suma = 0;
-                    }
-                    return Convert.ToDecimal(Suma);
+                    var data = JsonConvert.DeserializeObject<List<dynamic>>(resp);
+                    return Convert.ToDecimal(data[0].total);
                 }
+
+                return 0;
             }
             catch (Exception ex)
             {
@@ -161,21 +181,27 @@ namespace DAL.Controladores
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return 0;
             }
-
         }
-        public static int SumaSubTotalDescuento(int IdCompra)
+
+        public static async Task<int> SumaSubTotalDescuento(int IdCompra)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
+                var query = $@"
+                select ISNULL(SUM(valorDescuento), 0) as total
+                from DetalleCompra
+                where idCompra = {IdCompra}
+            ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    int? Suma = cn.DetalleCompra.AsNoTracking().Where(X => X.idCompra == IdCompra).Sum(y => (int?)y.valorDescuento);
-                    if (Suma == null)
-                    {
-                        Suma = 0;
-                    }
-                    return Convert.ToInt32(Suma);
+                    var data = JsonConvert.DeserializeObject<List<dynamic>>(resp);
+                    return Convert.ToInt32(data[0].total);
                 }
+
+                return 0;
             }
             catch (Exception ex)
             {
@@ -183,21 +209,27 @@ namespace DAL.Controladores
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return 0;
             }
-
         }
-        public static int SumaSubTotalIVA(int IdCompra)
+
+        public static async Task<int> SumaSubTotalIVA(int IdCompra)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
+                var query = $@"
+                select ISNULL(SUM(valorIva), 0) as total
+                from DetalleCompra
+                where idCompra = {IdCompra}
+            ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    int? Suma = cn.DetalleCompra.AsNoTracking().Where(X => X.idCompra == IdCompra).Sum(y => (int?)y.valorIva);
-                    if (Suma == null)
-                    {
-                        Suma = 0;
-                    }
-                    return Convert.ToInt32(Suma);
+                    var data = JsonConvert.DeserializeObject<List<dynamic>>(resp);
+                    return Convert.ToInt32(data[0].total);
                 }
+
+                return 0;
             }
             catch (Exception ex)
             {
@@ -205,67 +237,92 @@ namespace DAL.Controladores
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return 0;
             }
-
         }
-        public static List<V_DetalleCompra> listaXIdCompra(int IdCompa)
+
+        public static async Task<List<V_DetalleCompra>> listaXIdCompra(int IdCompa)
         {
             try
             {
-                using(SistemaPOSEntities cn =new Modelo.SistemaPOSEntities())
-                {
-                    return cn.V_DetalleCompra.AsNoTracking().Where(x => x.idCompra == IdCompa).ToList();
-                }
+                var query = $@"select * from V_DetalleCompra where idCompra = {IdCompa}";
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                if (!string.IsNullOrEmpty(resp))
+                    return JsonConvert.DeserializeObject<List<V_DetalleCompra>>(resp);
+
+                return null;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
         }
-        public static DetalleCompra ConsultarIdCompra_idInventario(int IdCompra,int IdInventario)
+
+        public static async Task<DetalleCompra> ConsultarIdCompra_idInventario(int IdCompra, int IdInventario)
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    return cn.DetalleCompra.AsNoTracking().Where(x => x.idCompra == IdCompra && x.idInventario == IdInventario).FirstOrDefault();
-                }
+                var query = $@"
+                select top 1 *
+                from DetalleCompra
+                where idCompra = {IdCompra}
+                  and idInventario = {IdInventario}
+            ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
+                    return JsonConvert.DeserializeObject<DetalleCompra>(resp);
+
+                return null;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
                 return null;
             }
         }
-        public static decimal SumaCompras(int IdInventario,int IdSede)
+
+        public static async Task<decimal> SumaCompras(int IdInventario, int IdSede)
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
+                var query = $@"
+                select ISNULL(SUM(cantidad), 0) as total
+                from V_DetalleCompra
+                where idSede = {IdSede}
+                  and idInventario = {IdInventario}
+            ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    decimal? suma = cn.V_DetalleCompra.AsNoTracking().Where(x => x.idSede == IdSede && x.idInventario == IdInventario).Sum(x => (decimal?)x.cantidad);
-                    if (suma == null)
-                    {
-                        suma = 0;
-                    }
-                    return Convert.ToDecimal(suma);
+                    var data = JsonConvert.DeserializeObject<List<dynamic>>(resp);
+                    return Convert.ToDecimal(data[0].total);
                 }
+
+                return 0;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
                 return 0;
             }
         }
-        public static DetalleCompra ConsultaX_idDetalle(int id)
+
+        public static async Task<DetalleCompra> ConsultaX_idDetalle(int id)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    return cn.DetalleCompra.AsNoTracking().Where(x => x.id == id).FirstOrDefault();
-                }
+                var query = $@"select top 1 * from DetalleCompra where id = {id}";
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
+                    return JsonConvert.DeserializeObject<DetalleCompra>(resp);
+
+                return null;
             }
             catch (Exception ex)
             {
@@ -273,16 +330,19 @@ namespace DAL.Controladores
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
-
         }
-        public static List<V_DetalleCompra> Filtrar_IdCompra(int IdCompra)
+
+        public static async Task<List<V_DetalleCompra>> Filtrar_IdCompra(int IdCompra)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    return cn.V_DetalleCompra.AsNoTracking().Where(x => x.idCompra == IdCompra).ToList();
-                }
+                var query = $@"select * from V_DetalleCompra where idCompra = {IdCompra}";
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                if (!string.IsNullOrEmpty(resp))
+                    return JsonConvert.DeserializeObject<List<V_DetalleCompra>>(resp);
+
+                return null;
             }
             catch (Exception ex)
             {
@@ -290,7 +350,6 @@ namespace DAL.Controladores
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
-
         }
     }
 }

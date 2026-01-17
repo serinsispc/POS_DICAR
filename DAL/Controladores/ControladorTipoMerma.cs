@@ -1,72 +1,115 @@
-﻿using System;
+﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using DAL.Modelo;
+using System.Windows.Forms;
 
 namespace DAL.Controladores
 {
     public class ControladorTipoMerma
     {
-        public static bool Crud(TipoMerma tipoMerma,int Boton)
+        // =====================================================
+        // CRUD -> llama SP dbo.CRUD_TipoMerma (JSON + funcion)
+        // funcion/Boton: 0=INSERT, 1=UPDATE, 2=DELETE
+        // =====================================================
+        public static async Task<RespuestaCRUD> Crud(TipoMerma tipoMerma, int Boton)
         {
             try
             {
-                using (SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    if (Boton == 0)
-                    {
-                        cn.TipoMerma.Add(tipoMerma);
-                    }
-                    if (Boton == 1)
-                    {
-                        cn.Entry(tipoMerma).State = System.Data.Entity.EntityState.Modified;
-                    }
-                    if (Boton == 2)
-                    {
-                        cn.Entry(tipoMerma).State = System.Data.Entity.EntityState.Deleted;
-                    }
-                    cn.SaveChanges();
-                    return true;
-                }
+                var json = JsonConvert.SerializeObject(tipoMerma);
+                return await Crud(json, Boton);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
-                return false;
+                MessageBox.Show("Ocurrió un error.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                return new RespuestaCRUD()
+                {
+                    estado = false,
+                    idAfectado = 0,
+                    mensaje = error
+                };
             }
         }
 
-        public static List<V_TipoMerma> listaCompleta()
+        // Método base que tu ya vienes usando: Crud(string json, int funcion)
+        public static async Task<RespuestaCRUD> Crud(string json, int funcion)
         {
             try
             {
-                using(SistemaPOSEntities cn =new Modelo.SistemaPOSEntities())
-                {
-                    return cn.V_TipoMerma.AsNoTracking().ToList();
-                }
+                json = EscapeJsonForSql(json);
+
+                var query = $"EXEC dbo.CRUD_TipoMerma N'{json}', {funcion}";
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                return JsonConvert.DeserializeObject<RespuestaCRUD>(respuesta);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
+                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                return new RespuestaCRUD()
+                {
+                    estado = false,
+                    idAfectado = 0,
+                    mensaje = error
+                };
+            }
+        }
+
+        // =====================================================
+        // LISTA COMPLETA (VIEW)
+        // =====================================================
+        public static async Task<List<V_TipoMerma>> ListaCompleta()
+        {
+            try
+            {
+                var query = "SELECT * FROM V_TipoMerma";
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                return JsonConvert.DeserializeObject<List<V_TipoMerma>>(respuesta);
+            }
+            catch (Exception ex)
+            {
+                string error = ex.Message;
+                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
         }
-        public static TipoMerma Consultar_id(int IdTipoMerma)
+
+        // =====================================================
+        // CONSULTAR POR ID (TABLA)
+        // =====================================================
+        public static async Task<TipoMerma> Consultar_id(int IdTipoMerma)
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    return cn.TipoMerma.AsNoTracking().Where(x => x.id == IdTipoMerma).FirstOrDefault();
-                }
+                var query = $"SELECT TOP 1 * FROM TipoMerma WHERE id = {IdTipoMerma}";
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                // ConsultaSQLServer suele devolver JSON de tabla -> lista
+                var lista = JsonConvert.DeserializeObject<List<TipoMerma>>(respuesta);
+                return (lista != null && lista.Count > 0) ? lista[0] : null;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
+                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
+        }
+
+        // =====================================================
+        // Escape para JSON embebido en SQL
+        // =====================================================
+        private static string EscapeJsonForSql(string json)
+        {
+            return string.IsNullOrEmpty(json) ? "" : json.Replace("'", "''");
         }
     }
+
 }

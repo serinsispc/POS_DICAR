@@ -1,67 +1,106 @@
 ﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
+using RunApi;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace DAL.Controladores
 {
     public class controladorDetalleTraslado
     {
-        public static DetalleTraslado consultar_IdDetalle(int IdDetalle)
+        private const string SP_CRUD = "dbo.CRUD_DetalleTraslado";
+
+        private static string EscapeJsonForSql(string json)
+        {
+            return (json ?? string.Empty).Replace("'", "''");
+        }
+
+        // ==========================
+        // CRUD por JSON (0/1/2)
+        // ==========================
+        public static async Task<RespuestaCRUD> Crud(string json, int funcion)
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    return cn.DetalleTraslado.AsNoTracking().Where(x => x.id == IdDetalle).FirstOrDefault();
-                }
+                json = EscapeJsonForSql(json);
+                var query = $"EXEC {SP_CRUD} N'{json}', {funcion}";
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                return JsonConvert.DeserializeObject<RespuestaCRUD>(respuesta);
             }
-            catch(Exception ex)
+            catch (Exception ex)
+            {
+                string mensaje = ex.Message;
+                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return new RespuestaCRUD() { estado = false, idAfectado = 0, mensaje = mensaje };
+            }
+        }
+
+        // ==========================
+        // Consultar por ID (tabla)
+        // ==========================
+        public static async Task<DetalleTraslado> consultar_IdDetalle(int IdDetalle)
+        {
+            try
+            {
+                var query = $@"
+SELECT TOP 1 *
+FROM DetalleTraslado WITH (NOLOCK)
+WHERE id = {IdDetalle};";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+
+                var lista = JsonConvert.DeserializeObject<List<DetalleTraslado>>(jsonReal);
+                return (lista != null && lista.Count > 0) ? lista[0] : null;
+            }
+            catch (Exception ex)
             {
                 string error = ex.Message;
                 return null;
             }
         }
-        public static bool CrearEditarEliminar_DetalleTraslado(DetalleTraslado objDetalle,int Boton)
+
+        // ==========================
+        // Crear / Editar / Eliminar (SP JSON)
+        // ==========================
+        public static async Task<RespuestaCRUD> CrearEditarEliminar_DetalleTraslado(DetalleTraslado objDetalle, int Boton)
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    if (Boton == 0)
-                    {
-                        cn.DetalleTraslado.Add(objDetalle);
-                    }
-                    if(Boton == 1)
-                    {
-                        cn.Entry(objDetalle).State = System.Data.Entity.EntityState.Modified;
-                    }
-                    if (Boton == 2)
-                    {
-                        cn.Entry(objDetalle).State = System.Data.Entity.EntityState.Deleted;
-                    }
-                    cn.SaveChanges();
-                    return true;
-                }
+                var json = JsonConvert.SerializeObject(objDetalle);
+                return await Crud(json, Boton);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                string error = ex.Message;
-                return false;
+                string mensaje = ex.Message;
+                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return new RespuestaCRUD() { estado = false, idAfectado = 0, mensaje = mensaje };
             }
         }
-        public static List<V_DetalleTraslado> Filtrar_Guid(string GuidTex)
+
+        // ==========================
+        // Filtrar por Guid (vista)
+        // ==========================
+        public static async Task<List<V_DetalleTraslado>> Filtrar_Guid(string GuidTex)
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    return cn.V_DetalleTraslado.AsNoTracking().Where(x => x.v_guidDetalleTraslado == GuidTex).ToList();
-                }
+                var guidEsc = (GuidTex ?? string.Empty).Replace("'", "''");
+
+                var query = $@"
+SELECT *
+FROM V_DetalleTraslado WITH (NOLOCK)
+WHERE v_guidDetalleTraslado = '{guidEsc}';";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+
+                return JsonConvert.DeserializeObject<List<V_DetalleTraslado>>(jsonReal);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
                 return null;

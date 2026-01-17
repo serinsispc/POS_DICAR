@@ -1,37 +1,37 @@
 ﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
+using RunApi;
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
+
 namespace DAL.Controladores
 {
     public class ControladorCompra
     {
-        public static bool GuardarEditarEliminarCompra(Compras objCompra, int Boton)
+        public static async Task<bool> GuardarEditarEliminarCompra(Compras objCompra, int Boton)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
+                var json = JsonConvert.SerializeObject(objCompra);
+
+                // Si usas tu ajustador, déjalo como siempre:
+                // json = AjustarJoson.Ajustar(json);
+
+                json = json.Replace("'", "''");
+
+                var query = $"EXEC dbo.CRUD_Compras N'{json}', {Boton}";
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    if (Boton == 0)
-                    {
-                        cn.Compras.Add(objCompra);
-                    }
-                    if (Boton == 1)
-                    {
-                        cn.Entry(objCompra).State = System.Data.Entity.EntityState.Modified;
-                    }
-                    if (Boton == 2)
-                    {
-                        cn.Entry(objCompra).State = System.Data.Entity.EntityState.Deleted;
-                    }
-                    cn.SaveChanges();
-                    return true;
+                    var r = JsonConvert.DeserializeObject<RespuestaCRUD>(resp);
+                    // Si estado es int: return r != null && r.estado == 1;
+                    return r != null && r.estado;
                 }
+
+                return false;
             }
             catch (Exception ex)
             {
@@ -39,138 +39,155 @@ namespace DAL.Controladores
                 return false;
             }
         }
-        public static Compras ConsultaListaX_IdCompra_Entity(int IdCompra)
+
+        public static async Task<Compras> ConsultaListaX_IdCompra_Entity(int IdCompra)
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    return cn.Compras.AsNoTracking().Where(x => x.id == IdCompra).FirstOrDefault();
-                }
+                var query = $@"
+                    select top 1 *
+                    from Compras
+                    where id = {IdCompra}
+                ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
+                    return JsonConvert.DeserializeObject<Compras>(resp);
+
+                return null;
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
                 return null;
             }
-
         }
-        public static DataTable ConsultaListaX_IdCompra(int IdCompra)
+
+        // Reemplazo del DataTable (misma intención: traer la compra por id)
+        public static async Task<Compras> ConsultaListaX_IdCompra(int IdCompra)
         {
             try
             {
-                ConexionSQL.AbrirConexion();
-                SqlCommand cmd = ConexionSQL.connection.CreateCommand();
-                cmd.CommandText = "select *from Compras where id="+IdCompra;
-                DataTable dt = new DataTable();
-                SqlDataAdapter ad = new SqlDataAdapter(cmd);
-                ad.Fill(dt);
-                ConexionSQL.CerrarConexion();
-                if (dt.Rows.Count > 0)
-                {
-                    return dt;
-                }
-                else
-                {
-                    return null;
-                }
+                var query = $@"
+                    select top 1 *
+                    from Compras
+                    where id = {IdCompra}
+                ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
+                    return JsonConvert.DeserializeObject<Compras>(resp);
+
+                return null;
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
                 return null;
             }
-
         }
-        public static int TotalComprasAño(DateTime Fecha)
+
+        public static async Task<int> TotalComprasAño(DateTime Fecha)
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
+                var query = $@"
+                    select ISNULL(SUM(valorPagadoCompra), 0) as total
+                    from PagosCompras
+                    where YEAR(fechaPagoCompra) = {Fecha.Year}
+                ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    int? Total = cn.PagosCompras.AsNoTracking().Where(x => x.fechaPagoCompra.Value.Year == Fecha.Year).Sum(y => (int?)y.valorPagadoCompra);
-                    if (Total == null)
-                    {
-                        Total = 0;
-                    }
-                    return Convert.ToInt32(Total);
+                    var data = JsonConvert.DeserializeObject<List<dynamic>>(resp);
+                    return Convert.ToInt32(data[0].total);
                 }
+
+                return 0;
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
                 return 0;
             }
-
         }
-        public static int TotalComprasMes(DateTime Fecha)
+
+        public static async Task<int> TotalComprasMes(DateTime Fecha)
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
+                var query = $@"
+                    select ISNULL(SUM(valorPagadoCompra), 0) as total
+                    from PagosCompras
+                    where YEAR(fechaPagoCompra) = {Fecha.Year}
+                      and MONTH(fechaPagoCompra) = {Fecha.Month}
+                ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    int? Total = cn.PagosCompras.AsNoTracking().Where(x => x.fechaPagoCompra.Value.Year == Fecha.Year &&
-                                                                      x.fechaPagoCompra.Value.Month == Fecha.Month).Sum(y => (int?)y.valorPagadoCompra);
-                    if (Total == null)
-                    {
-                        Total = 0;
-                    }
-                    return Convert.ToInt32(Total);
+                    var data = JsonConvert.DeserializeObject<List<dynamic>>(resp);
+                    return Convert.ToInt32(data[0].total);
                 }
+
+                return 0;
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
                 return 0;
             }
-
         }
-        public static int TotalComprasDia(DateTime Fecha)
+
+        public static async Task<int> TotalComprasDia(DateTime Fecha)
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
+                var query = $@"
+                    select ISNULL(SUM(valorPagadoCompra), 0) as total
+                    from PagosCompras
+                    where CONVERT(date, fechaPagoCompra) = '{Fecha:yyyy-MM-dd}'
+                ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    int? Total = cn.PagosCompras.AsNoTracking().Where(x => x.fechaPagoCompra.Value.Year == Fecha.Year &&
-                                                                      x.fechaPagoCompra.Value.Month == Fecha.Month &&
-                                                                      x.fechaPagoCompra.Value.Day == Fecha.Day).Sum(y => (int?)y.valorPagadoCompra);
-                    if (Total == null)
-                    {
-                        Total = 0;
-                    }
-                    return Convert.ToInt32(Total);
+                    var data = JsonConvert.DeserializeObject<List<dynamic>>(resp);
+                    return Convert.ToInt32(data[0].total);
                 }
+
+                return 0;
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
                 return 0;
             }
+        }
 
-        }
-        public static List<V_Compras>ListaCompleta_Sede(int IdSede,int Estado)
+        public static async Task<List<V_Compras>> ListaCompleta_Sede(int IdSede, int Estado)
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    return cn.V_Compras.AsNoTracking().Where(x => x.idSedeCompra == IdSede &&x.idEstadoAI==Estado).ToList();
-                }
-            }
-            catch(Exception ex)
-            {
-                string error = ex.Message;
+                var query = $@"
+                    select *
+                    from V_Compras
+                    where idSedeCompra = {IdSede}
+                      and idEstadoAI = {Estado}
+                ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                if (!string.IsNullOrEmpty(resp))
+                    return JsonConvert.DeserializeObject<List<V_Compras>>(resp);
+
                 return null;
-            }
-        }
-        public static List<V_PagoCP> FiltroX_Año(DateTime FechaFiltro, int IdSede)
-        {
-            try
-            {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    return cn.V_PagoCP.AsNoTracking().Where(x => x.IdSedePagoCompra == IdSede && x.FechaVPagoCompra.Value.Year == FechaFiltro.Year).ToList();
-                }
             }
             catch (Exception ex)
             {
@@ -178,15 +195,24 @@ namespace DAL.Controladores
                 return null;
             }
         }
-        public static List<V_PagoCP> FiltroX_Mes(DateTime FechaFiltro, int IdSEde)
+
+        public static async Task<List<V_PagoCP>> FiltroX_Año(DateTime FechaFiltro, int IdSede)
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    return cn.V_PagoCP.AsNoTracking().Where(x => x.IdSedePagoCompra == IdSEde && x.FechaVPagoCompra.Value.Year == FechaFiltro.Year &&
-                                                                x.FechaVPagoCompra.Value.Month == FechaFiltro.Month).ToList();
-                }
+                var query = $@"
+                    select *
+                    from V_PagoCP
+                    where IdSedePagoCompra = {IdSede}
+                      and YEAR(FechaVPagoCompra) = {FechaFiltro.Year}
+                ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                if (!string.IsNullOrEmpty(resp))
+                    return JsonConvert.DeserializeObject<List<V_PagoCP>>(resp);
+
+                return null;
             }
             catch (Exception ex)
             {
@@ -194,16 +220,25 @@ namespace DAL.Controladores
                 return null;
             }
         }
-        public static List<V_PagoCP> FiltroX_Dia(DateTime FechaFiltro, int IdSede)
+
+        public static async Task<List<V_PagoCP>> FiltroX_Mes(DateTime FechaFiltro, int IdSEde)
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    return cn.V_PagoCP.AsNoTracking().Where(x => x.IdSedePagoCompra == IdSede && x.FechaVPagoCompra.Value.Year == FechaFiltro.Year &&
-                                                                x.FechaVPagoCompra.Value.Month == FechaFiltro.Month &&
-                                                                x.FechaVPagoCompra.Value.Day == FechaFiltro.Day).ToList();
-                }
+                var query = $@"
+                    select *
+                    from V_PagoCP
+                    where IdSedePagoCompra = {IdSEde}
+                      and YEAR(FechaVPagoCompra) = {FechaFiltro.Year}
+                      and MONTH(FechaVPagoCompra) = {FechaFiltro.Month}
+                ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                if (!string.IsNullOrEmpty(resp))
+                    return JsonConvert.DeserializeObject<List<V_PagoCP>>(resp);
+
+                return null;
             }
             catch (Exception ex)
             {
@@ -211,14 +246,24 @@ namespace DAL.Controladores
                 return null;
             }
         }
-        public static List<Compras> FiltrarSaldo()
+
+        public static async Task<List<V_PagoCP>> FiltroX_Dia(DateTime FechaFiltro, int IdSede)
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    return cn.Compras.AsNoTracking().Where(x => x.saldoCompra > 0).ToList();
-                }
+                var query = $@"
+                    select *
+                    from V_PagoCP
+                    where IdSedePagoCompra = {IdSede}
+                      and CONVERT(date, FechaVPagoCompra) = '{FechaFiltro:yyyy-MM-dd}'
+                ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                if (!string.IsNullOrEmpty(resp))
+                    return JsonConvert.DeserializeObject<List<V_PagoCP>>(resp);
+
+                return null;
             }
             catch (Exception ex)
             {
@@ -226,14 +271,23 @@ namespace DAL.Controladores
                 return null;
             }
         }
-        public static List<V_Compras> filtrarXProveedorSaldo(string Proveedor)
+
+        public static async Task<List<Compras>> FiltrarSaldo()
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    return cn.V_Compras.AsNoTracking().Where(x => x.saldoCompraV > 0 && x.nombreProveedorV.Contains(Proveedor) && x.documentoProveedorV.Contains(Proveedor)).ToList();
-                }
+                var query = @"
+                    select *
+                    from Compras
+                    where saldoCompra > 0
+                ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                if (!string.IsNullOrEmpty(resp))
+                    return JsonConvert.DeserializeObject<List<Compras>>(resp);
+
+                return null;
             }
             catch (Exception ex)
             {
@@ -241,16 +295,27 @@ namespace DAL.Controladores
                 return null;
             }
         }
-        public static List<V_Compras> listaComprasPendientes(int IdSede,int Estado)
+
+        public static async Task<List<V_Compras>> filtrarXProveedorSaldo(string Proveedor)
         {
             try
             {
-                using (SistemaPOSEntities cn = new Modelo.SistemaPOSEntities())
-                {
-                    return cn.V_Compras.AsNoTracking().Where(x => x.saldoCompraV > 0 &&
-                    x.idSedeCompra == IdSede&&
-                    x.idEstadoAI==Estado).ToList();
-                }
+                var p = (Proveedor ?? "").Replace("'", "''");
+
+                // Nota: en tu EF tenías Contains(Proveedor) en ambos; acá lo replico con LIKE
+                var query = $@"
+                    select *
+                    from V_Compras
+                    where saldoCompraV > 0
+                      and (nombreProveedorV like '%{p}%' or documentoProveedorV like '%{p}%')
+                ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                if (!string.IsNullOrEmpty(resp))
+                    return JsonConvert.DeserializeObject<List<V_Compras>>(resp);
+
+                return null;
             }
             catch (Exception ex)
             {
@@ -258,14 +323,25 @@ namespace DAL.Controladores
                 return null;
             }
         }
-        public static Compras ConsultarXGuid(Guid gui)
+
+        public static async Task<List<V_Compras>> listaComprasPendientes(int IdSede, int Estado)
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    return cn.Compras.AsNoTracking().Where(x => x.guidCompra == gui).FirstOrDefault();
-                }
+                var query = $@"
+                    select *
+                    from V_Compras
+                    where saldoCompraV > 0
+                      and idSedeCompra = {IdSede}
+                      and idEstadoAI = {Estado}
+                ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                if (!string.IsNullOrEmpty(resp))
+                    return JsonConvert.DeserializeObject<List<V_Compras>>(resp);
+
+                return null;
             }
             catch (Exception ex)
             {
@@ -273,31 +349,75 @@ namespace DAL.Controladores
                 return null;
             }
         }
-        public static Compras Consultar_Id(int IdCompra)
+
+        public static async Task<Compras> ConsultarXGuid(Guid gui)
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    return cn.Compras.AsNoTracking().Where(x => x.id == IdCompra).FirstOrDefault();
-                }
+                var query = $@"
+                    select top 1 *
+                    from Compras
+                    where guidCompra = '{gui}'
+                ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
+                    return JsonConvert.DeserializeObject<Compras>(resp);
+
+                return null;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
                 return null;
             }
         }
-        public static Compras ConsultarEstadoAI(int estado,int IdSede)
+
+        public static async Task<Compras> Consultar_Id(int IdCompra)
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    return cn.Compras.AsNoTracking().Where(x => x.idSede == IdSede && x.idEstadoAI == estado).FirstOrDefault();
-                }
+                var query = $@"
+                    select top 1 *
+                    from Compras
+                    where id = {IdCompra}
+                ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
+                    return JsonConvert.DeserializeObject<Compras>(resp);
+
+                return null;
             }
-            catch(Exception ex)
+            catch (Exception ex)
+            {
+                string error = ex.Message;
+                return null;
+            }
+        }
+
+        public static async Task<Compras> ConsultarEstadoAI(int estado, int IdSede)
+        {
+            try
+            {
+                var query = $@"
+                    select top 1 *
+                    from Compras
+                    where idSede = {IdSede}
+                      and idEstadoAI = {estado}
+                    order by id desc
+                ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
+                    return JsonConvert.DeserializeObject<Compras>(resp);
+
+                return null;
+            }
+            catch (Exception ex)
             {
                 string Error = ex.Message;
                 return null;

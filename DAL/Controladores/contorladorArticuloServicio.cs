@@ -1,71 +1,104 @@
-﻿using System;
+﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
+using RunApi;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DAL.Modelo;
 
 namespace DAL.Controladores.OrdenServicio
 {
     public class contorladorArticuloServicio
     {
-        public static bool CrearEditarEliminarArticulo(TipoArticulo objArticulo,int Boton)
+
+        public static async Task<bool> CrearEditarEliminarArticulo(TipoArticulo objArticulo, int Boton)
         {
             try
             {
-                using(SistemaPOSEntities cn =new Modelo.SistemaPOSEntities())
+                var json = JsonConvert.SerializeObject(objArticulo);
+
+                // Si usas tu ajustador de JSON, déjalo como siempre:
+                // json = AjustarJoson.Ajustar(json);
+
+                // Escapar comillas simples para SQL
+                json = json.Replace("'", "''");
+
+                var query = $"EXEC dbo.CRUD_TipoArticulo N'{json}', {Boton}";
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true); // Respuesta unica (no lista)
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    if(Boton == 0)
-                    {
-                        cn.TipoArticulo.Add(objArticulo);
-                    }
-                    if(Boton == 1)
-                    {
-                        cn.Entry(objArticulo).State = System.Data.Entity.EntityState.Modified;
-                    }
-                    if (Boton == 2)
-                    {
-                        cn.Entry(objArticulo).State = System.Data.Entity.EntityState.Deleted;
-                    }
-                    cn.SaveChanges();
-                    return true;
+                    var r = JsonConvert.DeserializeObject<RespuestaCRUD>(resp);
+
+                    // Si tu RespuestaCRUD.estado es int: return r != null && r.estado == 1;
+                    return r != null && r.estado;
                 }
+
+                return false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
                 return false;
             }
         }
-        public static List<TipoArticulo> ListaCompleta()
+        public static async Task<List<TipoArticulo>> ListaCompleta()
         {
             try
             {
-                using(SistemaPOSEntities cn =new Modelo.SistemaPOSEntities())
+                var query = @"
+            select *
+            from TipoArticulo
+            order by nombreTipoArticulo
+        ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true); // true = lista
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    return cn.TipoArticulo.AsNoTracking().OrderBy(x=>x.nombreTipoArticulo).ToList();
+                    return JsonConvert.DeserializeObject<List<TipoArticulo>>(resp);
+                }
+                else
+                {
+                    return null;
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
                 return null;
             }
         }
-        public static TipoArticulo consultarID(int IDArticulo)
+
+        public static async Task<TipoArticulo> consultarID(int IDArticulo)
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
+                var query = $@"
+            select top 1 *
+            from TipoArticulo
+            where id = {IDArticulo}
+        ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true); // false = objeto
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    return cn.TipoArticulo.AsNoTracking().Where(x => x.id == IDArticulo).FirstOrDefault();
+                    return JsonConvert.DeserializeObject<TipoArticulo>(resp);
+                }
+                else
+                {
+                    return null;
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
                 return null;
             }
         }
+
     }
 }

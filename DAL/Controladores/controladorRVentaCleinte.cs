@@ -1,67 +1,71 @@
 ﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
+using RunApi;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace DAL.Controladores
 {
     public class controladorRVentaCleinte
     {
-        public static bool CrearEditarEliminar_R_VentaCleinte(R_VentaCliente objRVC,int Boton)
+        // =========================================================
+        // CRUD (funcion: 0=INSERT, 1=UPDATE, 2=DELETE) -> false, true
+        // Usa el SP: dbo.CRUD_R_VentaCliente (JSON)
+        // =========================================================
+        public static async Task<RespuestaCRUD> Crud(R_VentaCliente objRVC, int funcion)
         {
             try
             {
-                using(SistemaPOSEntities cn=new SistemaPOSEntities())
-                {
-                    if (Boton == 0)
-                    {
-                        cn.R_VentaCliente.Add(objRVC);
-                    }
-                    if(Boton == 1)
-                    {
-                        cn.Entry(objRVC).State = System.Data.Entity.EntityState.Modified;
-                    }
-                    if (Boton == 2)
-                    {
-                        cn.Entry(objRVC).State = System.Data.Entity.EntityState.Deleted;
-                    }
-                    cn.SaveChanges();
-                    return true;
-                }
+                var json = JsonConvert.SerializeObject(objRVC);
+                //json = AjustarJoson.Ajustar(json); // si ya la tienes en tu proyecto
+
+                var query = $"EXEC dbo.CRUD_R_VentaCliente N'{json}', {funcion}";
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                return JsonConvert.DeserializeObject<RespuestaCRUD>(respuesta);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
-                return false;
+                return new RespuestaCRUD()
+                {
+                    estado = false,
+                    mensaje = error
+                };
             }
         }
-        public static R_VentaCliente ConsultarRelacion(int IdVenta)
+
+        // =========================================================
+        // CONSULTAR RELACION POR IDVENTA (1 registro) -> false, true
+        // =========================================================
+        public static async Task<R_VentaCliente> ConsultarRelacion(int IdVenta)
         {
             try
             {
-                using (SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    return cn.R_VentaCliente.AsNoTracking().Where(x =>x.idVenta == IdVenta).FirstOrDefault();
-                }
+                var query = $"SELECT TOP 1 * FROM R_VentaCliente WHERE idVenta = {IdVenta}";
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
 
+                return JsonConvert.DeserializeObject<R_VentaCliente>(respuesta);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
                 return null;
             }
         }
-        public static R_VentaCliente Consultar_idCliente(int IdCliente)
+
+        // =========================================================
+        // CONSULTAR POR IDCLIENTE (1 registro) -> false, true
+        // =========================================================
+        public static async Task<R_VentaCliente> Consultar_idCliente(int IdCliente)
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    return cn.R_VentaCliente.AsNoTracking().Where(x => x.idCliente == IdCliente).FirstOrDefault();
-                }
+                var query = $"SELECT TOP 1 * FROM R_VentaCliente WHERE idCliente = {IdCliente}";
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
 
+                return JsonConvert.DeserializeObject<R_VentaCliente>(respuesta);
             }
             catch (Exception ex)
             {

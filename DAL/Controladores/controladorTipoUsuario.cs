@@ -1,43 +1,67 @@
-﻿using System;
+﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DAL.Modelo;
 
 namespace DAL.Controladores.Administrador
 {
     public class controladorTipoUsuario
     {
-        public static List<TipoUsuario> listaCompleta()
+        public static async Task<List<TipoUsuario>> listaCompleta()
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
+                var query = @"select * from TipoUsuario";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    return cn.TipoUsuario.AsNoTracking().ToList();
+                    return JsonConvert.DeserializeObject<List<TipoUsuario>>(resp);
+                }
+                else
+                {
+                    return null;
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
                 return null;
             }
         }
-        public static TipoUsuario consultarID(int idTipo)
+
+        public static async Task<TipoUsuario> consultarID(int idTipo)
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
+                var query = $@"
+            select top 1 *
+            from TipoUsuario
+            where id = {idTipo}
+        ";
+
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (!string.IsNullOrEmpty(resp))
                 {
-                    return cn.TipoUsuario.AsNoTracking().Where(x => x.id == idTipo).FirstOrDefault();
+                    return JsonConvert.DeserializeObject<TipoUsuario>(resp);
+                }
+                else
+                {
+                    return null;
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
                 return null;
             }
         }
+
     }
 }

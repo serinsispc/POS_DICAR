@@ -22,6 +22,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -148,9 +149,9 @@ namespace SERINSI_PC.Formularios
                 subMenu.Visible = false;
             }
         }
-        private bool VerificarPermisoModulo(int IdModulo)
+        private async Task<bool> VerificarPermisoModulo(int IdModulo)
         {
-            objPermisoModulo = ControladorPermisoModulo.consultarIdModuloIdusuario(VariablesPublicas.IdUsuarioLogueado, IdModulo);
+            objPermisoModulo =await ControladorPermisoModulo.consultarIdModuloIdusuario(VariablesPublicas.IdUsuarioLogueado, IdModulo);
             if (objPermisoModulo != null)
             {
                 return true;
@@ -160,9 +161,9 @@ namespace SERINSI_PC.Formularios
                 return false;
             }
         }
-        private bool VerificarPermisoSubModulo(int IdSubModulo)
+        private async Task<bool> VerificarPermisoSubModulo(int IdSubModulo)
         {
-            objPermisoSubModulo = ControladorPermisoSubModulo.consultarIdSubModuloIdusuario(VariablesPublicas.IdUsuarioLogueado, IdSubModulo);
+            objPermisoSubModulo =await ControladorPermisoSubModulo.consultarIdSubModuloIdusuario(VariablesPublicas.IdUsuarioLogueado, IdSubModulo);
             if (objPermisoSubModulo != null)
             {
                 return true;
@@ -172,9 +173,9 @@ namespace SERINSI_PC.Formularios
                 return false;
             }
         }
-        private void btnConfiguracion_Click(object sender, EventArgs e)
+        private async void btnConfiguracion_Click(object sender, EventArgs e)
         {
-            bool Permiso = VerificarPermisoModulo(1);
+            bool Permiso =await VerificarPermisoModulo(1);
             if (Permiso == true)
             {
                 ampliarMenu();
@@ -183,9 +184,9 @@ namespace SERINSI_PC.Formularios
             }
         }
 
-        private void btnInventario_Click(object sender, EventArgs e)
+        private async void btnInventario_Click(object sender, EventArgs e)
         {
-            bool Permiso = VerificarPermisoModulo(2);
+            bool Permiso =await VerificarPermisoModulo(2);
             if (Permiso == true)
             {
                 ampliarMenu();
@@ -194,9 +195,9 @@ namespace SERINSI_PC.Formularios
             }
         }
 
-        private void btnVentas_Click(object sender, EventArgs e)
+        private async void btnVentas_Click(object sender, EventArgs e)
         {
-            bool Permiso = VerificarPermisoModulo(3);
+            bool Permiso =await VerificarPermisoModulo(3);
             if (Permiso == true)
             {
                 mostrarSubMenu(panelVentas);
@@ -204,9 +205,9 @@ namespace SERINSI_PC.Formularios
             }
         }
 
-        private void btnContabilidad_Click(object sender, EventArgs e)
+        private async void btnContabilidad_Click(object sender, EventArgs e)
         {
-            bool Permiso = VerificarPermisoModulo(4);
+            bool Permiso =await VerificarPermisoModulo(4);
             if (Permiso == true)
             {
                 ampliarMenu();
@@ -235,9 +236,9 @@ namespace SERINSI_PC.Formularios
 
         }
 
-        private void btnBodegas_Click(object sender, EventArgs e)
+        private async void btnBodegas_Click(object sender, EventArgs e)
         {
-            bool permiso = VerificarPermisoSubModulo(4);
+            bool permiso =await VerificarPermisoSubModulo(4);
             if (permiso == true)
             {
                 bool Formulario = VerificarFormulario.FormularioActivo("frmBodega");
@@ -250,9 +251,9 @@ namespace SERINSI_PC.Formularios
 
         }
 
-        private void btnCategorias_Click(object sender, EventArgs e)
+        private async void btnCategorias_Click(object sender, EventArgs e)
         {
-            bool permiso = VerificarPermisoSubModulo(5);
+            bool permiso =await VerificarPermisoSubModulo(5);
             if (permiso == true)
             {
                 bool Formulario = VerificarFormulario.FormularioActivo("frmCategorias");
@@ -265,9 +266,9 @@ namespace SERINSI_PC.Formularios
 
         }
 
-        private void btnProveedores_Click(object sender, EventArgs e)
+        private async void btnProveedores_Click(object sender, EventArgs e)
         {
-            bool permiso = VerificarPermisoSubModulo(6);
+            bool permiso =await VerificarPermisoSubModulo(6);
             if (permiso == true)
             {
                 bool Formulario = VerificarFormulario.FormularioActivo("frmProveedor");
@@ -280,9 +281,9 @@ namespace SERINSI_PC.Formularios
 
         }
 
-        private void btnAgotados_Click(object sender, EventArgs e)
+        private async void btnAgotados_Click(object sender, EventArgs e)
         {
-            bool permiso = VerificarPermisoSubModulo(7);
+            bool permiso =await VerificarPermisoSubModulo(7);
             if (permiso == true)
             {
                 bool Formulario = VerificarFormulario.FormularioActivo("frmAgotados");
@@ -297,9 +298,9 @@ namespace SERINSI_PC.Formularios
 
         }
 
-        private void btnCompras_Click(object sender, EventArgs e)
+        private async void btnCompras_Click(object sender, EventArgs e)
         {
-            bool permiso = VerificarPermisoSubModulo(8);
+            bool permiso =await VerificarPermisoSubModulo(8);
             if (permiso == true)
             {
                 bool Formulario = VerificarFormulario.FormularioActivo("frmCompras");
@@ -312,9 +313,9 @@ namespace SERINSI_PC.Formularios
 
         }
 
-        private void btnKardex_Click(object sender, EventArgs e)
+        private async void btnKardex_Click(object sender, EventArgs e)
         {
-            bool permiso = VerificarPermisoSubModulo(9);
+            bool permiso =await VerificarPermisoSubModulo(9);
             if (permiso == true)
             {
                 bool Formulario = VerificarFormulario.FormularioActivo("frmKardex");
@@ -327,9 +328,9 @@ namespace SERINSI_PC.Formularios
 
         }
 
-        private void btnOrdenCompra_Click(object sender, EventArgs e)
+        private async void btnOrdenCompra_Click(object sender, EventArgs e)
         {
-            bool permiso = VerificarPermisoSubModulo(10);
+            bool permiso =await VerificarPermisoSubModulo(10);
             if (permiso == true)
             {
                 bool Formulario = VerificarFormulario.FormularioActivo("frmMerma");
@@ -342,14 +343,14 @@ namespace SERINSI_PC.Formularios
 
         }
 
-        private void btnEfectivo_Click(object sender, EventArgs e)
+        private async void btnEfectivo_Click(object sender, EventArgs e)
         {
             if (VariablesPublicas.IdBaseActiva == 0)
             {
                 MessageBox.Show("Para poder continuar debe activar la base de la caja.", "Base Caja", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            bool permiso = VerificarPermisoSubModulo(11);
+            bool permiso =await VerificarPermisoSubModulo(11);
             if (permiso == true)
             {
                 if (VariablesPublicas.TipoCajaRegistradora == 1)
@@ -379,18 +380,18 @@ namespace SERINSI_PC.Formularios
             }
         }
 
-        private void btnPedido_Click(object sender, EventArgs e)
+        private async void btnPedido_Click(object sender, EventArgs e)
         {
-            bool permiso = VerificarPermisoSubModulo(12);
+            bool permiso =await VerificarPermisoSubModulo(12);
             if (permiso == true)
             {
 
             }
         }
 
-        private void btnHistorial_Click(object sender, EventArgs e)
+        private async void btnHistorial_Click(object sender, EventArgs e)
         {
-            bool permiso = VerificarPermisoSubModulo(13);
+            bool permiso =await VerificarPermisoSubModulo(13);
             if (permiso == true)
             {
                 bool Formulario = VerificarFormulario.FormularioActivo("frmHistorialVentas");
@@ -404,9 +405,9 @@ namespace SERINSI_PC.Formularios
 
         }
 
-        private void btnInforme_Click(object sender, EventArgs e)
+        private async void btnInforme_Click(object sender, EventArgs e)
         {
-            bool permiso = VerificarPermisoSubModulo(14);
+            bool permiso =await VerificarPermisoSubModulo(14);
             if (permiso == true)
             {
                 bool Formulario = VerificarFormulario.FormularioActivo("frmreporteDiario");
@@ -418,14 +419,14 @@ namespace SERINSI_PC.Formularios
 
         }
 
-        private void btnCuentasPP_Click(object sender, EventArgs e)
+        private async void btnCuentasPP_Click(object sender, EventArgs e)
         {
             if (VariablesPublicas.IdBaseActiva == 0)
             {
                 MessageBox.Show("Para poder continuar debe activar la base de la caja.", "Base Caja", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            bool permiso = VerificarPermisoSubModulo(15);
+            bool permiso =await VerificarPermisoSubModulo(15);
             if (permiso == true)
             {
                 bool Formulario = VerificarFormulario.FormularioActivo("frmCompraProveedor");
@@ -439,14 +440,14 @@ namespace SERINSI_PC.Formularios
 
         }
 
-        private void btnCuentasPC_Click(object sender, EventArgs e)
+        private async void btnCuentasPC_Click(object sender, EventArgs e)
         {
             if (VariablesPublicas.IdBaseActiva == 0)
             {
                 MessageBox.Show("Para poder continuar debe activar la base de la caja.", "Base Caja", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            bool permiso = VerificarPermisoSubModulo(16);
+            bool permiso =await VerificarPermisoSubModulo(16);
             if (permiso == true)
             {
                 bool Formulario = VerificarFormulario.FormularioActivo("frmPagoCreditos");
@@ -486,7 +487,7 @@ namespace SERINSI_PC.Formularios
             fh.Show();
         }
 
-        private void frmMenuPrincipal_Load(object sender, EventArgs e)
+        private async void frmMenuPrincipal_Load(object sender, EventArgs e)
         {
             maximizar();
             panelMenu.Width = 45;
@@ -496,7 +497,7 @@ namespace SERINSI_PC.Formularios
 
             //en esta parte consultamos si el suario tiene base activa
             BaseCaja baseCaja = new BaseCaja();
-            baseCaja = ControladorBaseCaja.consultaBaseActiva("ACTIVA", VariablesPublicas.IdUsuarioLogueado,VariablesPublicas.IdEmpresaLogueada);
+            baseCaja =await ControladorBaseCaja.consultaBaseActiva("ACTIVA", VariablesPublicas.IdUsuarioLogueado,VariablesPublicas.IdEmpresaLogueada);
             if(baseCaja != null)
             {
                 VariablesPublicas.IdBaseActiva = baseCaja.id;
@@ -614,14 +615,14 @@ namespace SERINSI_PC.Formularios
             WindowState = FormWindowState.Minimized;
         }
 
-        private void btnGastos_Click(object sender, EventArgs e)
+        private async void btnGastos_Click(object sender, EventArgs e)
         {
             if (VariablesPublicas.IdBaseActiva == 0)
             {
                 MessageBox.Show("Para poder continuar debe activar la base de la caja.", "Base Caja", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            bool permiso = VerificarPermisoSubModulo(17);
+            bool permiso =await VerificarPermisoSubModulo(17);
             if (permiso == true)
             {
                 bool Formulario = VerificarFormulario.FormularioActivo("frmGastos");
@@ -635,9 +636,9 @@ namespace SERINSI_PC.Formularios
 
         }
 
-        private void btnBaseCaja_Click(object sender, EventArgs e)
+        private async void btnBaseCaja_Click(object sender, EventArgs e)
         {
-            bool permiso = VerificarPermisoSubModulo(18);
+            bool permiso =await VerificarPermisoSubModulo(18);
             if (permiso == true)
             {
                 bool Formulario = VerificarFormulario.FormularioActivo("frmBaseCaja");
@@ -651,9 +652,9 @@ namespace SERINSI_PC.Formularios
 
         }
 
-        private void btnCerrarCaja_Click(object sender, EventArgs e)
+        private async void btnCerrarCaja_Click(object sender, EventArgs e)
         {
-            bool permiso = VerificarPermisoSubModulo(19);
+            bool permiso =await VerificarPermisoSubModulo(19);
             if (permiso == true)
             {
                 bool Formulario = VerificarFormulario.FormularioActivo("frmCerrarCaja");
@@ -667,9 +668,9 @@ namespace SERINSI_PC.Formularios
 
         }
 
-        private void btnLibroDiario_Click(object sender, EventArgs e)
+        private async void btnLibroDiario_Click(object sender, EventArgs e)
         {
-            bool permiso = VerificarPermisoSubModulo(20);
+            bool permiso =await VerificarPermisoSubModulo(20);
             if (permiso == true)
             {
                 bool Formulario = VerificarFormulario.FormularioActivo("frmLibroDiario");
@@ -700,9 +701,9 @@ namespace SERINSI_PC.Formularios
             frm.ShowDialog();
         }
 
-        private void btnSerinsisPC_Click(object sender, EventArgs e)
+        private async void btnSerinsisPC_Click(object sender, EventArgs e)
         {
-            bool permiso = VerificarPermisoModulo(5);
+            bool permiso =await VerificarPermisoModulo(5);
             if (permiso == true)
             {
                 //mostrarSubMenu(panelContabilidad);
@@ -779,9 +780,9 @@ namespace SERINSI_PC.Formularios
             }
         }
 
-        private void btnContabildad_Click(object sender, EventArgs e)
+        private async void btnContabildad_Click(object sender, EventArgs e)
         {
-            bool Permiso = VerificarPermisoModulo(3);
+            bool Permiso =await VerificarPermisoModulo(3);
             if (Permiso == true)
             {
                 mostrarSubMenu(panelContabilidad);

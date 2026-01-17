@@ -1,73 +1,94 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using DAL.Modelo;
-using System.Windows.Forms;
+﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
 using RunApi;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace DAL.Controladores
 {
     public class ControladorLicenciaSoftware
     {
-        public static bool Crear_Editar_Eliminar_LicenciaSoftware(Licencia objLicencia, int Boton)
+        private const string SP_CRUD = "dbo.CRUD_Licencia";
+
+        private static string EscapeJsonForSql(string json)
+        {
+            return (json ?? string.Empty).Replace("'", "''");
+        }
+
+        // ==========================
+        // CRUD (NO lista) -> false, true
+        // Boton: 0=INSERT, 1=UPDATE, 2=DELETE
+        // ==========================
+        public static async Task<RespuestaCRUD> Crear_Editar_Eliminar_LicenciaSoftware(Licencia objLicencia, int Boton)
         {
             try
             {
-                using (SistemaPOSEntities cn = new SistemaPOSEntities())
-                {
-                    if (Boton == 0)
-                    {
-                        cn.Licencia.Add(objLicencia);
-                    }
-                    if (Boton == 1)
-                    {
-                        cn.Entry(objLicencia).State = System.Data.Entity.EntityState.Modified;
-                    }
-                    if (Boton == 2)
-                    {
-                        cn.Entry(objLicencia).State = System.Data.Entity.EntityState.Deleted;
-                    }
-                    cn.SaveChanges();
-                    return true;
-                }
+                var json = EscapeJsonForSql(JsonConvert.SerializeObject(objLicencia));
+                var query = $"EXEC {SP_CRUD} N'{json}', {Boton}";
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                return JsonConvert.DeserializeObject<RespuestaCRUD>(respuesta);
             }
             catch (Exception ex)
             {
-                string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return false;
+                return new RespuestaCRUD { estado = false, idAfectado = 0, mensaje = ex.Message };
             }
         }
-        public static async Task<Licencia> ConsultarLicencia(string Licencia)
+
+        // ==========================
+        // Consultar por clave (1 registro) -> false, true
+        // ==========================
+        public static async Task<Licencia> ConsultarLicencia(string licencia)
         {
             try
             {
-                var api = new ClassAPI();
-                var url = $"/api/Licencia/ValidarLicencia/{Licencia}";
-                var respuesta = await api.HttpWebRequestPostAsync(url);
-                return Newtonsoft.Json.JsonConvert.DeserializeObject<Licencia>(respuesta);
+                var lic = (licencia ?? string.Empty).Replace("'", "''");
+
+                var query = $@"
+SELECT TOP 1 *
+FROM Licencia WITH (NOLOCK)
+WHERE clave = N'{lic}'
+ORDER BY id DESC;";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                // respuesta viene como string JSON serializado
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+
+                // convertimos a lista para tomar el primer registro
+                var lista = JsonConvert.DeserializeObject<List<Licencia>>(jsonReal);
+
+                return (lista != null && lista.Count > 0) ? lista[0] : null;
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
-                return new Licencia();
+                return null;
             }
         }
-        public static List<Licencia> ListaCompleta()
+
+        // ==========================
+        // LISTA COMPLETA -> true, true
+        // ==========================
+        public static async Task<List<Licencia>> ListaCompleta()
         {
             try
             {
-                using(SistemaPOSEntities cn =new Modelo.SistemaPOSEntities())
-                {
-                    return cn.Licencia.AsNoTracking().ToList();
-                }
+                var query = @"
+SELECT *
+FROM Licencia WITH (NOLOCK)
+ORDER BY id DESC;";
+
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true); // 👈 LISTA
+                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+                return JsonConvert.DeserializeObject<List<Licencia>>(jsonReal);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
-                //MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
         }

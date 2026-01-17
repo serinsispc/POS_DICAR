@@ -1,72 +1,77 @@
 ﻿using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
+using RunApi;
 using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace DAL.Controladores
 {
-    public  class controladorR_PedidoVenta
+    public class controladorR_PedidoVenta
     {
-        public static bool Crud (R_PedidoVenta r_Pedido,int Boton)
+        /// <summary>
+        /// 0=INSERT, 1=UPDATE, 2=DELETE
+        /// Ejecuta: EXEC dbo.CRUD_R_PedidoVenta N'{json}', {funcion}
+        /// </summary>
+        public static async Task<RespuestaCRUD> Crud(R_PedidoVenta r_Pedido, int funcion)
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    if (Boton == 0)
-                    {
-                        cn.R_PedidoVenta.Add(r_Pedido);
-                    }
-                    if (Boton == 1)
-                    {
-                        cn.Entry(r_Pedido).State = System.Data.Entity.EntityState.Modified;
-                    }
-                    if (Boton == 2)
-                    {
-                        cn.Entry(r_Pedido).State = System.Data.Entity.EntityState.Deleted;
-                    }
-                    cn.SaveChanges();
-                    return true;
-                }
+                var json = JsonConvert.SerializeObject(r_Pedido);
+                json = EscapeJsonForSql(json);
+
+                var query = $"EXEC dbo.CRUD_R_PedidoVenta N'{json}', {funcion}";
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                return JsonConvert.DeserializeObject<RespuestaCRUD>(resp);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                string error = ex.Message;
-                return false;
+                string mensaje = ex.Message;
+                return new RespuestaCRUD()
+                {
+                    estado = false,
+                    mensaje = mensaje
+                };
             }
         }
-        public static R_PedidoVenta Consultar_GuidPedido(Guid guid)
+
+        public static async Task<R_PedidoVenta> Consultar_GuidPedido(Guid guid)
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    return cn.R_PedidoVenta.AsNoTracking().Where(x=>x.guidPedido==guid).FirstOrDefault();
-                }
+                var query = $"SELECT TOP 1 * FROM R_PedidoVenta WHERE guidPedido = '{guid}'";
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                return JsonConvert.DeserializeObject<R_PedidoVenta>(resp);
             }
-            catch(Exception ex)
-            {
-                string erro = ex.Message;
-                return null;
-            }
-        }
-        public static R_PedidoVenta Consultar_idVenta(int IdVenta)
-        {
-            try
-            {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    return cn.R_PedidoVenta.AsNoTracking().Where(x => x.idVenta == IdVenta).FirstOrDefault();
-                }
-            }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
                 return null;
             }
+        }
+
+        public static async Task<R_PedidoVenta> Consultar_idVenta(int idVenta)
+        {
+            try
+            {
+                var query = $"SELECT TOP 1 * FROM R_PedidoVenta WHERE idVenta = {idVenta}";
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                return JsonConvert.DeserializeObject<R_PedidoVenta>(resp);
+            }
+            catch (Exception ex)
+            {
+                string error = ex.Message;
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Escapa comillas simples para poder enviar el JSON dentro del EXEC N'...'
+        /// </summary>
+        private static string EscapeJsonForSql(string json)
+        {
+            return string.IsNullOrWhiteSpace(json) ? json : json.Replace("'", "''");
         }
     }
 }
