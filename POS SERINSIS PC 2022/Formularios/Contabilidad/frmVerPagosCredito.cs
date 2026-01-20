@@ -1,4 +1,5 @@
-﻿using DAL.Controladores;
+﻿using DAL;
+using DAL.Controladores;
 using DAL.Modelo;
 using System;
 using System.Collections.Generic;
@@ -43,7 +44,7 @@ namespace SERINSI_PC.Formularios.Ventas
             WindowState = FormWindowState.Minimized;
         }
 
-        private void btnEliminar_Click(object sender, EventArgs e)
+        private async void btnEliminar_Click(object sender, EventArgs e)
         {
             if(dgVerPagos.RowCount>0&& dgVerPagos.CurrentRow.Index >= 0)
             {
@@ -52,10 +53,10 @@ namespace SERINSI_PC.Formularios.Ventas
                 int idPago = Convert.ToInt32(fila.Cells["id_pago_credito_tienda"].Value);
 
                 PagosCreditoTienda pagosCreditoTienda = new PagosCreditoTienda();
-                pagosCreditoTienda = ControladorPagosCreditoTienda.ConsultarId(idPago);
+                pagosCreditoTienda =await ControladorPagosCreditoTienda.ConsultarId(idPago);
                 if (pagosCreditoTienda != null)
                 {
-                    bool crud = ControladorPagosCreditoTienda.Crear_Editar_Eliminar_PagoCreditoTienda(pagosCreditoTienda,2);
+                    RespuestaCRUD crud =await ControladorPagosCreditoTienda.Crear_Editar_Eliminar_PagoCreditoTienda(pagosCreditoTienda,2);
                     this.Close();
                 }
             }

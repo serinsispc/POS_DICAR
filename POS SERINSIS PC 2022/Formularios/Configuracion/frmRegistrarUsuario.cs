@@ -1,4 +1,5 @@
-﻿using DAL.Controladores;
+﻿using DAL;
+using DAL.Controladores;
 using DAL.Controladores.Administrador;
 using DAL.Modelo;
 using Invenpol_Parqueadero_Motos.Clases;
@@ -37,14 +38,14 @@ namespace Invenpol_Parqueadero_Motos.Formularios
             WindowState = FormWindowState.Minimized;
         }
 
-        private void btnCrear_Click(object sender, EventArgs e)
+        private async void btnCrear_Click(object sender, EventArgs e)
         {
             //llamamos la funcion que gestiona las condciones 
             bool Respuesta = Condiciones();
             if (Respuesta == true)
             {
                 //llamamos la funcion que se encarga de gestionar el usuario
-                Gestionarusuario(0);
+                await Gestionarusuario(0);
             }
             else
             {
@@ -53,11 +54,11 @@ namespace Invenpol_Parqueadero_Motos.Formularios
                 return;
             }
         }
-        public void Gestionarusuario(int Boton)
+        public async Task Gestionarusuario(int Boton)
         {
             //creamos el objeto para consultar el id usuario
             Usuario objUsuario = new Usuario();
-            objUsuario = ControladorUsuario.ConsultaUsuarioXId(IdUsuario);
+            objUsuario =await ControladorUsuario.ConsultaUsuarioXId(IdUsuario);
             if(objUsuario != null)
             {
                 if(Boton == 0)
@@ -79,9 +80,10 @@ namespace Invenpol_Parqueadero_Motos.Formularios
             objUsuario.claveUsuario = txtClave.Text;
             objUsuario.idTipoUsuario = Convert.ToInt32(cmbTipoUsuario.SelectedValue);
             objUsuario.idEstadoAI = Convert.ToInt32(cmbEstado.SelectedValue);
+            objUsuario.estado_usuario = "1";
             //enviamos elobjeto al controlador
-            bool Respuesta = ControladorUsuario.GuardarEditarEliminar(objUsuario, Boton);
-            if (Respuesta == true)
+            RespuestaCRUD Respuesta =await ControladorUsuario.GuardarEditarEliminar(objUsuario, Boton);
+            if (Respuesta.estado == true)
             {
                 if(Boton == 0)
                 {
@@ -96,7 +98,7 @@ namespace Invenpol_Parqueadero_Motos.Formularios
                     MessageBox.Show("Usuario eliminado correctamente.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 LimpiarFormulario();
-                LLenardataGrid();
+                await LLenardataGrid();
                 GestionarBotones(0);
                
             }
@@ -122,13 +124,13 @@ namespace Invenpol_Parqueadero_Motos.Formularios
             }
         }
 
-        private void frmRegistrarUsuario_Load(object sender, EventArgs e)
+        private async void frmRegistrarUsuario_Load(object sender, EventArgs e)
         {
             dgUsuario.DefaultCellStyle.Font = new Font("Microsoft Sans Serif", 12);
             //llamamos la funcion que llenan los cmb
-            LLenarCmb();
+            await LLenarCmb();
             //llenar la datagrid
-            LLenardataGrid();
+            await LLenardataGrid();
             //llamamos la funcion que gestiona los botones
             GestionarBotones(0);
         }
@@ -162,20 +164,20 @@ namespace Invenpol_Parqueadero_Motos.Formularios
             }
         }
 
-        public void LLenardataGrid()
+        public async Task LLenardataGrid()
         {
-            dgUsuario.DataSource = ControladorUsuario.listaCompleta();
+            dgUsuario.DataSource =await ControladorUsuario.listaCompleta();
         }
 
-        private void LLenarCmb()
+        private async Task LLenarCmb()
         {
             cmbTipoUsuario.ValueMember = "id";
             cmbTipoUsuario.DisplayMember = "nombreTipoUsuario";
-            cmbTipoUsuario.DataSource = controladorTipoUsuario.listaCompleta();
+            cmbTipoUsuario.DataSource =await controladorTipoUsuario.listaCompleta();
 
             cmbEstado.ValueMember = "id";
             cmbEstado.DisplayMember = "nombreEstadoAi";
-            cmbEstado.DataSource = ControladorEstadoAI.listaCompleta();
+            cmbEstado.DataSource =await ControladorEstadoAI.listaCompleta();
         }
 
 
@@ -200,14 +202,14 @@ namespace Invenpol_Parqueadero_Motos.Formularios
             IdUsuario = 0;
         }
 
-        private void btnEditar_Click(object sender, EventArgs e)
+        private async void btnEditar_Click(object sender, EventArgs e)
         {
             //llamamos la funcion que gestiona las condciones 
             bool Respuesta = Condiciones();
             if (Respuesta == true)
             {
                 //llamamos la funcion que se encarga de gestionar el usuario
-                Gestionarusuario(1);
+                await Gestionarusuario(1);
             }
             else
             {
@@ -217,7 +219,7 @@ namespace Invenpol_Parqueadero_Motos.Formularios
             }
         }
 
-        private void btnBorrar_Click(object sender, EventArgs e)
+        private async void btnBorrar_Click(object sender, EventArgs e)
         {
             if (IdTipo == 1)
             {
@@ -228,7 +230,7 @@ namespace Invenpol_Parqueadero_Motos.Formularios
             if (IdUsuario != 0)
             {
                 //llamamos la funcion que se encarga de gestionar el usuario
-                Gestionarusuario(2);
+                await Gestionarusuario(2);
             }
             else
             {
@@ -356,6 +358,11 @@ namespace Invenpol_Parqueadero_Motos.Formularios
                     btnBorrar.Enabled = false;
                 }
             }
+        }
+
+        private void panel2_Paint(object sender, PaintEventArgs e)
+        {
+
         }
     }
 }

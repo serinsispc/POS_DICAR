@@ -160,12 +160,12 @@ namespace POS_SERINSIS_PC_2022.Reportes
             reportViewer1.ZoomPercent = 100;
             this.reportViewer1.RefreshReport();
         }
-        private void OrdenTraslado()
+        private async Task OrdenTraslado()
         {
             try
             {
                 List<V_DetalleTraslado> ctx = new List<V_DetalleTraslado>();
-                ctx = controladorDetalleTraslado.Filtrar_Guid(GuidTexto);
+                ctx =await controladorDetalleTraslado.Filtrar_Guid(GuidTexto);
                 dynamic dataSource = ctx;
                 //en esta parte cargamos el reporte
                 if (VariablesPublicas.TipoImpresora == "Carta")
@@ -390,20 +390,20 @@ namespace POS_SERINSIS_PC_2022.Reportes
             reportViewer1.ZoomPercent = 100;
             this.reportViewer1.RefreshReport();
         }
-        private void PagosCP()
+        private async Task PagosCP()
         {
             List<V_PagoCP> ctx = new List<V_PagoCP>();
             if (TipoInforme == "Año")
             {
-                ctx = ControladorCompra.FiltroX_Año(FechaReporte, VariablesPublicas.IdEmpresaLogueada);
+                ctx =await ControladorCompra.FiltroX_Año(FechaReporte, VariablesPublicas.IdEmpresaLogueada);
             }
             if (TipoInforme == "Mes")
             {
-                ctx = ControladorCompra.FiltroX_Mes(FechaReporte, VariablesPublicas.IdEmpresaLogueada);
+                ctx =await ControladorCompra.FiltroX_Mes(FechaReporte, VariablesPublicas.IdEmpresaLogueada);
             }
             if (TipoInforme == "Dia")
             {
-                ctx = ControladorCompra.FiltroX_Dia(FechaReporte, VariablesPublicas.IdEmpresaLogueada);
+                ctx =await ControladorCompra.FiltroX_Dia(FechaReporte, VariablesPublicas.IdEmpresaLogueada);
             }
 
 
@@ -442,20 +442,20 @@ namespace POS_SERINSIS_PC_2022.Reportes
                 MessageBox.Show("La vista del reporte no se encontro.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        private void R_ListaGastos()
+        private async Task R_ListaGastos()
         {
             List<V_Gastos> ctx = new List<V_Gastos>();
             if (TipoInforme == "Año")
             {
-                ctx = ControladorGastos.FiltrarX_Año(FechaReporte, VariablesPublicas.IdEmpresaLogueada);
+                ctx =await ControladorGastos.FiltrarX_Año(FechaReporte, VariablesPublicas.IdEmpresaLogueada);
             }
             if (TipoInforme == "Mes")
             {
-                ctx = ControladorGastos.FiltrarX_Mes(FechaReporte, VariablesPublicas.IdEmpresaLogueada);
+                ctx =await ControladorGastos.FiltrarX_Mes(FechaReporte, VariablesPublicas.IdEmpresaLogueada);
             }
             if (TipoInforme == "Dia")
             {
-                ctx = ControladorGastos.FiltrarX_Dia(FechaReporte, VariablesPublicas.IdEmpresaLogueada);
+                ctx =await ControladorGastos.FiltrarX_Dia(FechaReporte, VariablesPublicas.IdEmpresaLogueada);
             }
 
 
@@ -616,7 +616,7 @@ namespace POS_SERINSIS_PC_2022.Reportes
                 MessageBox.Show("La vista del reporte no se encontro.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        public void Inventario_RP(int elimi)
+        public async Task Inventario_RP(int elimi)
         {
 
             try
@@ -624,7 +624,7 @@ namespace POS_SERINSIS_PC_2022.Reportes
                 //lógica de generación de reporte
 
                 List<v_productoVenta> ctx = new List<v_productoVenta>();
-                ctx = ControladorProducto.FiltrarX_IdSede(VariablesPublicas.IdEmpresaLogueada, elimi);
+                ctx =await ControladorProducto.FiltrarX_IdSede(VariablesPublicas.IdEmpresaLogueada, elimi);
 
                 if (ctx != null)
                 {
@@ -646,11 +646,11 @@ namespace POS_SERINSIS_PC_2022.Reportes
 
 
         }
-        public void ReporteInventario(int elimi)
+        public async Task ReporteInventario(int elimi)
         {
             List<v_productoVenta> ctx = new List<v_productoVenta>();
 
-            ctx = ControladorProducto.FiltrarX_IdSede(VariablesPublicas.IdEmpresaLogueada, elimi);
+            ctx =await ControladorProducto.FiltrarX_IdSede(VariablesPublicas.IdEmpresaLogueada, elimi);
 
 
 
@@ -669,11 +669,11 @@ namespace POS_SERINSIS_PC_2022.Reportes
                 MessageBox.Show("La vista del reporte no se encontro.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        public void ListaPrecios()
+        public async Task ListaPrecios()
         {
             List<V_ListaPrecios> ctx = new List<V_ListaPrecios>();
 
-            ctx = ControladorProducto.ListaPrecios();
+            ctx =await ControladorProducto.ListaPrecios();
 
 
 
@@ -692,13 +692,13 @@ namespace POS_SERINSIS_PC_2022.Reportes
                 MessageBox.Show("La vista del reporte no se encontro.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        public void ListaCostoIventario()
+        public async Task ListaCostoIventario()
         {
             List<V_CostoInventario> ctx = new List<V_CostoInventario>();
 
-            ctx = ControladorProducto.ListaCostoInventario();
+            ctx =await ControladorProducto.ListaCostoInventario();
 
-            decimal costoTotal = ControladorProducto.TotalListaCostoInventario();
+            decimal costoTotal =await ControladorProducto.TotalListaCostoInventario();
 
 
 
@@ -721,12 +721,12 @@ namespace POS_SERINSIS_PC_2022.Reportes
                 MessageBox.Show("La vista del reporte no se encontro.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        public void FacturaVentaCarta(int AbrirC, int IdVenta)
+        public async Task FacturaVentaCarta(int AbrirC, int IdVenta)
         {
             try
             {
                 V_TablaVentas v_TablaVentas = new V_TablaVentas();
-                v_TablaVentas = ControladorVenta.ConsultaX_V_id(IdVenta);
+                v_TablaVentas =await ControladorVenta.ConsultaX_V_id(IdVenta);
                 if (v_TablaVentas == null)
                 {
                     return;
@@ -736,10 +736,10 @@ namespace POS_SERINSIS_PC_2022.Reportes
                 int iva = Convert.ToInt32(v_TablaVentas.ivaVenta);
 
                 List<R_DetalleVenta> ctx = new List<R_DetalleVenta>();
-                ctx = ControladorDetalleVenta.FiltrarX_IdVenta(IdVenta);
+                ctx =await ControladorDetalleVenta.FiltrarX_IdVenta(IdVenta);
 
                 dynamic dataSource = ctx;
-                CargarVarialesDatosEmpresa();
+                await CargarVarialesDatosEmpresa();
                 LocalReport LRT = new LocalReport();
                 //en esta parte cargamos el reporte 
                 //System.Environment.CurrentDirectory 
@@ -778,7 +778,7 @@ namespace POS_SERINSIS_PC_2022.Reportes
                 string barrio = " ";
                 if (VariablesPublicas.IdCliente >0)
                 {
-                    cliente = ControladorClienteTienda.ConsultarX_ID(VariablesPublicas.IdCliente);
+                    cliente =await ControladorClienteTienda.ConsultarX_ID(VariablesPublicas.IdCliente);
                     if (cliente != null)
                     {
                         nombreCliente = cliente.nombreCliente;
@@ -933,10 +933,10 @@ namespace POS_SERINSIS_PC_2022.Reportes
                 MessageBox.Show(Error, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        public static void CargarVarialesDatosEmpresa()
+        public static async Task CargarVarialesDatosEmpresa()
         {
             Sede objCS = new Sede();
-            objCS = ControladorSede.ConsultaXIdEmpresa(VariablesPublicas.IdEmpresaLogueada);
+            objCS =await ControladorSede.ConsultaXIdEmpresa(VariablesPublicas.IdEmpresaLogueada);
             if (objCS != null)
             {
                 VariablesPublicas.NombreEmpresa = objCS.nombreSede;
@@ -947,27 +947,27 @@ namespace POS_SERINSIS_PC_2022.Reportes
                 VariablesPublicas.Telefono = objCS.telefono;
             }
         }
-        public  void FacturaVentaPOS(int IdVenta)
+        public  async Task FacturaVentaPOS(int IdVenta)
         {
             try
             {
                 List<R_DetalleVenta> ctx = new List<R_DetalleVenta>();
-                ctx = ControladorDetalleVenta.FiltrarX_IdVenta(IdVenta);
+                ctx =await ControladorDetalleVenta.FiltrarX_IdVenta(IdVenta);
 
                 V_TablaVentas v_TablaVentas = new V_TablaVentas();
-                v_TablaVentas = ControladorVenta.ConsultaX_V_id(IdVenta);
+                v_TablaVentas =await ControladorVenta.ConsultaX_V_id(IdVenta);
                 if (v_TablaVentas == null) return;
 
                 int iva = Convert.ToInt32(v_TablaVentas.ivaVenta);
 
                 dynamic dataSource = ctx;
-                CargarVarialesDatosEmpresa();
+                await CargarVarialesDatosEmpresa();
                 ReportParameter myPar35 = new ReportParameter();
                 if (VariablesPublicas.cufeFE != "")
                 {
                     //en esta parte consultamos la autorizafion de la dian en facturacionelectronica
                     AutorizacionFacturacionElectronica autorizacion = new AutorizacionFacturacionElectronica();
-                    autorizacion = controladorAutorazacion_FE.consultarAutorizacion(VariablesPublicas.IdEmpresaLogueada);
+                    autorizacion =await controladorAutorazacion_FE.consultarAutorizacion(VariablesPublicas.IdEmpresaLogueada);
                     if (autorizacion != null)
                     {
                         VariablesPublicas.PrefijoResolucion = autorizacion.prefijo;
@@ -1033,7 +1033,7 @@ namespace POS_SERINSIS_PC_2022.Reportes
                 if (v_TablaVentas.nombreCliente != "--")
                 {
                     Clientes cliente = new Clientes();
-                    cliente = ControladorClienteTienda.ConsultarX_Nombre(v_TablaVentas.nombreCliente);
+                    cliente =await ControladorClienteTienda.ConsultarX_Nombre(v_TablaVentas.nombreCliente);
                     if (cliente != null)
                     {
                         DocumentoCliente = cliente.documentoCliente;
@@ -1148,17 +1148,12 @@ namespace POS_SERINSIS_PC_2022.Reportes
                 MessageBox.Show(Error, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        public void Alistamiento(int idVentadedor,int idEstado,string vendedor,DateTime fecha,string total)
+        public async Task Alistamiento(List<SelectAlistamiento_Result> lista ,int idVentadedor,int idEstado,string vendedor,DateTime fecha,string total)
         {
             try
             {
-                List<SelectAlistamiento_Result> list = new List<SelectAlistamiento_Result>();
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    list = cn.SelectAlistamiento(idVentadedor, idEstado,fecha.Day,fecha.Month,fecha.Year).ToList();
-                }
-                dynamic dataSource = list;
-                CargarVarialesDatosEmpresa();
+                dynamic dataSource = lista;
+                await CargarVarialesDatosEmpresa();
                 //en esta parte cargamos el reporte 
 
                 this.reportViewer1.LocalReport.ReportPath = System.Environment.CurrentDirectory + "\\Reportes\\Report_Alistamiento.rdlc";
@@ -1188,14 +1183,14 @@ namespace POS_SERINSIS_PC_2022.Reportes
                 MessageBox.Show(Error, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        public void ListaPedidos(int estado, int idVendedor_frm, string vendedor, DateTime fecha, string total)
+        public async Task ListaPedidos(int estado, int idVendedor_frm, string vendedor, DateTime fecha, string total)
         {
             try
             {
                 List<V_Pedido> list = new List<V_Pedido>();
                 using (SistemaPOSEntities cn = new SistemaPOSEntities())
                 {
-                    list = controladorPedidos.Filtrar_estado(estado, idVendedor_frm, fecha);
+                    list =await controladorPedidos.Filtrar_estado(estado, idVendedor_frm, fecha);
                 }
                 dynamic dataSource = list;
                 //en esta parte cargamos el reporte 

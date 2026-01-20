@@ -1,4 +1,5 @@
-﻿using DAL.Controladores;
+﻿using DAL;
+using DAL.Controladores;
 using DAL.Controladores.Contabilidad;
 using DAL.Modelo;
 using Invenpol_Parqueadero_Motos.Clases;
@@ -82,7 +83,7 @@ namespace SERINSI_PC.Formularios.Contabilidad
             }
         }
 
-        private void btnGuardar_Click(object sender, EventArgs e)
+        private async void btnGuardar_Click(object sender, EventArgs e)
         {
             if(cmbBolsilloDesde.Text!=""&&
                cmbBolsilloHacia.Text!=""&&
@@ -91,8 +92,8 @@ namespace SERINSI_PC.Formularios.Contabilidad
             {
                 if (cmbBolsilloDesde.Text != cmbBolsilloHacia.Text)
                 {
-                    GestionarLibroDiario(Convert.ToInt32(cmbBolsilloDesde.SelectedValue),txtMotivo.Text,0,Convert.ToInt32(txtValor.Text));
-                    GestionarLibroDiario(Convert.ToInt32(cmbBolsilloHacia.SelectedValue), txtMotivo.Text, Convert.ToInt32(txtValor.Text),0);
+                    await GestionarLibroDiario(Convert.ToInt32(cmbBolsilloDesde.SelectedValue),txtMotivo.Text,0,Convert.ToInt32(txtValor.Text));
+                    await GestionarLibroDiario(Convert.ToInt32(cmbBolsilloHacia.SelectedValue), txtMotivo.Text, Convert.ToInt32(txtValor.Text),0);
                     MessageBox.Show("El trastlado se completo correctamente.","Traslado",MessageBoxButtons.OK,MessageBoxIcon.Information);
                     frmLibroDiario frm = Owner as frmLibroDiario;
                     frm.cargarDG();
@@ -100,7 +101,7 @@ namespace SERINSI_PC.Formularios.Contabilidad
                 }
             }
         }
-        private void GestionarLibroDiario(int Bolsillo, string Motivo, decimal Debe, decimal Haber)
+        private async Task GestionarLibroDiario(int Bolsillo, string Motivo, decimal Debe, decimal Haber)
         {
             //en esta parte agregamos el movimiento a la tabla libro diario
             LibroDiario objLibro = new LibroDiario();
@@ -134,8 +135,8 @@ namespace SERINSI_PC.Formularios.Contabilidad
                 objLibro.saldoCajaMenor = VariablesPublicas.SaldoCajaMenor + Debe - Haber;
                 objLibro.saldoTotal = VariablesPublicas.SaldoTotal + Debe - Haber;
             }
-            bool sql2 = ControladorLibroDiario.CrearEditarEliminarLibroDiario(objLibro, 0);
-            if (sql2 == true)
+            RespuestaCRUD sql2 =await ControladorLibroDiario.CrearEditarEliminarLibroDiario(objLibro, 0);
+            if (sql2.estado == true)
             {
 
                 // this.Close();

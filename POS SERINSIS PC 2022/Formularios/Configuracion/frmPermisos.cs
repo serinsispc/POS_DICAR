@@ -191,170 +191,170 @@ namespace SERINSI_PC.Formularios.Configuracion
             MostarSubModulos();
             CargandoModulo = false;
         }
-        private void MostarSubModulos()
+        private async Task MostarSubModulos()
         {
-            DataTable objPermisoSubModulo = new DataTable();
-            objPermisoSubModulo = ControladorPermisoSubModulo.consultarIdusuario(IdusuarioGestion);
+            List<PermisoSubModulo> objPermisoSubModulo = new List<PermisoSubModulo>();
+            objPermisoSubModulo =await ControladorPermisoSubModulo.consultarIdusuario(IdusuarioGestion);
             if (objPermisoSubModulo != null)
             {
-                foreach(DataRow rows in objPermisoSubModulo.Rows)
+                foreach(var rows in objPermisoSubModulo)
                 {
-                    if((int)rows["idSubModulo"] == 1)
+                    if((int)rows.idSubModulo == 1)
                     {
                         cbUsuario.Checked = true;
                     }
                     else
-                    if ((int)rows["idSubModulo"] == 2)
+                    if ((int)rows.idSubModulo == 2)
                     {
                         cbParametros.Checked = true;
                     }
                     else
-                    if ((int)rows["idSubModulo"] == 3)
+                    if ((int)rows.idSubModulo == 3)
                     {
                         cbProductos.Checked = true;
                     }
                     else
-                    if ((int)rows["idSubModulo"] == 4)
+                    if ((int)rows.idSubModulo == 4)
                     {
                         cbBodegas.Checked = true;
                     }
                     else
-                    if ((int)rows["idSubModulo"] == 5)
+                    if ((int)rows.idSubModulo == 5)
                     {
                         cbCategorias.Checked = true;
                     }
                     else
-                    if ((int)rows["idSubModulo"] == 6)
+                    if ((int)rows.idSubModulo == 6)
                     {
                         cbProveedores.Checked = true;
                     }
                     else
-                    if ((int)rows["idSubModulo"] == 7)
+                    if ((int)rows.idSubModulo == 7)
                     {
                         cbAgotados.Checked = true;
                     }
                     else
-                    if ((int)rows["idSubModulo"] == 8)
+                    if ((int)rows.idSubModulo == 8)
                     {
                         cbCompras.Checked = true;
                     }
                     else
-                    if ((int)rows["idSubModulo"] == 9)
+                    if ((int)rows.idSubModulo == 9)
                     {
                         cbKardex.Checked = true;
                     }
                     else
-                    if ((int)rows["idSubModulo"] == 10)
+                    if ((int)rows.idSubModulo == 10)
                     {
                         cbMerma.Checked = true;
                     }
                     else
-                    if ((int)rows["idSubModulo"] == 11)
+                    if ((int)rows.idSubModulo == 11)
                     {
                         cbCaja.Checked = true;
                     }
                     else
-                    if ((int)rows["idSubModulo"] == 12)
+                    if ((int)rows.idSubModulo == 12)
                     {
                         cbPedido.Checked = true;
                     }
                     else
-                    if ((int)rows["idSubModulo"] == 13)
+                    if ((int)rows.idSubModulo == 13)
                     {
                         //cb.Checked = true;
                     }
                     else
-                    if ((int)rows["idSubModulo"] == 14)
+                    if ((int)rows.idSubModulo == 14)
                     {
                         cbInforme.Checked = true;
                     }
                     else
-                    if ((int)rows["idSubModulo"] == 15)
+                    if ((int)rows.idSubModulo == 15)
                     {
                         cbCuentasPP.Checked = true;
                     }
                     else
-                    if ((int)rows["idSubModulo"] == 16)
+                    if ((int)rows.idSubModulo == 16)
                     {
                         cbCuentasPC.Checked = true;
                     }
                     else
-                    if ((int)rows["idSubModulo"] == 17)
+                    if ((int)   rows.idSubModulo == 17)
                     {
                         cbGastos.Checked = true;
                     }
                     else
-                    if ((int)rows["idSubModulo"] == 18)
+                    if ((int)rows.idSubModulo == 18)
                     {
                         cbBaseCaja.Checked = true;
                     }
                     else
-                    if ((int)rows["idSubModulo"] == 19)
+                    if ((int)rows.idSubModulo == 19)
                     {
                         cbCierreCaja.Checked = true;
                     }
                     else
-                    if ((int)rows["idSubModulo"] == 20)
+                    if ((int)rows.idSubModulo == 20)
                     {
                         cbLibroDiario.Checked = true;
                     }
                     else
-                    if ((int)rows["idSubModulo"] == 21)
+                    if ((int)rows.idSubModulo == 21)
                     {
                         cbOrdenServicio.Checked = true;
                     }
                     else
-                    if ((int)rows["idSubModulo"] == 22)
+                    if ((int)rows.idSubModulo    == 22)
                     {
                         cbTipoServicio.Checked = true;
                     }
                     else
-                    if ((int)rows["idSubModulo"] == 23)
+                    if ((int)rows.idSubModulo == 23)
                     {
                         cbArticulo.Checked = true;
                     }
                 }
             }
         }
-        private void MostarModulos()           
+        private async Task MostarModulos()           
         {
-            DataTable objPermisoModulo = new DataTable();
-            objPermisoModulo = ControladorPermisoModulo.consultarIdUsuario(IdusuarioGestion);
+            List<PermisoModulo> objPermisoModulo = new List<PermisoModulo>();
+            objPermisoModulo =await ControladorPermisoModulo.consultarIdUsuario(IdusuarioGestion);
             if (objPermisoModulo != null)
             {
-                foreach(DataRow rows in objPermisoModulo.Rows)
+                foreach(var rows in objPermisoModulo)
                 {
-                    if ((int)rows["idModulo"] == 1)
+                    if ((int)rows.idModulo == 1)
                     {
                         cbConfiguracion.Checked = true;
                     }
                     else
-                    if ((int)rows["idModulo"] == 2)
+                    if ((int)rows.idModulo == 2)
                     {
                         cbInventario.Checked = true;
                     }
                     else
-                    if ((int)rows["idModulo"] == 3)
+                    if ((int)rows.idModulo == 3)
                     {
                         cbVentas.Checked = true;
                     }
                     else
-                    if ((int)rows["idModulo"] == 4)
+                    if ((int)rows.idModulo == 4)
                     {
                         cbContabilidad.Checked = true;
                     }
                     else
-                    if ((int)rows["idModulo"] == 5)
+                    if ((int)rows.idModulo == 5)
                     {
                         cbSerinsisPC.Checked = true;
                     }
                     else
-                    if ((int)rows["idModulo"] == 6)
+                    if ((int)rows.idModulo == 6)
                     {
                         cbFabrica.Checked = true;
                     }
                     else
-                    if ((int)rows["idModulo"] == 7)
+                    if ((int)rows.idModulo == 7)
                     {
                         cbOrdenServicio.Checked = true;
                     }

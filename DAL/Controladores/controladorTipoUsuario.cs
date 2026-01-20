@@ -17,7 +17,7 @@ namespace DAL.Controladores.Administrador
             {
                 var query = @"select * from TipoUsuario";
 
-                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
 
                 if (!string.IsNullOrEmpty(resp))
                 {

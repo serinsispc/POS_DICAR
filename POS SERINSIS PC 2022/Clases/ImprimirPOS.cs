@@ -1,6 +1,7 @@
 ﻿using DAL.Controladores;
 using DAL.Modelo;
 using Invenpol_Parqueadero_Motos.Clases;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace DAPOS_Tienda.Clases
@@ -10,10 +11,10 @@ namespace DAPOS_Tienda.Clases
        
         public static Form MdiParent { get; private set; }
 
-        public static void CargarInformacionEmpresa()
+        public static async Task CargarInformacionEmpresa()
         {
             Sede objInfo = new Sede();
-            objInfo = ControladorSede.ConsultaXIdEmpresa(1);
+            objInfo =await ControladorSede.ConsultaXIdEmpresa(1);
             if (objInfo != null)
             {
 

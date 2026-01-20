@@ -18,12 +18,13 @@ SELECT *
 FROM V_DetallePedido WITH (NOLOCK)
 WHERE guidPedido = '{guid}'";
 
-                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true);
+if(respuesta == null)
+                {
+                    return null;
+                }
 
-                // ⚠️ Tu API retorna JSON serializado como string
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
-
-                return JsonConvert.DeserializeObject<List<V_DetallePedido>>(jsonReal);
+                return JsonConvert.DeserializeObject<List<V_DetallePedido>>(respuesta);
             }
             catch (Exception ex)
             {

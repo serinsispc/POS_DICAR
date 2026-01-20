@@ -13,6 +13,7 @@ namespace DAL.Controladores
 {
     public class ControladorProducto
     {
+       
         private const string SP_CRUD = "dbo.CRUD_Producto";
 
         private static string EscapeJsonForSql(string json)
@@ -391,8 +392,8 @@ WHERE idSede = {IdSede}
 ORDER BY codigoProducto;";
 
                 var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(resp);
-                return JsonConvert.DeserializeObject<List<v_productoVenta>>(jsonReal);
+
+                return JsonConvert.DeserializeObject<List<v_productoVenta>>(resp);
             }
             catch
             {

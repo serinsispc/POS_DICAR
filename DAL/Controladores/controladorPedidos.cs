@@ -57,8 +57,9 @@ WHERE idEstadoPedido = {estado}
 ORDER BY fechaPedido DESC;";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
-                return JsonConvert.DeserializeObject<List<V_Pedido>>(jsonReal);
+                if(respuesta == null)
+                    return null;
+                return JsonConvert.DeserializeObject<List<V_Pedido>>(respuesta);
             }
             catch (Exception ex)
             {
@@ -107,10 +108,10 @@ WHERE guidPedido = '{guid}'
 ORDER BY id DESC;";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+                if (respuesta == null) return null;
 
-                var lista = JsonConvert.DeserializeObject<List<Pedidos>>(jsonReal);
-                return (lista != null && lista.Count > 0) ? lista[0] : null;
+                var lista = JsonConvert.DeserializeObject<Pedidos>(respuesta);
+                return lista;
             }
             catch (Exception ex)
             {
@@ -134,10 +135,12 @@ WHERE idVendedor = {IdVendedor}
   AND CONVERT(date, fechaPedido) = CONVERT(date, '{fecha:yyyy-MM-dd}');";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
-                var row = JsonConvert.DeserializeObject<List<dynamic>>(jsonReal);
+                if(respuesta == null)
+                    return 0;
 
-                return Convert.ToInt32(row[0].total);
+                var row = JsonConvert.DeserializeObject<ClassSumaTotal>(respuesta);
+
+                return Convert.ToInt32(row.total);
             }
             catch (Exception ex)
             {
@@ -161,10 +164,11 @@ WHERE idVendedor = {IdVendedor}
   AND CONVERT(date, fechaPedido) = CONVERT(date, '{fecha:yyyy-MM-dd}');";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
-                var row = JsonConvert.DeserializeObject<List<dynamic>>(jsonReal);
+               if(respuesta == null)
+                    return 0;
+                var row = JsonConvert.DeserializeObject<ClassSumaTotal>(respuesta);
 
-                return Convert.ToDecimal(row[0].total);
+                return row.total;
             }
             catch (Exception ex)
             {

@@ -1,4 +1,5 @@
-﻿using DAL.Controladores;
+﻿using DAL;
+using DAL.Controladores;
 using DAL.Controladores.Contabilidad;
 using DAL.Modelo;
 using Invenpol_Parqueadero_Motos.Clases;
@@ -45,7 +46,7 @@ namespace SERINSI_PC.Formularios.Contabilidad
             }
             txtValor.Focus();
         }
-        private void GestionarLibroDiario(int Bolsillo, string Motivo, decimal Debe, decimal Haber)
+        private async Task GestionarLibroDiario(int Bolsillo, string Motivo, decimal Debe, decimal Haber)
         {
             //en esta parte agregamos el movimiento a la tabla libro diario
             LibroDiario objLibro = new LibroDiario();
@@ -79,14 +80,14 @@ namespace SERINSI_PC.Formularios.Contabilidad
                 objLibro.saldoCajaMenor = VariablesPublicas.SaldoCajaMenor + Debe - Haber;
                 objLibro.saldoTotal = VariablesPublicas.SaldoTotal + Debe - Haber;
             }
-            bool sql2 = ControladorLibroDiario.CrearEditarEliminarLibroDiario(objLibro, 0);
-            if (sql2 == true)
+            RespuestaCRUD sql2 =await ControladorLibroDiario.CrearEditarEliminarLibroDiario(objLibro, 0);
+            if (sql2.estado == true)
             {
 
                 // this.Close();
             }
         }
-        private void btnGuardar_Click(object sender, EventArgs e)
+        private async void btnGuardar_Click(object sender, EventArgs e)
         {
             if (txtValor.Text != "")
             {
@@ -98,22 +99,22 @@ namespace SERINSI_PC.Formularios.Contabilidad
                 objBase.valorBase = Convert.ToDecimal(txtValor.Text);
                 objBase.estadoBase = txtEstado.Text;
                 objBase.idSedeBAse = VariablesPublicas.IdEmpresaLogueada;
-                bool sql = ControladorBaseCaja.CrearEditarEliminarBaseCaja(objBase,0);
+                bool sql =await ControladorBaseCaja.CrearEditarEliminarBaseCaja(objBase,0);
                 if (sql == true)
                 {
                     if (cmbBolsillo.Text == "BANCO")
                     {
-                        GestionarLibroDiario(2,"apertura de caja",0,Convert.ToInt32(txtValor.Text));
-                        GestionarLibroDiario(1,"apertura de caja", Convert.ToInt32(txtValor.Text),0);
+                        await GestionarLibroDiario(2,"apertura de caja",0,Convert.ToInt32(txtValor.Text));
+                        await GestionarLibroDiario(1, "apertura de caja", Convert.ToInt32(txtValor.Text), 0);
                     }
                     else
                     {
-                        GestionarLibroDiario(3, "apertura de caja", 0, Convert.ToInt32(txtValor.Text));
-                        GestionarLibroDiario(1, "apertura de caja", Convert.ToInt32(txtValor.Text), 0);
+                        await GestionarLibroDiario(3, "apertura de caja", 0, Convert.ToInt32(txtValor.Text));
+                        await GestionarLibroDiario(1, "apertura de caja", Convert.ToInt32(txtValor.Text), 0);
                     }
                     MessageBox.Show("Base creada correctamente.", "Base creda", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     BaseCaja objBaseCaja = new BaseCaja();
-                    objBaseCaja= ControladorBaseCaja.HallarIdBaseActiva(VariablesPublicas.IdEmpresaLogueada, VariablesPublicas.IdUsuarioLogueado);
+                    objBaseCaja=await ControladorBaseCaja.HallarIdBaseActiva(VariablesPublicas.IdEmpresaLogueada, VariablesPublicas.IdUsuarioLogueado);
                     if (objBaseCaja != null)
                     {
                         VariablesPublicas.IdBaseActiva = objBaseCaja.id;

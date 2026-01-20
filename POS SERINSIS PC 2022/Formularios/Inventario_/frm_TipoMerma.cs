@@ -1,4 +1,5 @@
-﻿using DAL.Controladores;
+﻿using DAL;
+using DAL.Controladores;
 using DAL.Modelo;
 using System;
 using System.Collections.Generic;
@@ -32,7 +33,7 @@ namespace SERINSI_PC.Formularios.Inventario_
         }
         private void Cargardg()
         {
-            dgTipoMerma.DataSource = ControladorTipoMerma.listaCompleta();
+            dgTipoMerma.DataSource = ControladorTipoMerma.ListaCompleta();
         }
         private void GestionarBoton(int Boton)
         {
@@ -64,26 +65,26 @@ namespace SERINSI_PC.Formularios.Inventario_
             }
         }
 
-        private void btnGuardar_Click(object sender, EventArgs e)
+        private async void btnGuardar_Click(object sender, EventArgs e)
         {
             if (txtNombreTipoMerma.Text != "")
             {
                 if (btnGuardar.Text == "Guardar")
                 {
-                    GestionarTipoMerma(0);
+                    await GestionarTipoMerma(0);
                     idTipoMerma_frm = 0;
                 }
                 else
                 {
-                    GestionarTipoMerma(1);
+                    await GestionarTipoMerma(1);
                     idTipoMerma_frm = 0;
                 }
             }
         }
-        private void GestionarTipoMerma(int Boton)
+        private async Task GestionarTipoMerma(int Boton)
         {
             TipoMerma tipoMerma = new TipoMerma();
-            tipoMerma = ControladorTipoMerma.Consultar_id(idTipoMerma_frm);
+            tipoMerma =await ControladorTipoMerma.Consultar_id(idTipoMerma_frm);
             if (tipoMerma != null)
             {
                 if (Boton == 0)
@@ -99,8 +100,8 @@ namespace SERINSI_PC.Formularios.Inventario_
             }
             tipoMerma.id = idTipoMerma_frm;
             tipoMerma.nombreTipoMerma = txtNombreTipoMerma.Text;
-            bool crud = ControladorTipoMerma.Crud(tipoMerma,Boton);
-            if (crud == true)
+            RespuestaCRUD crud =await ControladorTipoMerma.Crud(tipoMerma,Boton);
+            if (crud.estado == true)
             {
                 MessageBox.Show("¡Tipo de Merma creada correctamente...!", "¡OK!", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 Cargardg();
@@ -109,11 +110,11 @@ namespace SERINSI_PC.Formularios.Inventario_
             }
         }
 
-        private void btnEliminar_Click(object sender, EventArgs e)
+        private async void btnEliminar_Click(object sender, EventArgs e)
         {
             if (txtNombreTipoMerma.Text != "")
             {
-                GestionarTipoMerma(2);
+                await GestionarTipoMerma(2);
                 idTipoMerma_frm = 0;
             }
         }

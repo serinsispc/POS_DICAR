@@ -24,10 +24,7 @@ ORDER BY id;";
                 // 👈 LISTAS → true, true
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true);
 
-                // Patrón actual: JSON serializado como string
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
-
-                return JsonConvert.DeserializeObject<List<EstadoAI>>(jsonReal);
+                return JsonConvert.DeserializeObject<List<EstadoAI>>(respuesta);
             }
             catch (Exception ex)
             {

@@ -1,5 +1,7 @@
 ﻿using DAL;
 using DAL.Modelo;
+using DAL.SQL;
+using Newtonsoft.Json;
 using POS_SERINSIS_PC_2022.Reportes;
 using System;
 using System.Collections.Generic;
@@ -24,14 +26,17 @@ namespace POS_SERINSIS_PC_2022.Formularios.Ventas
         public int idEstadoPedido_frm = 0;
         public string nombreVendedor_frm = "";
         public DateTime fecha;
-        private void frm_alistamiento_Load(object sender, EventArgs e)
+        List<SelectAlistamiento_Result> lista = new List<SelectAlistamiento_Result>();
+        private async void frm_alistamiento_Load(object sender, EventArgs e)
         {
             try
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
-                {           
-                    dgAlistamiento.DataSource = cn.SelectAlistamiento(idVendedor_frm, idEstadoPedido_frm,fecha.Day,fecha.Month,fecha.Year);
-                }
+
+                var query = $"exec SelectAlistamiento {idVendedor_frm},{idEstadoPedido_frm},{fecha.Day},{fecha.Month},{fecha.Year}";
+                var respuest=await Conection_SQL.ConsultaSQLServer(query, true, true);
+                if (respuest == null) lista= null;
+                lista=JsonConvert.DeserializeObject<List<SelectAlistamiento_Result>>(respuest);
+                dgAlistamiento.DataSource = lista;
             }
             catch(Exception ex)
             {
@@ -39,11 +44,11 @@ namespace POS_SERINSIS_PC_2022.Formularios.Ventas
             }
         }
         List<DataTable> dataTable = new List<DataTable>();
-        private void btnImprimir_Click(object sender, EventArgs e)
+        private async void btnImprimir_Click(object sender, EventArgs e)
         {
             frmReporte frm = new frmReporte();
             AddOwnedForm(frm);
-            frm.Alistamiento(idVendedor_frm, idEstadoPedido_frm, nombreVendedor_frm,fecha,txtTotal.Text);
+            await frm.Alistamiento(lista,idVendedor_frm, idEstadoPedido_frm, nombreVendedor_frm,fecha,txtTotal.Text);
             frm.ShowDialog();
         }
     }

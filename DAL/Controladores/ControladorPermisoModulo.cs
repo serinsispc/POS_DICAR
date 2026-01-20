@@ -33,10 +33,15 @@ WHERE idUsuario = {IdUsuario}
 ORDER BY id DESC;";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
-
-                var lista = JsonConvert.DeserializeObject<List<PermisoModulo>>(jsonReal);
-                return (lista != null && lista.Count > 0) ? lista[0] : null;
+                var jsonReal = JsonConvert.DeserializeObject<PermisoModulo>(respuesta);
+                if (jsonReal != null)
+                {
+                    return jsonReal;
+                }
+                else
+                {
+                    return null;
+                }
             }
             catch (Exception ex)
             {

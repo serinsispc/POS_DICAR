@@ -23,10 +23,10 @@ WHERE idVenta = {IdVenta}
 ORDER BY idVenta DESC;";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+                if (respuesta == null) return null;
 
-                var lista = JsonConvert.DeserializeObject<List<R_PedidoVenta>>(jsonReal);
-                return (lista != null && lista.Count > 0) ? lista[0] : null;
+                var lista = JsonConvert.DeserializeObject<R_PedidoVenta>(respuesta);
+                return lista;
             }
             catch (Exception ex)
             {
@@ -51,10 +51,10 @@ WHERE guiaPedido = N'{g}'
 ORDER BY fechaPedido DESC;";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+                if (respuesta == null) return null;
 
-                var lista = JsonConvert.DeserializeObject<List<V_Pedido>>(jsonReal);
-                return (lista != null && lista.Count > 0) ? lista[0] : null;
+                var lista = JsonConvert.DeserializeObject<V_Pedido>(respuesta);
+                return lista;
             }
             catch (Exception ex)
             {

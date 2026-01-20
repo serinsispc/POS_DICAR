@@ -11,6 +11,7 @@ using System.Windows.Forms;
 using DAL.Modelo;
 using SERINSI_PC.Formularios.Inventario;
 using SERINSI_PC.Clases;
+using DAL;
 
 namespace SERINSI_PC.Formularios.Ventas
 {
@@ -46,7 +47,7 @@ namespace SERINSI_PC.Formularios.Ventas
             }
         }
 
-        private void frmProveedor_Load(object sender, EventArgs e)
+        private async void frmProveedor_Load(object sender, EventArgs e)
         {
             cmbEstadoProveedor.ValueMember = "id";
             cmbEstadoProveedor.DisplayMember = "nombreEstadoAi";
@@ -57,12 +58,12 @@ namespace SERINSI_PC.Formularios.Ventas
                 panelTitulo.Visible = true;
             }
             GestionarBotones(0);
-            CargarDG();
+            await CargarDG();
             txtNit.Focus();
         }
-        private void CargarDG()
+        private async Task CargarDG()
         {
-            dgProveedor.DataSource = ControladorProveedor.listaCompleta();
+            dgProveedor.DataSource =await ControladorProveedor.ListaCompleta();
         }
         private void GestionarBotones(int Boton)
         {
@@ -118,7 +119,7 @@ namespace SERINSI_PC.Formularios.Ventas
             }
         }
 
-        private void btnGuardar_Click(object sender, EventArgs e)
+        private async void btnGuardar_Click(object sender, EventArgs e)
         {
             if (txtNit.Text != ""&&
                 txtNombre.Text!=""&&
@@ -128,11 +129,11 @@ namespace SERINSI_PC.Formularios.Ventas
             {
                 if (btnGuardar.Text == "Crear")
                 {
-                    GestionarProveedor(0);
+                    await GestionarProveedor(0);
                 }
                 else
                 {
-                    GestionarProveedor(1);
+                   await GestionarProveedor(1);
                 }
             }
             else
@@ -140,10 +141,10 @@ namespace SERINSI_PC.Formularios.Ventas
                 MessageBox.Show("Aún hay campos vacíos.", "Campos vacíos.", MessageBoxButtons.OK,MessageBoxIcon.Error);
             }
         }
-        private void GestionarProveedor(int Boton)
+        private async Task GestionarProveedor(int Boton)
         {
             Proveedor objproveedor = new Proveedor();
-            objproveedor = ControladorProveedor.ConsultarX_IdProveedor(IdProveedor);
+            objproveedor =await ControladorProveedor.ConsultarX_IdProveedor(IdProveedor);
             if (objproveedor != null)
             {
                 if(Boton == 0)
@@ -164,8 +165,8 @@ namespace SERINSI_PC.Formularios.Ventas
             objproveedor.direccionProveedor = txtDireccion.Text;
             objproveedor.emailProveedor = txtEmail.Text;
             objproveedor.idEstado = Convert.ToInt32(cmbEstadoProveedor.SelectedValue);
-            bool SQL = ControladorProveedor.GuardarEditarEliminar(objproveedor,Boton);
-            if(SQL == true)
+            RespuestaCRUD SQL =await ControladorProveedor.Crud(objproveedor,Boton);
+            if(SQL.estado == true)
             {
                 if(Boton == 0)
                 {

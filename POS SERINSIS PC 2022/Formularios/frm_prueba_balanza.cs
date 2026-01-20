@@ -56,6 +56,7 @@ namespace POS_SERINSIS_PC_2022.Formularios
             }
             catch(Exception ex)
             {
+                string error = ex.Message;
                 //MessageBox.Show(ex.Message+ "  sp_DataReceived");
             }
 

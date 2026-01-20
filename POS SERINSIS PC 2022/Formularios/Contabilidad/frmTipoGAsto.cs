@@ -1,4 +1,5 @@
-﻿using DAL.Controladores;
+﻿using DAL;
+using DAL.Controladores;
 using DAL.Modelo;
 using System;
 using System.Collections.Generic;
@@ -24,9 +25,9 @@ namespace SERINSI_PC.Formularios.Contabilidad
             this.Close();
         }
 
-        private void frmTipoGAsto_Load(object sender, EventArgs e)
+        private async void frmTipoGAsto_Load(object sender, EventArgs e)
         {
-            CargarDG();
+            await CargarDG();
             GestionarBotones(0);
             txtTipoGasto.Focus();
         }
@@ -43,14 +44,14 @@ namespace SERINSI_PC.Formularios.Contabilidad
                 btnEliminar.Enabled = true;
             }
         }
-        private void CargarDG()
+        private async Task CargarDG()
         {
-            dgTipoGAsto.DataSource = controladorTipoGasto.listaCompleta();
+            dgTipoGAsto.DataSource =await controladorTipoGasto.ListaCompleta();
         }
-        private void GestionarTipoGasto(int Boton)
+        private async Task GestionarTipoGasto(int Boton)
         {
             TipoGasto tipoGasto = new TipoGasto();
-            tipoGasto = controladorTipoGasto.Consultar_id(IdTipoGasto_frm);
+            tipoGasto =await controladorTipoGasto.Consultar_id(IdTipoGasto_frm);
             if (tipoGasto != null)
             {
                 if (Boton == 0)
@@ -66,8 +67,8 @@ namespace SERINSI_PC.Formularios.Contabilidad
             }
             tipoGasto.id = IdTipoGasto_frm;
             tipoGasto.nombreTipoGasto = txtTipoGasto.Text;
-            bool crud = controladorTipoGasto.Crud(tipoGasto,Boton);
-            if (crud == true)
+            RespuestaCRUD crud =await controladorTipoGasto.Crud(tipoGasto,Boton);
+            if (crud.estado == true)
             {
                 if (Boton == 2)
                 {

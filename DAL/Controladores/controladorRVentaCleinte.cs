@@ -45,7 +45,7 @@ namespace DAL.Controladores
             {
                 var query = $"SELECT TOP 1 * FROM R_VentaCliente WHERE idVenta = {IdVenta}";
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
-
+                if(respuesta==null) return null;
                 return JsonConvert.DeserializeObject<R_VentaCliente>(respuesta);
             }
             catch (Exception ex)

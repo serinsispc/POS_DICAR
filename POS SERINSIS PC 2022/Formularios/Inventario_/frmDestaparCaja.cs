@@ -80,7 +80,7 @@ namespace SERINSI_PC.Formularios.Inventario
             }
         }
 
-        private void btnTrasladar_Click(object sender, EventArgs e)
+        private async void btnTrasladar_Click(object sender, EventArgs e)
         {
             SeleccionarProducto();
             if (TotalASurtir > 0)
@@ -95,7 +95,7 @@ namespace SERINSI_PC.Formularios.Inventario
                 objDP.cantidadDestapar = CantidadADestapar;
                 objDP.idProductoSurtir = IdProductoASurtir;
                 objDP.cantidadSurtir = TotalASurtir;
-                bool sql = ControladorDestapeCaja.CrearEditarEliminarDestapeCaja(objDP, 0);
+                bool sql =await ControladorDestapeCaja.CrearEditarEliminarDestapeCaja(objDP, 0);
                 if (sql == true)
                 {
                     GestionarProducto(0, IdProductoDestapar);

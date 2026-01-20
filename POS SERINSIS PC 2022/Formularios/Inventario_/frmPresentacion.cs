@@ -1,4 +1,5 @@
-﻿using DAL.Controladores;
+﻿using DAL;
+using DAL.Controladores;
 using DAL.Modelo;
 using System;
 using System.Collections.Generic;
@@ -49,10 +50,10 @@ namespace SERINSI_PC.Formularios.Inventario
                 txtPresentacion.Focus();
             }
         }
-        private void GestionarPresentacion(int Boton)
+        private async Task GestionarPresentacion(int Boton)
         {
             Presentacion objPresentacion = new Presentacion();
-            objPresentacion = controladorPresentacion.ConsultarID(IdPresentacion);
+            objPresentacion =await controladorPresentacion.ConsultarID(IdPresentacion);
             if (objPresentacion != null)
             {
                 if (Boton == 0)
@@ -68,8 +69,8 @@ namespace SERINSI_PC.Formularios.Inventario
             }
             objPresentacion.id = IdPresentacion;
             objPresentacion.nombrePresentacion = txtPresentacion.Text;
-            bool sqlPresentacion = controladorPresentacion.CrearEditarEliminarPresentacion(objPresentacion,Boton);
-            if (sqlPresentacion == true)
+            RespuestaCRUD sqlPresentacion =await controladorPresentacion.CrearEditarEliminarPresentacion(objPresentacion,Boton);
+            if (sqlPresentacion.estado == true)
             {
                 if (Boton == 2)
                 {
@@ -89,25 +90,25 @@ namespace SERINSI_PC.Formularios.Inventario
                 txtPresentacion.Focus();
             }
         }
-        private void btnGuardar_Click(object sender, EventArgs e)
+        private async Task btnGuardar_Click(object sender, EventArgs e)
         {
             if (txtPresentacion.Text != "")
             {
                 if (btnGuardar.Text == "Crear")
                 {
-                    GestionarPresentacion(0);
+                    await GestionarPresentacion(0);
                 }
                 else
                 {
-                    GestionarPresentacion(1);
+                    await GestionarPresentacion(1);
                 }
             }
         }
 
-        private void btnEliminar_Click(object sender, EventArgs e)
+        private async Task btnEliminar_Click(object sender, EventArgs e)
         {
             SeleccionarPresentacion();
-            GestionarPresentacion(2);
+            await GestionarPresentacion(2);
         }
     }
 }

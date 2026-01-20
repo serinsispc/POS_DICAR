@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using DAL.Modelo;
+using DAL;
 namespace SERINSI_PC.Formularios.Fabrica
 {
     public partial class frmGestionOrdenFabrica : Form
@@ -222,14 +223,14 @@ namespace SERINSI_PC.Formularios.Fabrica
                 }
             }
         }
-        private void GestionarOrdenFabrica(int Boton)
+        private async Task GestionarOrdenFabrica(int Boton)
         {
             //antes de empesar a gestionar la orden vamos a verificar el responsable y el cleinte
             VerificarResponsable();
             VerificarCliente();
             //ahora si empesamos a gestionas la orden de fabricación
             OrdenFabrica objOF = new OrdenFabrica();
-            objOF = controladorOrdenFabrica.consultarID(IdOrdenFabricacion);
+            objOF =await controladorOrdenFabrica.consultarID(IdOrdenFabricacion);
             if (objOF != null)
             {
                 if (Boton == 0)
@@ -258,8 +259,8 @@ namespace SERINSI_PC.Formularios.Fabrica
             objOF.Producido = objOF.ValorFinalOrden - objOF.totalConstoOren;
             objOF.clienteOrden = txtClienteOrden.Text;
             objOF.estadoOrdenFabricacion = EstadoOrden;
-            bool sql = controladorOrdenFabrica.CrearEditarElimminarOrdenFabrica(objOF, Boton);
-            if (sql == true)
+            RespuestaCRUD sql =await controladorOrdenFabrica.CrearEditarElimminarOrdenFabrica(objOF, Boton);
+            if (sql.estado == true)
             {
                 if (Boton == 0)
                 {
@@ -274,16 +275,16 @@ namespace SERINSI_PC.Formularios.Fabrica
                 btnCerrar.PerformClick();
             }
         }
-        private void VerificarResponsable()
+        private async Task VerificarResponsable()
         {
             ResponsableOrdenFabrica objROF = new ResponsableOrdenFabrica();
-            objROF = controladorResponsableOrdenFabricacion.consultarNombre(txtResponsable.Text);
+            objROF =await controladorResponsableOrdenFabricacion.consultarNombre(txtResponsable.Text);
             if (objROF == null)
             {
                 objROF = new ResponsableOrdenFabrica();
                 objROF.id = 0;
                 objROF.nombreResponsableOrdenFabrica = txtResponsable.Text;
-                bool sql = controladorResponsableOrdenFabricacion.CrearEditarEliminarResponsableOrdenFabricacion(objROF, 0);
+                RespuestaCRUD sql =await controladorResponsableOrdenFabricacion.Crud(objROF, 0);
             }
         }
         private void VerificarCliente()
@@ -345,7 +346,7 @@ namespace SERINSI_PC.Formularios.Fabrica
             }
         }
 
-        private void frmGestionOrdenFabrica_Load(object sender, EventArgs e)
+        private async void frmGestionOrdenFabrica_Load(object sender, EventArgs e)
         {
             if (btnGuardar.Text == "Editar")
             {
@@ -354,12 +355,12 @@ namespace SERINSI_PC.Formularios.Fabrica
             }
             else
             {
-                HallarConsecutivoOrden();
+                await HallarConsecutivoOrden();
             }
         }
-        private void HallarConsecutivoOrden()
+        private async Task HallarConsecutivoOrden()
         {
-            NumeroOrden = controladorOrdenFabrica.Consecutivo();
+            NumeroOrden =await controladorOrdenFabrica.Consecutivo();
         }
     }
 }

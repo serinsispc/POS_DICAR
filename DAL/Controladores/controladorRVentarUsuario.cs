@@ -23,6 +23,8 @@ where idUsuario = {IdUser}
   and estado = {IdEstado};";
 
                 var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                if (resp == null) return null;
+
                 return JsonConvert.DeserializeObject<R_VentaUsuario>(resp);
             }
             catch (Exception ex)

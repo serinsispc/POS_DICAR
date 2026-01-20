@@ -14,7 +14,7 @@ namespace DAL.Controladores
 {
     public class ControladorVenta
     {
-        public static bool Crud(TablaVentas tablaVentas, int Boton)
+        public static async Task<bool> Crud(TablaVentas tablaVentas, int Boton)
         {
             try
             {
@@ -26,9 +26,7 @@ namespace DAL.Controladores
 
                 // Ejecutar SP
                 var query = $"EXEC dbo.CRUD_TablaVentas N'{json}', {Boton}";
-                var respuesta = Conection_SQL.ConsultaSQLServer(query, false, true)
-                                             .GetAwaiter()
-                                             .GetResult();
+                var respuesta =await Conection_SQL.ConsultaSQLServer(query, false, true);
 
                 // Si el SP respondió algo, asumimos OK
                 if (!string.IsNullOrWhiteSpace(respuesta))
@@ -88,24 +86,15 @@ WHERE tipoFactura = '{Tipo}'
             }
         }
 
-        public static TablaVentas ConsultaX_id(int IDVenta)
+        public static async Task<TablaVentas> ConsultaX_id(int IDVenta)
         {
             try
             {
                 var query = $"SELECT TOP 1 * FROM TablaVentas WHERE id = {IDVenta}";
-
-                var respuesta = Conection_SQL
-                    .ConsultaSQLServer(query, false, true)
-                    .GetAwaiter()
-                    .GetResult();
-
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query,false,true);
                 if (string.IsNullOrWhiteSpace(respuesta))
                     return null;
-
-                var lista = Newtonsoft.Json.JsonConvert
-                    .DeserializeObject<List<TablaVentas>>(respuesta);
-
-                return (lista != null && lista.Count > 0) ? lista[0] : null;
+                return JsonConvert.DeserializeObject<TablaVentas>(respuesta);
             }
             catch (Exception ex)
             {
@@ -115,24 +104,16 @@ WHERE tipoFactura = '{Tipo}'
         }
 
 
-        public static V_TablaVentas ConsultaX_V_id(int IDVenta)
+        public static async Task<V_TablaVentas> ConsultaX_V_id(int IDVenta)
         {
             try
             {
                 var query = $"SELECT TOP 1 * FROM V_TablaVentas WHERE id = {IDVenta}";
-
-                var respuesta = Conection_SQL
-                    .ConsultaSQLServer(query, false, true)
-                    .GetAwaiter()
-                    .GetResult();
-
-                if (string.IsNullOrWhiteSpace(respuesta))
+                var respuesta =await Conection_SQL.ConsultaSQLServer(query, false, true);
+                if (respuesta==null)
                     return null;
 
-                var lista = Newtonsoft.Json.JsonConvert
-                    .DeserializeObject<List<V_TablaVentas>>(respuesta);
-
-                return (lista != null && lista.Count > 0) ? lista[0] : null;
+                return JsonConvert.DeserializeObject<V_TablaVentas>(respuesta);
             }
             catch (Exception ex)
             {
@@ -142,24 +123,15 @@ WHERE tipoFactura = '{Tipo}'
         }
 
 
-        public static TablaVentas ConsultaX_guid(Guid guidText)
+        public static async Task<TablaVentas> ConsultaX_guid(Guid guidText)
         {
             try
             {
                 var query = $"SELECT TOP 1 * FROM TablaVentas WHERE guidVenta = '{guidText}'";
 
-                var respuesta = Conection_SQL
-                    .ConsultaSQLServer(query, false, true)
-                    .GetAwaiter()
-                    .GetResult();
-
-                if (string.IsNullOrWhiteSpace(respuesta))
-                    return null;
-
-                var lista = Newtonsoft.Json.JsonConvert
-                    .DeserializeObject<List<TablaVentas>>(respuesta);
-
-                return (lista != null && lista.Count > 0) ? lista[0] : null;
+                var resp=await Conection_SQL.ConsultaSQLServer(query, false, true);
+                if(resp==null) return null;
+                return JsonConvert.DeserializeObject<TablaVentas>(resp);
             }
             catch (Exception ex)
             {

@@ -49,7 +49,7 @@ namespace SERINSI_PC.Formularios.Ventas
             this.Close();
         }
 
-        private void dgProductosPresentacion_CellClick(object sender, DataGridViewCellEventArgs e)
+        private async void dgProductosPresentacion_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             if(dgProductosPresentacion.RowCount>0 && e.RowIndex >= 0)
             {
@@ -58,7 +58,7 @@ namespace SERINSI_PC.Formularios.Ventas
                 if (dgProductosPresentacion.Columns[e.ColumnIndex].Name == "btnAgregar")
                 {
                     frmCajaTouch frm = Owner as frmCajaTouch;
-                    bool agregar=frm.AgregarDetalleVenta(Convert.ToInt32(fila.Cells["idCostoPrecio"].Value),
+                    bool agregar=await frm.AgregarDetalleVenta(Convert.ToInt32(fila.Cells["idCostoPrecio"].Value),
                         Convert.ToString(fila.Cells["descripcionProducto"].Value),
                         1,
                         Convert.ToDecimal(fila.Cells["costo"].Value),

@@ -1,4 +1,5 @@
-﻿using DAL.Controladores;
+﻿using DAL;
+using DAL.Controladores;
 using DAL.Modelo;
 using Invenpol_Parqueadero_Motos.Clases;
 using SERINSI_PC.Formularios.Contabilidad;
@@ -28,20 +29,20 @@ namespace Invenpol_Parqueadero_Motos.Formularios
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void frmGastos_Load_1(object sender, EventArgs e)
+        private async void frmGastos_Load_1(object sender, EventArgs e)
         {
             cargarBolsillo();
-            CargarTipoGasto();
+            await CargarTipoGasto();
             LLenarDataGrid();
             GestionarBotones(0);
-            TotalGastos();
+            await TotalGastos();
         }
-        private void CargarTipoGasto()
+        private async Task CargarTipoGasto()
         {
             cmbTipoGasto.DataSource = null;
             cmbTipoGasto.ValueMember = "id";
             cmbTipoGasto.DisplayMember = "nombreTipoGasto";
-            cmbTipoGasto.DataSource = controladorTipoGasto.listaCompleta();
+            cmbTipoGasto.DataSource =await controladorTipoGasto.ListaCompleta();
         }
         private void cargarBolsillo()
         {
@@ -74,7 +75,7 @@ namespace Invenpol_Parqueadero_Motos.Formularios
         /// <summary>
         /// Funcion para definir que tarea a hacer 
         /// </summary>
-        private void GestionarGasto(int boton)
+        private async Task GestionarGasto(int boton)
         {
             if(txtConcepto.Text == "" || txtValor.Text ==""||cmbBolsillo.Text=="")
             {
@@ -83,7 +84,7 @@ namespace Invenpol_Parqueadero_Motos.Formularios
             else
             {
                 Gastos objGastop = new Gastos();
-                objGastop = ControladorGastos.ConsultaGastoXId(IdGasto);
+                objGastop =await ControladorGastos.ConsultaGastoXId(IdGasto);
                 
                 if(boton == 0)
                 {
@@ -104,8 +105,8 @@ namespace Invenpol_Parqueadero_Motos.Formularios
                 objGastop.idBolsillo = Convert.ToInt32(cmbBolsillo.SelectedValue);
                 objGastop.idBasecaja = VariablesPublicas.IdBaseActiva;
                 objGastop.idSede = VariablesPublicas.IdEmpresaLogueada;
-                bool Respuesta = ControladorGastos.Guardar_Editar_Eliminar_Gasto(objGastop, boton);
-                if(Respuesta == true)
+                RespuestaCRUD Respuesta =await ControladorGastos.Guardar_Editar_Eliminar_Gasto(objGastop, boton);
+                if(Respuesta.estado == true)
                 {
                     if (boton == 0)
                     {
@@ -149,9 +150,9 @@ namespace Invenpol_Parqueadero_Motos.Formularios
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void btnCrear_Click(object sender, EventArgs e)
+        private async void btnCrear_Click(object sender, EventArgs e)
         {
-            GestionarGasto(0);
+            await GestionarGasto(0);
         }
         private void LimpiarFormulario()
         {
@@ -164,12 +165,12 @@ namespace Invenpol_Parqueadero_Motos.Formularios
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void btnLimpiar_Click(object sender, EventArgs e)
+        private async void btnLimpiar_Click(object sender, EventArgs e)
         {
             LimpiarFormulario();
             GestionarBotones(0);
             LLenarDataGrid();
-            TotalGastos();
+            await TotalGastos();
         }
         /// <summary>
         /// Evento select click de el dataGrid
@@ -199,33 +200,33 @@ namespace Invenpol_Parqueadero_Motos.Formularios
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void btnEditar_Click(object sender, EventArgs e)
+        private async void btnEditar_Click(object sender, EventArgs e)
         {
-            GestionarGasto(1);
+            await GestionarGasto(1);
         }
         /// <summary>
         /// Evento click del boton Eliminar
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void btnEliminar_Click(object sender, EventArgs e)
+        private async void btnEliminar_Click(object sender, EventArgs e)
         {
-            GestionarGasto(2);
+            await GestionarGasto(2);
         }
         /// <summary>
         /// Evento click delboton filtro
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void btnFiltro_Click(object sender, EventArgs e)
+        private async void btnFiltro_Click(object sender, EventArgs e)
         {
             dataGridGastosarqueadero.DataSource = ControladorGastos.ConsultaGastoXFecha(dtFecha.Value);
-            Total = ControladorGastos.HallarTotalGastosDia(dtFecha.Value,VariablesPublicas.IdEmpresaLogueada);
+            Total =await ControladorGastos.HallarTotalGastosDia(dtFecha.Value,VariablesPublicas.IdEmpresaLogueada);
             txtTotal.Text = String.Format("{0:C}", Total);
         }
-        private void TotalGastos()
+        private async Task TotalGastos()
         {
-            Total = ControladorGastos.HallarTotalGastoFull(VariablesPublicas.IdEmpresaLogueada);
+            Total =await ControladorGastos.HallarTotalGastoFull(VariablesPublicas.IdEmpresaLogueada);
             txtTotal.Text = String.Format("{0:C}", Total);
         }
         /// <summary>

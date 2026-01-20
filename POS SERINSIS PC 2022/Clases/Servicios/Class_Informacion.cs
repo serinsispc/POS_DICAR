@@ -14,7 +14,7 @@ namespace Invenpol_Parqueadero_Motos.Clases.Servicios
         {
             //ahor igualamos las variables con la informacion necesaria
             Sede objconf = new Sede();
-            objconf = ControladorSede.ConsultaXIdEmpresa(VariablesPublicas.IdEmpresaLogueada);
+            objconf = await ControladorSede.ConsultaXIdEmpresa(VariablesPublicas.IdEmpresaLogueada);
             if (objconf != null)
             {
                 VariablesPublicas.NombreEmpresa = objconf.nombreSede;

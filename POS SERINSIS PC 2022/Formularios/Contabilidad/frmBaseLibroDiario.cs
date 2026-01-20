@@ -1,4 +1,5 @@
-﻿using DAL.Controladores.Contabilidad;
+﻿using DAL;
+using DAL.Controladores.Contabilidad;
 using DAL.Modelo;
 using Invenpol_Parqueadero_Motos.Clases;
 using System;
@@ -58,13 +59,13 @@ namespace SERINSI_PC.Formularios.Contabilidad
             }
         }
 
-        private void btnCargarBAse_Click(object sender, EventArgs e)
+        private async void btnCargarBAse_Click(object sender, EventArgs e)
         {
             if(txtBaseBanco.Text!=""&&
                txtBaseCajaMenor.Text != "")
             {
-               bool xx= GestionarLibro("Base inicio software",3,Convert.ToDecimal(txtBaseCajaMenor.Text),0,0,Convert.ToDecimal(txtBaseCajaMenor.Text));
-               bool xxx= GestionarLibro("Base inicio software",2,Convert.ToDecimal(txtBaseBanco.Text),0,Convert.ToDecimal(txtBaseBanco.Text),Convert.ToDecimal(txtBaseCajaMenor.Text));
+               bool xx=await GestionarLibro("Base inicio software",3,Convert.ToDecimal(txtBaseCajaMenor.Text),0,0,Convert.ToDecimal(txtBaseCajaMenor.Text));
+               bool xxx=await GestionarLibro("Base inicio software",2,Convert.ToDecimal(txtBaseBanco.Text),0,Convert.ToDecimal(txtBaseBanco.Text),Convert.ToDecimal(txtBaseCajaMenor.Text));
                 if (xx == true && xxx == true)
                 {
                     MessageBox.Show("La base de agrego correctamente.", "Base", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -74,12 +75,12 @@ namespace SERINSI_PC.Formularios.Contabilidad
                 }
             }
         }
-        private bool GestionarLibro(string Detalle, int IDBolsillo, decimal ingreso, decimal egreso,decimal Banco,decimal CajaMejor)
+        private async Task<bool> GestionarLibro(string Detalle, int IDBolsillo, decimal ingreso, decimal egreso,decimal Banco,decimal CajaMejor)
         {
             int IdLibro = 0;
             int Boton = 0;
             LibroDiario objLibro = new LibroDiario();
-            objLibro = ControladorLibroDiario.consultaMotivoIdBolsillo(Detalle, IDBolsillo);
+            objLibro =await ControladorLibroDiario.consultaMotivoIdBolsillo(Detalle, IDBolsillo);
             if (objLibro != null)
             {
                 IdLibro = objLibro.id;
@@ -102,8 +103,8 @@ namespace SERINSI_PC.Formularios.Contabilidad
             objLibro.saldoCajaMenor = CajaMejor;
             objLibro.saldoTotal = Banco + CajaMejor;
             objLibro.idUsuario = VariablesPublicas.IdUsuarioLogueado;
-            bool sql = ControladorLibroDiario.CrearEditarEliminarLibroDiario(objLibro,Boton);
-            if (sql == true)
+            RespuestaCRUD sql =await ControladorLibroDiario.CrearEditarEliminarLibroDiario(objLibro,Boton);
+            if (sql.estado == true)
             {
                 return true;
             }
@@ -113,15 +114,15 @@ namespace SERINSI_PC.Formularios.Contabilidad
             }
         }
 
-        private void frmBaseLibroDiario_Load(object sender, EventArgs e)
+        private async void frmBaseLibroDiario_Load(object sender, EventArgs e)
         {
-            ConsultarBase(2);
-            ConsultarBase(3);
+            await ConsultarBase(2);
+            await ConsultarBase(3);
         }
-        private void ConsultarBase(int TipoBol)
+        private async Task ConsultarBase(int TipoBol)
         {
             LibroDiario objLibro = new LibroDiario();
-            objLibro = ControladorLibroDiario.consultaMotivoIdBolsillo("Base inicio software", TipoBol);
+            objLibro =await ControladorLibroDiario.consultaMotivoIdBolsillo("Base inicio software", TipoBol);
             if (objLibro != null)
             {
                 if (TipoBol == 2)

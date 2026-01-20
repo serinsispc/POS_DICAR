@@ -1,4 +1,5 @@
-﻿using DAL.Controladores;
+﻿using DAL;
+using DAL.Controladores;
 using DAL.Modelo;
 using Invenpol_Parqueadero_Motos.Clases;
 using POS_SERINSIS_PC_2022.Reportes;
@@ -28,11 +29,11 @@ namespace SERINSI_PC.Formularios.Inventario
             InitializeComponent();
         }
       
-        private void frmTraslados_Load(object sender, EventArgs e)
+        private async void frmTraslados_Load(object sender, EventArgs e)
         {
             CargarCMB();
-            ConsultarGuidActivo();
-            CargarFormulario();
+            await ConsultarGuidActivo();
+            await CargarFormulario();
             CargarBuscador();
         }
         private void CargarCMB()
@@ -42,10 +43,10 @@ namespace SERINSI_PC.Formularios.Inventario
             cmbSedes.DisplayMember = "nombre_empresa";
             cmbSedes.DataSource = ControladorSede.listaCompleta();
         }
-        private void ConsultarGuidActivo()
+        private async Task ConsultarGuidActivo()
         {
             GuidTraslados objGui = new GuidTraslados();
-            objGui = controladorGuidTraslado.Consultar_IdSede_Estado(VariablesPublicas.IdEmpresaLogueada,1);
+            objGui =await controladorGuidTraslado.Consultar_IdSede_Estado(VariablesPublicas.IdEmpresaLogueada,1);
             if (objGui != null)
             {
                 GuidTex = objGui.guidTex;
@@ -60,15 +61,15 @@ namespace SERINSI_PC.Formularios.Inventario
                 objGui.idSedeTraslado = VariablesPublicas.IdEmpresaLogueada;
                 objGui.guidTex = GuidTex;
                 objGui.estadoGuidTraslado = 1;
-                bool sql = controladorGuidTraslado.CrearEditarEliminar_GuidTraslado(objGui, 0);
+                RespuestaCRUD sql =await controladorGuidTraslado.CrearEditarEliminar_GuidTraslado(objGui, 0);
             }
         }
-        private void CargarFormulario()
+        private async Task CargarFormulario()
         {
             CargarDGDetalle();
 
             Traslados objTraslado = new Traslados();
-            objTraslado = controladorTraslado.ConsultarGuid(GuidTex);
+            objTraslado =await controladorTraslado.ConsultarGuid(GuidTex);
             if (objTraslado != null)
             {
                 if (objTraslado.tipoTraslado == "ingreso")
@@ -132,7 +133,7 @@ namespace SERINSI_PC.Formularios.Inventario
             }
         }
 
-        private void btnCargarProducto_Click(object sender, EventArgs e)
+        private async void btnCargarProducto_Click(object sender, EventArgs e)
         {
             if (txtCantidad.Text != "")
             {
@@ -147,16 +148,16 @@ namespace SERINSI_PC.Formularios.Inventario
                         if (cbIngresarProducto.Checked == true)TipoTraslado = "ingreso";
                         if (cbRetirarProducto.Checked == true)TipoTraslado = "retiro";
                         //en esta parte llamamos la funcion que se encarga de Gestionar el Detalle del traslado
-                        bool detalle = GestionarDetalleTraslado(0);
+                        bool detalle =await GestionarDetalleTraslado(0);
                         if (detalle == true)
                         {
                             if(TipoTraslado== "ingreso")
                             {
-                                ActualizarInventario(1,Convert.ToInt32(txtCantidad.Text));
+                                await ActualizarInventario(1,Convert.ToInt32(txtCantidad.Text));
                             }
                             else
                             {
-                                ActualizarInventario(0, Convert.ToInt32(txtCantidad.Text));
+                                await ActualizarInventario(0, Convert.ToInt32(txtCantidad.Text));
                             }
                             CargarDGDetalle();
                             CargarBuscador();
@@ -178,20 +179,20 @@ namespace SERINSI_PC.Formularios.Inventario
                 txtCantidad.Focus();
             }
         }
-        private void ActualizarInventario(int Boton,int Cantidad)
+        private async Task ActualizarInventario(int Boton,int Cantidad)
         {
             Producto objProducto = new Producto();
-            objProducto = ControladorProducto.consultarIdProducto(IdProducto);
+            objProducto =await ControladorProducto.consultarIdProducto(IdProducto);
             if (objProducto != null)
             {
 
-                bool sql = ControladorProducto.GuardarEditarEliminarProducto(objProducto,1);
+                RespuestaCRUD sql =await ControladorProducto.GuardarEditarEliminarProducto(objProducto,1);
             }
         }
-        private bool GestionarDetalleTraslado(int Boton)
+        private async Task<bool> GestionarDetalleTraslado(int Boton)
         {
             DetalleTraslado objDetalle = new DetalleTraslado();
-            objDetalle = controladorDetalleTraslado.consultar_IdDetalle(IdDetalle);
+            objDetalle =await controladorDetalleTraslado.consultar_IdDetalle(IdDetalle);
             if (objDetalle != null)
             {
                 if(Boton == 0)
@@ -212,8 +213,8 @@ namespace SERINSI_PC.Formularios.Inventario
                 objDetalle.idProductoTraslado = IdProducto;
                 objDetalle.cantidadproductoTraslado = Convert.ToInt32(txtCantidad.Text);
             }
-            bool sql = controladorDetalleTraslado.CrearEditarEliminar_DetalleTraslado(objDetalle,Boton);
-            if (sql == true)
+            RespuestaCRUD sql =await controladorDetalleTraslado.CrearEditarEliminar_DetalleTraslado(objDetalle,Boton);
+            if (sql.estado == true)
             {
                 errorProvider1.SetError(btnCargarProducto, "");
                 return true;
@@ -341,7 +342,7 @@ namespace SERINSI_PC.Formularios.Inventario
             SeleccionarDetalle();
         }
 
-        private void btnGuardarTraslado_Click(object sender, EventArgs e)
+        private async void btnGuardarTraslado_Click(object sender, EventArgs e)
         {
             if (dgDetalleTraslado.RowCount <= 0)
             {
@@ -375,7 +376,7 @@ namespace SERINSI_PC.Formularios.Inventario
                 }
             }
             Traslados objtraslados = new Traslados();
-            objtraslados = controladorTraslado.ConsultarGuid(GuidTex);
+            objtraslados =await controladorTraslado.ConsultarGuid(GuidTex);
             if (objtraslados != null)
             {
                 errorProvider1.SetError(btnGuardarTraslado, "El traslado que se desea hacer ya existe.");
@@ -405,20 +406,20 @@ namespace SERINSI_PC.Formularios.Inventario
                 objtraslados.sedeRecibido = VariablesPublicas.NombreEmpresa;
                 objtraslados.tipoTraslado = "Ingreso";
             }
-            bool sql = controladorTraslado.CrearEditarEliminarTraslado(objtraslados,0);
-            if (sql == true)
+            RespuestaCRUD sql =await controladorTraslado.CrearEditarEliminarTraslado(objtraslados,0);
+            if (sql.estado == true)
             {
                 errorProvider1.SetError(btnGuardarTraslado, "");
                 GuidTraslados objGui = new GuidTraslados();
-                objGui = controladorGuidTraslado.Consultar_Guid(GuidTex);
+                objGui =await controladorGuidTraslado.Consultar_Guid(GuidTex);
                 if (objGui != null)
                 {
                     if (objGui.estadoGuidTraslado == 1)
                     {
                         objGui.estadoGuidTraslado = 0;
 
-                        bool tras = controladorGuidTraslado.CrearEditarEliminar_GuidTraslado(objGui, 1);
-                        if (tras == true)
+                        RespuestaCRUD tras =await controladorGuidTraslado.CrearEditarEliminar_GuidTraslado(objGui, 1);
+                        if (tras.estado == true)
                         {
                             if (cbRetirarProducto.Checked == true)
                             {
@@ -436,8 +437,8 @@ namespace SERINSI_PC.Formularios.Inventario
 
                             GuidTex = "";
                             LimpiarFormulario();
-                            ConsultarGuidActivo();
-                            CargarFormulario();
+                            await ConsultarGuidActivo();
+                            await CargarFormulario();
                             CargarBuscador();
                         }
                     }

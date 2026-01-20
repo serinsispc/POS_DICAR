@@ -105,6 +105,7 @@ ORDER BY fecha DESC, id DESC;";
             }
             catch (Exception ex)
             {
+                string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
@@ -288,6 +289,7 @@ ORDER BY fecha DESC, id DESC;";
             }
             catch (Exception ex)
             {
+                string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }

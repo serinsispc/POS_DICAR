@@ -1,5 +1,7 @@
-﻿using DAL.Controladores;
+﻿using DAL;
+using DAL.Controladores;
 using DAL.Modelo;
+using POS_SERINSIS_PC_2022.Formularios;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -19,14 +21,36 @@ namespace SERINSI_PC.Formularios.Configuracion
         {
             InitializeComponent();
         }
+        public List<V_Vendedor> ListaVendedor { get; set; }
+        private async void frm_Vendedor_Load(object sender, EventArgs e)
+        {
+            FrmLoading loading = null;
+            try
+            {
+                using (OpenFileDialog ofd = new OpenFileDialog())
+                {
+                    loading = FrmLoading.ShowLoading(this, "Cargarndo...");
+                    // inicio
 
-        private void frm_Vendedor_Load(object sender, EventArgs e)
-        {
-            Cargar_DG();
+                    ListaVendedor= await controladorVendedor.Lista_Completa();
+
+                    await Cargar_DG();
+
+
+                    // fin
+                    FrmLoading.CloseLoading(this, loading);
+                }
+            }
+            catch (Exception ex)
+            {
+                FrmLoading.CloseLoading(this, loading);
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
         }
-        private void Cargar_DG()
+        private async Task Cargar_DG()
         {
-            dgVendedores.DataSource = controladorVendedor.Lista_Completa();
+            dgVendedores.DataSource = ListaVendedor;
         }
         private void SeleccionarVEndedor()
         {
@@ -58,10 +82,10 @@ namespace SERINSI_PC.Formularios.Configuracion
                 btnEliminar.Enabled = true;
             }
         }
-        private bool GestionarVEndedor(int Boton)
+        private async Task<bool> GestionarVEndedor(int Boton)
         {
             Vendedor vendedor = new Vendedor();
-            vendedor = controladorVendedor.Consultar_id(IdVendedor);
+            vendedor =await controladorVendedor.Consultar_id(IdVendedor);
             if(vendedor != null)
             {
                 if (Boton == 0) return false;
@@ -75,8 +99,8 @@ namespace SERINSI_PC.Formularios.Configuracion
             vendedor.nombreVendedor = txtNombreVendedor.Text;
             vendedor.telefonoVendedor =txtCelular.Text;
             vendedor.calveVendedor = txtClave.Text;
-            bool crud = controladorVendedor.Crud(vendedor,Boton);
-            return crud;
+            RespuestaCRUD crud =await controladorVendedor.Crud(vendedor,Boton);
+            return crud.estado;
         }
         private bool ValidarCampos()
         {
@@ -91,61 +115,61 @@ namespace SERINSI_PC.Formularios.Configuracion
                 return false;
             }
         }
-        private void RefrescarFormulario()
+        private async Task RefrescarFormulario()
         {
             GestionarBotones(0);
             txtCelular.Text = "";
             txtClave.Text = "";
             txtNombreVendedor.Text = "";
-            Cargar_DG();
+            await Cargar_DG();
             txtNombreVendedor.Focus();
         }
 
-        private void btnNuevo_Click(object sender, EventArgs e)
+        private async void btnNuevo_Click(object sender, EventArgs e)
         {
             bool campos = ValidarCampos();
             if (campos == true)
             {
-                bool gestionar = GestionarVEndedor(0);
+                bool gestionar =await GestionarVEndedor(0);
                 if (gestionar == true)
                 {
                     MessageBox.Show("¡Vendedor creado correctamente...!","¡Ok!",MessageBoxButtons.OK,MessageBoxIcon.Exclamation);
-                    RefrescarFormulario();
+                    await RefrescarFormulario();
                 }
             }
         }
 
-        private void btnEditar_Click(object sender, EventArgs e)
+        private async void btnEditar_Click(object sender, EventArgs e)
         {
             bool campos = ValidarCampos();
             if (campos == true)
             {
-                bool gestionar = GestionarVEndedor(1);
+                bool gestionar =await GestionarVEndedor(1);
                 if (gestionar == true)
                 {
                     MessageBox.Show("¡Vendedor editado correctamente...!", "¡Ok!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                    RefrescarFormulario();
+                    await RefrescarFormulario();
                 }
             }
         }
 
-        private void btnEliminar_Click(object sender, EventArgs e)
+        private async void btnEliminar_Click(object sender, EventArgs e)
         {
             bool campos = ValidarCampos();
             if (campos == true)
             {
-                bool gestionar = GestionarVEndedor(2);
+                bool gestionar =await GestionarVEndedor(2);
                 if (gestionar == true)
                 {
                     MessageBox.Show("¡Vendedor eliminado correctamente...!", "¡Ok!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                    RefrescarFormulario();
+                    await RefrescarFormulario();
                 }
             }
         }
 
-        private void btnActualizar_Click(object sender, EventArgs e)
+        private async void btnActualizar_Click(object sender, EventArgs e)
         {
-            RefrescarFormulario();
+            await RefrescarFormulario();
         }
 
         private void dgVendedores_CellClick(object sender, DataGridViewCellEventArgs e)

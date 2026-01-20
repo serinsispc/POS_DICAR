@@ -11,11 +11,11 @@ namespace SERINSI_PC.Clases.Servicios
 {
     public class ClassSaldosLibroDiario
     {
-        public  static void hallasUltimoSaldoLibro()
+        public  static async Task hallasUltimoSaldoLibro()
         {
-            int UltimoID = ControladorLibroDiario.hallarUltimoSaldo();
+            int UltimoID =await ControladorLibroDiario.hallarUltimoSaldo();
             LibroDiario objLibro = new LibroDiario();
-            objLibro = ControladorLibroDiario.consultarID(UltimoID);
+            objLibro =await ControladorLibroDiario.consultarID(UltimoID);
             if (objLibro != null)
             {
                 VariablesPublicas.SaldoCaja =Convert.ToDecimal(objLibro.saldoCaja);

@@ -112,11 +112,6 @@ namespace DAL.Controladores.OrdenServicio
         }
     }
 
-    // Si ya existe en tu proyecto, elimina esta clase.
-    public class RespuestaCRUD
-    {
-        public bool estado { get; set; }
-        public int idAfectado { get; set; }
-        public string mensaje { get; set; }
-    }
+
+
 }

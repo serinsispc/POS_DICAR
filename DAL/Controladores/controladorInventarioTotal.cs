@@ -52,10 +52,9 @@ WHERE idProducto = {IdProducto}
 ORDER BY id DESC;";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
-
-                var lista = JsonConvert.DeserializeObject<List<InventarioTotal>>(jsonReal);
-                return (lista != null && lista.Count > 0) ? lista[0] : null;
+         
+                var lista = JsonConvert.DeserializeObject<InventarioTotal>(respuesta);
+                return lista;
             }
             catch (Exception ex)
             {

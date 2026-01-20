@@ -749,6 +749,7 @@ namespace SERINSI_PC.Formularios
 
         private void timer1_Tick(object sender, EventArgs e)
         {
+            
             txtFecha.Text = DateTime.Now.ToShortDateString();
             txtHora.Text = DateTime.Now.ToLongTimeString();
         }

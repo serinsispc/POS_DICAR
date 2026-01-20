@@ -31,37 +31,54 @@ namespace POS_SERINSIS_PC_2022.Formularios.Configuracion
 
         private async void frmRutero_Load(object sender, EventArgs e)
         {
-            //en esta aprte cargamos todas las listas
-            await CargarListaRutero();
-            ListaCliente =await ControladorClienteTienda.ListaCompleta();
-            ListaVendedor =await controladorVendedor.Lista_Completa();
+            FrmLoading loading = null;
+            try
+            {
+                using (OpenFileDialog ofd = new OpenFileDialog())
+                {
+                    loading = FrmLoading.ShowLoading(this, "Cargarndo...");
 
-            Cargar_CB_Dias();
-            GestionarBotones(0);
+                    //en esta aprte cargamos todas las listas
+                    await CargarListaRutero();
+                    ListaCliente = await ControladorClienteTienda.ListaCompleta();
+                    ListaVendedor = await controladorVendedor.Lista_Completa();
 
-            Cargar_cbVendedor();
+                    await Cargar_CB_Dias();
+                    GestionarBotones(0);
+
+                    await Cargar_cbVendedor();
+
+                    FrmLoading.CloseLoading(this, loading);
+                }
+            }
+            catch (Exception ex)
+            {
+                FrmLoading.CloseLoading(this, loading);
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
         }
-        private void Cargar_cbVendedor()
+        private async Task Cargar_cbVendedor()
         {
             cbVendedor.ValueMember = "id";
             cbVendedor.DisplayMember = "nombreVendedor";
-            cbVendedor.DataSource = controladorVendedor.Lista_Completa();
+            cbVendedor.DataSource =await controladorVendedor.Lista_Completa();
             cbVendedor.SelectedIndex = -1;
         }
         private async Task CargarListaRutero()
         {
             ListaRutero =await controladorRutero.ListaCompleta();
         }
-        private void Cargar_CB_Dias()
+        private async Task Cargar_CB_Dias()
         {
             cbDia.ValueMember = "id";
             cbDia.DisplayMember = "diaSemana";
-            cbDia.DataSource = controladorSemana.ListaCompleta();
+            cbDia.DataSource =await controladorSemana.ListaCompleta();
             cbDia.SelectedIndex= - 1;
 
             cbFiltrarDia.ValueMember = "id";
             cbFiltrarDia.DisplayMember = "diaSemana";
-            cbFiltrarDia.DataSource = controladorSemana.ListaCompleta();
+            cbFiltrarDia.DataSource =await controladorSemana.ListaCompleta();
             cbFiltrarDia.SelectedIndex = -1;
         }
         private void RefrescarFormulario()

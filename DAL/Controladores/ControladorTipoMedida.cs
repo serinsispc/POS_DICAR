@@ -82,7 +82,7 @@ namespace DAL.Controladores
         // ============================
         // CONSULTAR POR ID (TABLA)
         // ============================
-        public static async Task<TipoMedida> ConsultarID(int IdTipo)
+        public static async Task<DAL.Controladores.TipoMedida> ConsultarID(int IdTipo)
         {
             try
             {
@@ -110,13 +110,6 @@ namespace DAL.Controladores
         }
     }
 
-    // Ajusta esto a tu modelo real si ya lo tienes definido
-    public class RespuestaCRUD
-    {
-        public bool estado { get; set; }
-        public int idAfectado { get; set; }
-        public string mensaje { get; set; }
-    }
 
     // Ajusta estos modelos a los tuyos (normalmente ya existen en DAL.Modelo)
     public class TipoMedida

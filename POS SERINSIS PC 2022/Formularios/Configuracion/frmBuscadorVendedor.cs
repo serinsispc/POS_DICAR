@@ -73,7 +73,7 @@ namespace POS_SERINSIS_PC_2022.Formularios.Configuracion
 
         private void frmBuscadorVendedor_Load(object sender, EventArgs e)
         {
-
+            dgBuscarVendedor.DataSource = ListaVendedor;
         }
     }
 }

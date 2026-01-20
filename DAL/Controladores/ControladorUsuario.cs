@@ -2,6 +2,7 @@
 using DAL.SQL;
 using Newtonsoft.Json;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -101,8 +102,15 @@ WHERE cuentaUsuario = '{p_usuario}'
                 var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
 
                 // Normalmente viene como JSON de tabla -> lista
-                var lista = JsonConvert.DeserializeObject<List<Usuario>>(resp);
-                return (lista != null && lista.Count > 0) ? lista[0] : null;
+                var lista = JsonConvert.DeserializeObject<Usuario>(resp);
+                if(lista != null)
+                {
+                    return lista;
+                }
+                else
+                {
+                    return null;
+                }
             }
             catch (Exception ex)
             {
@@ -121,9 +129,15 @@ WHERE cuentaUsuario = '{p_usuario}'
             {
                 var query = $"SELECT TOP 1 * FROM Usuario WHERE id = {p_isUsuario}";
                 var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                if (resp != null)
+                {
+                    return JsonConvert.DeserializeObject<Usuario>(resp);
+                }
+                else
+                {
+                    return null;
+                }
 
-                var lista = JsonConvert.DeserializeObject<List<Usuario>>(resp);
-                return (lista != null && lista.Count > 0) ? lista[0] : null;
             }
             catch (Exception ex)
             {

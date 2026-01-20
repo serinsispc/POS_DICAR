@@ -1,4 +1,5 @@
-﻿using DAL.Controladores;
+﻿using DAL;
+using DAL.Controladores;
 using DAL.Modelo;
 using Invenpol_Parqueadero_Motos.Clases;
 using System;
@@ -152,10 +153,10 @@ namespace SERINSI_PC.Formularios.Inventario
                 return false;
             }
         }
-        private void GestionarCosto(int Boton)
+        private async Task GestionarCosto(int Boton)
         {
             Precios objCosto = new Precios();
-            objCosto = controladorPrecio.ConsultarIdInventario_IdLista(IdInvent, Convert.ToInt32(cmbListaPrecios.SelectedValue));
+            objCosto =await controladorPrecio.ConsultarIdInventario_IdLista(IdInvent, Convert.ToInt32(cmbListaPrecios.SelectedValue));
             if (objCosto != null)
             {
                 if (Boton == 0)
@@ -174,8 +175,8 @@ namespace SERINSI_PC.Formularios.Inventario
             objCosto.idListaPrecios = Convert.ToInt32(cmbListaPrecios.SelectedValue);
             objCosto.PrecioVenta = Convert.ToDecimal(txtPrecio.Text);
             objCosto.utilidad = Convert.ToDecimal(txtProducido.Text);
-            bool sqlCosto = controladorPrecio.CrearEditarEliminarCostoPrecio(objCosto, Boton);
-            if (sqlCosto == true)
+            RespuestaCRUD sqlCosto =await controladorPrecio.CrearEditarEliminarCostoPrecio(objCosto, Boton);
+            if (sqlCosto.estado == true)
             {
                 if (Boton == 0)
                 {

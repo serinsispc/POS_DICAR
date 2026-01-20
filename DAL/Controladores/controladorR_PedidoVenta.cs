@@ -42,6 +42,10 @@ namespace DAL.Controladores
             {
                 var query = $"SELECT TOP 1 * FROM R_PedidoVenta WHERE guidPedido = '{guid}'";
                 var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                if(resp == null || string.IsNullOrWhiteSpace(resp))
+                {
+                    return null;
+                }
                 return JsonConvert.DeserializeObject<R_PedidoVenta>(resp);
             }
             catch (Exception ex)

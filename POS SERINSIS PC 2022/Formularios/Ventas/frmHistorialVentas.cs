@@ -41,34 +41,34 @@ namespace SERINSI_PC.Formularios.Ventas
         public int IdProducto = 0;
         string FechaVT;
         string DiasC;
-        private void btnImrpimir_Click(object sender, EventArgs e)
+        private async void btnImrpimir_Click(object sender, EventArgs e)
         {
-            SeleccionarVenta();
+            await SeleccionarVenta();
             //consultamos si la venta tiene relacion con un cliente
             VariablesPublicas.IdCliente = IdCliente;
             frmReporte frm = new frmReporte();
             AddOwnedForm(frm);
             if (VariablesPublicas.TipoImpresora == "Carta")
             {
-                frm.FacturaVentaCarta(0, IDVenta);
+                await frm.FacturaVentaCarta(0, IDVenta);
             }
             else
             {
-                frm.FacturaVentaPOS(IDVenta);
+                await frm.FacturaVentaPOS(IDVenta);
             }
             //frm.ShowDialog();
         }
-        private void VerificarCliente()
+        private async Task VerificarCliente()
         {
             R_VentaCliente r_VentaCliente = new R_VentaCliente();
-            r_VentaCliente = controladorRVentaCleinte.ConsultarRelacion(IDVenta);
+            r_VentaCliente =await controladorRVentaCleinte.ConsultarRelacion(IDVenta);
             if(r_VentaCliente == null)
             {
                 VariablesPublicas.IdCliente = r_VentaCliente.idCliente;
             }
 
         }
-        private void SeleccionarVenta()
+        private async Task SeleccionarVenta()
         {
             if (dgVentas.RowCount > 0 && dgVentas.CurrentRow.Index >= 0)
             {
@@ -97,13 +97,13 @@ namespace SERINSI_PC.Formularios.Ventas
 
                 //en esta parte devemos consultar la relacion de venta cleinte
                 R_VentaCliente objRCleinte = new R_VentaCliente();
-                objRCleinte = contorladorR_VentaCliente.Consultar_ID(IDVenta);
+                objRCleinte =await contorladorR_VentaCliente.Consultar_ID(IDVenta);
                 if (objRCleinte != null)
                 {
                     IdCliente = objRCleinte.idCliente;
 
                     Clientes objCliente = new Clientes();
-                    objCliente = ControladorClienteTienda.ConsultarX_ID(IdCliente);
+                    objCliente =await ControladorClienteTienda.ConsultarX_ID(IdCliente);
                     if (objCliente != null)
                     {
                         NombreCliente_frm = objCliente.nombreCliente;
@@ -130,9 +130,9 @@ namespace SERINSI_PC.Formularios.Ventas
         {
             dgVentas.DataSource = ControladorVenta.FiltroX_H_Dia(DateTime.Now,VariablesPublicas.IdEmpresaLogueada);
         }
-        private void dgVentas_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        private async void dgVentas_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
-            SeleccionarVenta();
+            await SeleccionarVenta();
         }
 
         private void txtNumeroVenta_TextChanged(object sender, EventArgs e)
@@ -193,9 +193,9 @@ namespace SERINSI_PC.Formularios.Ventas
             dgVentas.DataSource = ControladorVenta.filtroAño(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
         }
 
-        private void btnDetalle_Click(object sender, EventArgs e)
+        private async void btnDetalle_Click(object sender, EventArgs e)
         {
-            SeleccionarVenta();
+            await SeleccionarVenta();
             frmDetalleFacturaCredito frm = new Ventas.frmDetalleFacturaCredito();
             AddOwnedForm(frm);
             frm.HistorialVentas = true;
@@ -204,10 +204,10 @@ namespace SERINSI_PC.Formularios.Ventas
             frm.ShowDialog();
         }
 
-        private void btnAnular_Click(object sender, EventArgs e)
+        private async void btnAnular_Click(object sender, EventArgs e)
         {
-            SeleccionarVenta();
-            decimal TotalDetalle = ControladorDetalleVenta.SumarTotalVenta(Consecutivo);
+            await SeleccionarVenta();
+            decimal TotalDetalle = await ControladorDetalleVenta.SumarTotalVenta(Consecutivo);
             if (TotalDetalle > 0)
             {
                 MessageBox.Show("Para poder anular la venta primero debe de retornar los productos cargados.", "Error",MessageBoxButtons.OK,MessageBoxIcon.Error);
@@ -221,11 +221,11 @@ namespace SERINSI_PC.Formularios.Ventas
             else
             {
                 TablaVentas objVentas = new TablaVentas();
-                objVentas = ControladorVenta.ConsultaX_id(IDVenta);
+                objVentas =await ControladorVenta.ConsultaX_id(IDVenta);
                 if (objVentas != null)
                 {
                     objVentas.estadoVenta = "ANULADA";
-                    bool sql = ControladorVenta.Crud(objVentas,1);
+                    bool sql =await ControladorVenta.Crud(objVentas,1);
                     if (sql == true)
                     {
                         MessageBox.Show("Venta anulada correctamente.", "Anulada", MessageBoxButtons.OK, MessageBoxIcon.Information);

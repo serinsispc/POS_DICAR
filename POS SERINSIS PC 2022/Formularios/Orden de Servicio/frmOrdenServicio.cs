@@ -1,4 +1,5 @@
-﻿using DAL.Controladores;
+﻿using DAL;
+using DAL.Controladores;
 using DAL.Controladores.Orden_Servicio;
 using DAL.Controladores.OrdenServicio;
 using DAL.Modelo;
@@ -48,7 +49,7 @@ namespace SERINSI_PC.Formularios.Orden_de_Servicio
                 btnCerrarOrden.Enabled = true;
             }
         }
-        private void LimpiarFormulario()
+        private async Task LimpiarFormulario()
         {
             IdOrdenServicio = 0;
             IdCliente = 0;
@@ -64,16 +65,16 @@ namespace SERINSI_PC.Formularios.Orden_de_Servicio
             txtDescripcionServicio.Text = "";
             NumeroOrden = 0;
 
-            HallarNumeroOrden();
+            await HallarNumeroOrden();
             GestionarBotones(0);
             GestionarEstado(0);
             CargarDGCompleto();
         }
-        private void frmOrdenServicio_Load(object sender, EventArgs e)
+        private async void frmOrdenServicio_Load(object sender, EventArgs e)
         {
             CargarCBO();
             CargarDGCompleto();
-            HallarNumeroOrden();
+            await HallarNumeroOrden();
             GestionarBotones(0);
             GestionarEstado(0);
     
@@ -81,9 +82,9 @@ namespace SERINSI_PC.Formularios.Orden_de_Servicio
             txtOtro.Enabled = false;
             txtNombreCliente.Focus();
         }
-        private void HallarNumeroOrden()
+        private async Task HallarNumeroOrden()
         {
-            NumeroOrden = controladorOrdenServicio.HallarConsecutivo();
+            NumeroOrden =await controladorOrdenServicio.HallarConsecutivo();
         }
         private void CargarCBO()
         {
@@ -295,10 +296,10 @@ namespace SERINSI_PC.Formularios.Orden_de_Servicio
         {
             //dgOrdenServicio.DataSource = controladorOrdenServicio.Lista_V_Conpleta();
         }
-        private void GestionarOrdenServicio(int Boton)
+        private async Task GestionarOrdenServicio(int Boton)
         {
             OrdenServicio objOrden = new OrdenServicio();
-            objOrden = controladorOrdenServicio.consultar_ID(IdOrdenServicio);
+            objOrden =await controladorOrdenServicio.consultar_ID(IdOrdenServicio);
             if (objOrden != null)
             {
                 if(Boton == 0)
@@ -339,8 +340,8 @@ namespace SERINSI_PC.Formularios.Orden_de_Servicio
             objOrden.observacionIngreso = txtObservicioIngreso.Text;
             objOrden.descripcionServicio = txtDescripcionServicio.Text;
             objOrden.estadoOrdenServicio = estado;
-            bool sql = controladorOrdenServicio.CrearEditarEliminarOrden(objOrden,Boton);
-            if (sql == true)
+            RespuestaCRUD sql =await controladorOrdenServicio.CrearEditarEliminarOrden(objOrden,Boton);
+            if (sql.estado == true)
             {
                 if (FactuarOrden == "si")
                 {
@@ -367,25 +368,6 @@ namespace SERINSI_PC.Formularios.Orden_de_Servicio
             }
         }
 
-        private bool GestionarDetalleVenta(int idOtro)
-        {
-            DetalleVenta objDetalle = new DetalleVenta();
-            objDetalle.id = 0;
-            objDetalle.idVenta = consecutivoVenta;
-            objDetalle.descripcionProducto = txtDescripcionServicio.Text;
-            objDetalle.cantidadDetalle = 1;
-            //objDetalle.totalDetalle = PrecioServicio;
-            objDetalle.precioVenta = PrecioServicio;
-            bool sql = ControladorDetalleVenta.GuardarEditarEliminar(objDetalle,0);
-            if (sql == true)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
         private void btnLimpiar_Click(object sender, EventArgs e)
         {
             LimpiarFormulario();

@@ -66,17 +66,17 @@ namespace SERINSI_PC.Formularios.Ventas
             }
         }
 
-        private void btnGuardar_Click(object sender, EventArgs e)
+        private async void btnGuardar_Click(object sender, EventArgs e)
         {
             if (txtCategoria.Text != "")
             {
                 if (btnGuardar.Text == "Crear")
                 {
-                    GestionarCategoria(0);
+                    await GestionarCategoria(0);
                 }
                 else
                 {
-                    GestionarCategoria(1);
+                    await GestionarCategoria(1);
                 }
             }
         }
@@ -100,7 +100,7 @@ namespace SERINSI_PC.Formularios.Ventas
             ClassArchivos.SubirArchivo(ClassRutas.ServidorImagenes, ClassRutas.UsuarioServidor, ClassRutas.ClaveServidor, objRuta.rutaImagen + "\\Categorias\\" + Convert.ToString(guidCat) + ".png", Convert.ToString(guidCat), ".png", "Categorias");
 
             CategoriaProducto objcat = new CategoriaProducto();
-            objcat = ControladorCategoriaProducto.ConsultarGuid(guidCat);
+            objcat =await ControladorCategoriaProducto.ConsultarGuid(guidCat);
             if (objcat != null)
             {
                 if (Boton == 0)
@@ -112,7 +112,7 @@ namespace SERINSI_PC.Formularios.Ventas
                 else
                 {
                     //en esta parte consultamos que el nombre de la categoria no se repita.
-                    bool nombre = VerificarNombreCategoria(txtCategoria.Text);
+                    bool nombre =await VerificarNombreCategoria(txtCategoria.Text);
                     if (nombre == false)
                     {
                         MessageBox.Show("La categoría " + txtCategoria.Text + " ya se existe.","¡Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -129,7 +129,7 @@ namespace SERINSI_PC.Formularios.Ventas
             objcat.id = IdCategoria;
             objcat.guidCategoria = guidCat;
             objcat.nombreCategoria = txtCategoria.Text;
-            bool sqlCat = ControladorCategoriaProducto.Crear_Editar_Eliminar_Categoria(objcat,Boton);
+            bool sqlCat =await ControladorCategoriaProducto.Crear_Editar_Eliminar_Categoria(objcat,Boton);
             if (sqlCat == true)
             {
                 MessageBox.Show("La categoría " + txtCategoria.Text + " fue "+btnGuardar.Text+" correctamente.", "¡OK!", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -140,10 +140,10 @@ namespace SERINSI_PC.Formularios.Ventas
             }
             btnActualizar.PerformClick();
         }
-        private bool VerificarNombreCategoria(string nombre)
+        private async Task<bool> VerificarNombreCategoria(string nombre)
         {
             CategoriaProducto objcat = new CategoriaProducto();
-            objcat = ControladorCategoriaProducto.ConsultarNombre(nombre);
+            objcat =await ControladorCategoriaProducto.ConsultarNombre(nombre);
             if (objcat != null)
             {
                 if (objcat.guidCategoria != guidCat)
@@ -173,7 +173,7 @@ namespace SERINSI_PC.Formularios.Ventas
             ArchivoTexto = "";
         }
 
-        private void dgCategorias_CellClick(object sender, DataGridViewCellEventArgs e)
+        private async void dgCategorias_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             if (dgCategorias.RowCount > 0 && e.RowIndex >= 0)
             {
@@ -187,7 +187,7 @@ namespace SERINSI_PC.Formularios.Ventas
                     pbImagenCategoria.Image = POS_SERINSIS_PC_2022.Properties.Resources.inventario1;
                 }
                 CategoriaProducto objcat = new CategoriaProducto();
-                objcat = ControladorCategoriaProducto.ConsulatarID(IdCategoria);
+                objcat =await ControladorCategoriaProducto.ConsulatarID(IdCategoria);
                 if (objcat != null)
                 {
                     guidCat = (Guid)objcat.guidCategoria;
@@ -270,15 +270,15 @@ namespace SERINSI_PC.Formularios.Ventas
             LimpiarFormulario();
         }
 
-        private void btnEliminar_Click(object sender, EventArgs e)
+        private async void btnEliminar_Click(object sender, EventArgs e)
         {
             CategoriaProducto objcat = new CategoriaProducto();
-            objcat = ControladorCategoriaProducto.ConsulatarID(IdCategoria);
+            objcat =await ControladorCategoriaProducto.ConsulatarID(IdCategoria);
             if (objcat != null)
             {
                 if (MessageBox.Show("Esta seguro de eliminar la categoría "+objcat.nombreCategoria, "¡Eliminar!", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) == DialogResult.Yes)
                 {
-                    bool eliminar = ControladorCategoriaProducto.Crear_Editar_Eliminar_Categoria(objcat,2);
+                    bool eliminar =await ControladorCategoriaProducto.Crear_Editar_Eliminar_Categoria(objcat,2);
                     if (eliminar == true)
                     {
                         MessageBox.Show("La categoría " + objcat.nombreCategoria + " fue eliminada correctamente.", "¡OK!", MessageBoxButtons.OK, MessageBoxIcon.Information);

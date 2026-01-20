@@ -11,6 +11,7 @@ using System.Windows.Forms;
 using DAL.Controladores.Version_Software;
 using SERINSI_PC.Clases;
 using DAL.Modelo;
+using DAL;
 
 namespace Invenpol_Parqueadero_Motos.Clases.VersionSoftware
 {
@@ -46,7 +47,7 @@ namespace Invenpol_Parqueadero_Motos.Clases.VersionSoftware
         /// <summary>
         /// Con esta funcion sabremos si la carpeta de la nueva vercion ya esta disponible en el equipo cliente
         /// </summary>
-        public static void ConsultarVercion(string NombreEquipo,string NombreVercion)
+        public static async Task ConsultarVercion(string NombreEquipo,string NombreVercion)
         {
 
             string ruta =VariablesPublicas.RutaCarpetaActualizacion+NombreVercion;
@@ -58,7 +59,7 @@ namespace Invenpol_Parqueadero_Motos.Clases.VersionSoftware
                 objReporte.hora_actualizacion_equipo = DateTime.Now.TimeOfDay;
                 objReporte.nombre_equipo_actualizado = NombreEquipo;
                 objReporte.nombre_version_actualizado = NombreVercion;
-                bool sql = ControladorReporteActualizacion.Crear_Editar_Eliminar_ReporteActualizacion(objReporte,0);
+                string sql =await ControladorReporteActualizacion.Crud(objReporte,0);
                 //en esta parte la consulta nos confirma que la vercion a buscar si esta disponible
                 //corremos el actualizador y serramos la aplicacion
                 Process.Start(VariablesPublicas.RutaApllicacionActualizacion);
@@ -74,7 +75,7 @@ namespace Invenpol_Parqueadero_Motos.Clases.VersionSoftware
                     objReporte.hora_actualizacion_equipo = DateTime.Now.TimeOfDay;
                     objReporte.nombre_equipo_actualizado = NombreEquipo;
                     objReporte.nombre_version_actualizado = NombreVercion;
-                    bool sql = ControladorReporteActualizacion.Crear_Editar_Eliminar_ReporteActualizacion(objReporte, 0);
+                    string sql =await ControladorReporteActualizacion.Crud(objReporte, 0);
                     //en esta parte la consulta nos confirma que la vercion a buscar si esta disponible
                     //corremos el actualizador y serramos la aplicacion
                     Process.Start(VariablesPublicas.RutaApllicacionActualizacion);

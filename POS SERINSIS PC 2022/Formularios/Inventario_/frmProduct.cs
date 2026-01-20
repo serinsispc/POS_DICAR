@@ -42,21 +42,21 @@ namespace SERINSI_PC.Formularios.Inventario
             this.dgLista.Rows[e.RowIndex].Cells["Item"].Value = (e.RowIndex + 1).ToString();
         }
 
-        private void frmProduct_Load(object sender, EventArgs e)
+        private async void frmProduct_Load(object sender, EventArgs e)
         {
-            LlenarCMB();
+            await LlenarCMB();
             CargarGD(0);
         }
         private void CargarGD(int elimi)
         {
             dgLista.DataSource = ControladorProducto.listaCompleta(elimi);
         }
-        public void LlenarCMB()
+        public async Task LlenarCMB()
         {
             cmbCategoria.DataSource = null;
             cmbCategoria.ValueMember = "id";
             cmbCategoria.DisplayMember = "nombreCategoria";
-            cmbCategoria.DataSource = ControladorCategoriaProducto.ListaCompleta();
+            cmbCategoria.DataSource =await ControladorCategoriaProducto.ListaCompleta();
         }
 
         public void LimpiarFormulario()
@@ -193,7 +193,7 @@ namespace SERINSI_PC.Formularios.Inventario
             }
         }
 
-        private void btnEditarProducto_Click(object sender, EventArgs e)
+        private async void btnEditarProducto_Click(object sender, EventArgs e)
         {
             if (VariablesPublicas.TipoUsuarioLogueado == "Vendedor")
             {
@@ -225,7 +225,7 @@ namespace SERINSI_PC.Formularios.Inventario
                 }
                 //cargamos el guid
                 Producto objpro = new Producto();
-                objpro = ControladorProducto.consultarIdProducto(IdProducto_frm);
+                objpro =await ControladorProducto.consultarIdProducto(IdProducto_frm);
                 if (objpro != null)
                 {
                     frm.guidProducto =(Guid)objpro.guidProducto;
@@ -334,7 +334,7 @@ namespace SERINSI_PC.Formularios.Inventario
             }
         }
 
-        private void btnEliminarProducto_Click(object sender, EventArgs e)
+        private async void btnEliminarProducto_Click(object sender, EventArgs e)
         {
             if (VariablesPublicas.TipoUsuarioLogueado == "Vendedor")
             {
@@ -345,20 +345,20 @@ namespace SERINSI_PC.Formularios.Inventario
                 DataGridViewRow fila = dgLista.Rows[dgLista.CurrentRow.Index];
                 IdProducto_frm = Convert.ToInt32(fila.Cells["id"].Value);
                 InventarioTotal inventarioTotal = new InventarioTotal();
-                inventarioTotal = controladorInventarioTotal.ConsultarIdProducto(IdProducto_frm,VariablesPublicas.IdEmpresaLogueada);
+                inventarioTotal =await controladorInventarioTotal.ConsultarIdProducto(IdProducto_frm,VariablesPublicas.IdEmpresaLogueada);
                 if (inventarioTotal != null)
                 {
-                    bool sqlEliminar = controladorInventarioTotal.CrearEditarEliminarInventarioTotal(inventarioTotal,2);
+                    RespuestaCRUD sqlEliminar =await controladorInventarioTotal.CrearEditarEliminarInventarioTotal(inventarioTotal,2);
                 }
                 //cargamos el guid
                 Producto objpro = new Producto();
-                objpro = ControladorProducto.consultarIdProducto(IdProducto_frm);
+                objpro =await ControladorProducto.consultarIdProducto(IdProducto_frm);
                 if (objpro != null)
                 {
                     objpro.eliminado = 1;
-                    ControladorProducto.GuardarEditarEliminarProducto(objpro,1);
-                    bool sql = ControladorProducto.GuardarEditarEliminarProducto(objpro,2);
-                    if (sql == true)
+                    await ControladorProducto.GuardarEditarEliminarProducto(objpro,1);
+                    RespuestaCRUD sql =await ControladorProducto.GuardarEditarEliminarProducto(objpro,2);
+                    if (sql.estado == true)
                     {
                         CargarGD(0);
                     }
@@ -395,19 +395,19 @@ namespace SERINSI_PC.Formularios.Inventario
             }
         }
 
-        private void btnListaPrecios_Click(object sender, EventArgs e)
+        private async void btnListaPrecios_Click(object sender, EventArgs e)
         {
             frmReporte frm = new frmReporte();
             AddOwnedForm(frm);
-            frm.ListaPrecios();
+            await frm.ListaPrecios();
             frm.ShowDialog();
         }
 
-        private void iconButton1_Click(object sender, EventArgs e)
+        private async void iconButton1_Click(object sender, EventArgs e)
         {
             frmReporte frm = new frmReporte();
             AddOwnedForm(frm);
-            frm.ListaCostoIventario();
+            await frm.ListaCostoIventario();
             frm.ShowDialog();
         }
     }

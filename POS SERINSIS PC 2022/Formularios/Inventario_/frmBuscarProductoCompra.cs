@@ -1,6 +1,8 @@
 ﻿using DAL.Controladores;
+using DAL.Modelo;
 using Invenpol_Parqueadero_Motos.Clases;
 using Invenpol_Parqueadero_Motos.Formularios.Tiemda;
+using POS_SERINSIS_PC_2022.Formularios;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -19,15 +21,36 @@ namespace SERINSI_PC.Formularios.Inventario
         {
             InitializeComponent();
         }
+        List<v_productoVenta> listaProductos = new List<v_productoVenta>();
+        private async void frmBuscarProductoCompra_Load(object sender, EventArgs e)
+        {
+            FrmLoading loading = null;
+            try
+            {
+                using (OpenFileDialog ofd = new OpenFileDialog())
+                {
+                    loading = FrmLoading.ShowLoading(this, "Cargarndo...");
+                    // inicio
 
-        private void frmBuscarProductoCompra_Load(object sender, EventArgs e)
-        {
-            //cargamos el dg
-            CargarDG();
+                    listaProductos = await ControladorProducto.FiltrarX_IdSede_IdEstado(VariablesPublicas.IdEmpresaLogueada, 1);
+                    //cargamos el dg
+                    await CargarDG();
+
+
+                    // fin
+                    FrmLoading.CloseLoading(this, loading);
+                }
+            }
+            catch (Exception ex)
+            {
+                FrmLoading.CloseLoading(this, loading);
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
         }
-        private void CargarDG()
+        private async Task CargarDG()
         {
-            dgProductos.DataSource = ControladorProducto.FiltrarX_IdSede_IdEstado(VariablesPublicas.IdEmpresaLogueada,1);
+            dgProductos.DataSource = listaProductos;
         }
 
         private void btnAgregarProducto_Click(object sender, EventArgs e)
@@ -54,15 +77,15 @@ namespace SERINSI_PC.Formularios.Inventario
             }
         }
 
-        private void txtDescripcion_TextChanged(object sender, EventArgs e)
+        private async void txtDescripcion_TextChanged(object sender, EventArgs e)
         {
             if (txtDescripcion.Text != "")
             {
-                dgProductos.DataSource = ControladorProducto.FiltrarX_Descripcion_IdSede_IdEstado(txtDescripcion.Text,VariablesPublicas.IdEmpresaLogueada,1);
+                dgProductos.DataSource = listaProductos.Where(x=>x.descripcionProducto.Contains(txtDescripcion.Text)).ToList();
             }
             else
             {
-                CargarDG();
+                await CargarDG();
             }
         }
         private void SeleccionarProducto()

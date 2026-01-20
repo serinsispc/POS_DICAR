@@ -1,4 +1,5 @@
-﻿using DAL.Controladores;
+﻿using DAL;
+using DAL.Controladores;
 using DAL.Controladores.Administrador;
 using DAL.Controladores.Tienda;
 using DAL.Modelo;
@@ -54,7 +55,7 @@ namespace SERINSI_PC.Formularios.Ventas
         {
             guidVenta_frm = Guid.NewGuid();
         }
-        private bool NuevaVenta()
+        private async Task<bool> NuevaVenta()
         {
             try
             {
@@ -81,7 +82,7 @@ namespace SERINSI_PC.Formularios.Ventas
 
                 objventa.guidVenta = guidVenta_frm;
                 objventa.abonoTarjeta =0;
-                bool sqlNueva = ControladorVenta.Crud(objventa, 0);
+                bool sqlNueva =await ControladorVenta.Crud(objventa, 0);
                 if (sqlNueva == true)
                 {
                     return true;
@@ -97,7 +98,7 @@ namespace SERINSI_PC.Formularios.Ventas
                 return false;
             }
         }
-        private bool CrearR_VentaUsuario()
+        private async Task<bool> CrearR_VentaUsuario()
         {
             try
             {
@@ -106,8 +107,8 @@ namespace SERINSI_PC.Formularios.Ventas
                 objRVU.idVenta = IdVenta_Frm;
                 objRVU.idUsuario = VariablesPublicas.IdUsuarioLogueado;
                 objRVU.estado = 1;
-                bool sqlR = controladorRVentarUsuario.CrearEditarEliminarR_VentaUsuario(objRVU, 0);
-                if (sqlR == true)
+                RespuestaCRUD sqlR =await controladorRVentarUsuario.CrearEditarEliminarR_VentaUsuario(objRVU, 0);
+                if (sqlR.estado == true)
                 {
                     return true;
                 }
@@ -123,21 +124,21 @@ namespace SERINSI_PC.Formularios.Ventas
             }
 
         }
-        private void HallarIDVenta()
+        private async Task HallarIDVenta()
         {
             TablaVentas objventas = new TablaVentas();
-            objventas = ControladorVenta.ConsultaX_guid(guidVenta_frm);
+            objventas =await ControladorVenta.ConsultaX_guid(guidVenta_frm);
             if (objventas != null)
             {
                 IdVenta_Frm = objventas.id;
             }
         }
-        private bool ConsultarVentaActiva()
+        private async Task<bool> ConsultarVentaActiva()
         {
             try
             {
                 R_VentaUsuario objR = new R_VentaUsuario();
-                objR = controladorRVentarUsuario.Consultar_IdUsuario_Estado(VariablesPublicas.IdUsuarioLogueado,1);
+                objR =await controladorRVentarUsuario.Consultar_IdUsuario_Estado(VariablesPublicas.IdUsuarioLogueado,1);
                 if (objR != null)
                 {
                     IdVenta_Frm =objR.idVenta;
@@ -154,7 +155,7 @@ namespace SERINSI_PC.Formularios.Ventas
                 return false;
             }
         }
-        private void frmCajaTouch_Load(object sender, EventArgs e)
+        private async void frmCajaTouch_Load(object sender, EventArgs e)
         {
             dgListaDetalleCompra.DefaultCellStyle.Font = new Font("Microsoft Sans Serif", 16);
             // Ajustar tamaño de columnas y celdas.
@@ -165,18 +166,18 @@ namespace SERINSI_PC.Formularios.Ventas
 
 
             //consultamos si el usuario tiene una venta activa
-            bool activa = ConsultarVentaActiva();
+            bool activa =await ConsultarVentaActiva();
             if (activa == true)
             {
-                CargarDG();
-                CargarCategorias();             
+                await CargarDG();
+                await CargarCategorias();             
                 CrearBotones();
                 CargarCajas();
                 txtCodigoBarra.Focus();
             }
             else
             {
-                CargarCategorias();
+                await CargarCategorias();
                 NuevaCaja();
                 CrearBotones();
                 txtCodigoBarra.Focus();
@@ -248,48 +249,48 @@ namespace SERINSI_PC.Formularios.Ventas
             }
 
         }
-        private void CargarDG()
+        private async Task CargarDG()
         {
             dgListaDetalleCompra.DataSource = ControladorDetalleVenta.ListaDetalleCaja(IdVenta_Frm);
-            SumarSubTotal();
+            await SumarSubTotal();
             txtCodigoBarra.Text = "";
 
             this.Text = "Venta # " + IdVenta_Frm;
         }
-        private void SumarSubTotal()
+        private async Task SumarSubTotal()
         {
-            SubTotal_frm = ControladorDetalleVenta.SumarTotalVenta(IdVenta_Frm);
-            costoTotalVenta_frm= ControladorDetalleVenta.SumarTotalCosto(IdVenta_Frm);
-            valorIvaTotalVenta_frm= ControladorDetalleVenta.SumarTotalIVA(IdVenta_Frm);
+            SubTotal_frm =await ControladorDetalleVenta.SumarTotalVenta(IdVenta_Frm);
+            costoTotalVenta_frm=await ControladorDetalleVenta.SumarTotalCosto(IdVenta_Frm);
+            valorIvaTotalVenta_frm=await ControladorDetalleVenta.SumarTotalIVA(IdVenta_Frm);
 
             txtSubTotal.Text = "$ " + string.Format("{0:#,##0.##}", Convert.ToDouble(SubTotal_frm));
         }
-        private void CargarCategorias()
+        private async Task CargarCategorias()
         {
             try
             {
                 //lo primero es contar cuantas categorias hay
-                DataTable objCP = new DataTable();
-                objCP = ConotroladorCategoria.Lista();
+                List<v_CategoriaProducto> objCP = new List<v_CategoriaProducto>();
+                objCP =await ConotroladorCategoria.Lista();
 
                 if (objCP == null) return;
 
                 if (VariablesPublicas.TipoCajaRegistradora == 1)
                 {
-                    foreach (DataRow row in objCP.Rows)
+                    foreach (var row in objCP)
                     {
                         Panel panel = new Panel();
-                        string nombrePanel = "panelid" + Convert.ToString(Convert.ToString(row["id"]));
+                        string nombrePanel = "panelid" + Convert.ToString(Convert.ToString(row.id));
                         panel.Name = nombrePanel;
                         panel.Width = Convert.ToInt16(130);
                         panel.Height = Convert.ToInt16(140);
                         flPanel.Controls.Add(panel);
 
                         Button button = new Button();
-                        button.Text = Convert.ToString(Convert.ToString(row["id"]));
+                        button.Text = Convert.ToString(Convert.ToString(row.id));
                         button.Width = Convert.ToInt16(130);
                         button.Height = Convert.ToInt16(118);
-                        button.BackgroundImage = TraerImagen(Convert.ToString(row["guidCategoria"]), "Categorias");
+                        button.BackgroundImage = TraerImagen(Convert.ToString(row.guidCategoria), "Categorias");
                         button.BackColor = Color.Transparent;
                         button.BackgroundImageLayout = ImageLayout.Stretch;
                         button.ForeColor = Color.Transparent;
@@ -300,7 +301,7 @@ namespace SERINSI_PC.Formularios.Ventas
                         panel.Controls.Add(button);
 
                         Label label = new Label();
-                        label.Text = Convert.ToString(row["nombreCategoria"]);
+                        label.Text = Convert.ToString(row.nombreCategoria);
                         label.Dock = DockStyle.Bottom;
                         label.AutoSize = false;
                         label.TextAlign = ContentAlignment.MiddleCenter;
@@ -460,16 +461,16 @@ namespace SERINSI_PC.Formularios.Ventas
                     objPro = objLista.Where(x => x.codigoProducto == txtCodigoBarra.Text).FirstOrDefault();
                     if (objPro != null)
                     {
-                        BuscarProducto_id(objPro.id);
+                        await BuscarProducto_id(objPro.id);
                     }
                 }
             }
         }
-        public void BuscarProducto_id(int idProducto_frm)
+        public async Task BuscarProducto_id(int idProducto_frm)
         {
             //procedemos a buscar el codigo
             v_productoVenta objLista = new v_productoVenta();
-            objLista = ControladorProducto.Consultar_Id(idProducto_frm);
+            objLista =await ControladorProducto.Consultar_Id(idProducto_frm);
             if (objLista != null)
             {
                 if (VariablesPublicas.VentasEnNegativo == 0)
@@ -514,25 +515,25 @@ namespace SERINSI_PC.Formularios.Ventas
                 }
 
 
-                AgregarDetalleVenta(Convert.ToInt32(objLista.idPrecios), objLista.descripcionProducto, VariablesPublicas.cantidadKilogramo, Convert.ToDecimal(objLista.costoUnidadIT), Convert.ToDecimal(objLista.PrecioVenta), Convert.ToDecimal(objLista.porcentajeIVAIT), Convert.ToInt32(objLista.idInventario), Convert.ToDecimal(objLista.contenidoPresentacion), Convert.ToInt32(objLista.idInventarioTotal), Convert.ToDecimal(objLista.porcentajeIVAIT),
+                await AgregarDetalleVenta(Convert.ToInt32(objLista.idPrecios), objLista.descripcionProducto, VariablesPublicas.cantidadKilogramo, Convert.ToDecimal(objLista.costoUnidadIT), Convert.ToDecimal(objLista.PrecioVenta), Convert.ToDecimal(objLista.porcentajeIVAIT), Convert.ToInt32(objLista.idInventario), Convert.ToDecimal(objLista.contenidoPresentacion), Convert.ToInt32(objLista.idInventarioTotal), Convert.ToDecimal(objLista.porcentajeIVAIT),
                     Convert.ToInt32(objLista.gramera));
 
                // MessageBox.Show("Agregado correctamente");
 
             }
         }
-        private void txtCodigoBarra_KeyDown(object sender, KeyEventArgs e)
+        private async void txtCodigoBarra_KeyDown(object sender, KeyEventArgs e)
         {
             if (txtCodigoBarra.Text != "")
             {
                 if (e.KeyCode == Keys.Enter)
                 {
 
-                    BuscarCodigo();
+                     await BuscarCodigo();
                 }
             }
         }
-        public bool AgregarDetalleVenta(int IdPrecios,string descripcion,decimal cantidad,decimal costo,decimal precio,decimal Iva,int IdInventario,decimal contenido,int IdInventarioTotal,decimal IVA,int Gramera)
+        public async Task<bool> AgregarDetalleVenta(int IdPrecios,string descripcion,decimal cantidad,decimal costo,decimal precio,decimal Iva,int IdInventario,decimal contenido,int IdInventarioTotal,decimal IVA,int Gramera)
         {
             try
             {
@@ -559,14 +560,14 @@ namespace SERINSI_PC.Formularios.Ventas
                 objDetalle.precioVenta = precio;
                 objDetalle.idInventarioTotal = IdInventarioTotal;
                 objDetalle.porcentageIVA = IVA;
-                bool sqlDetalle = ControladorDetalleVenta.GuardarEditarEliminar(objDetalle, 0);
-                if (sqlDetalle == false)
+                RespuestaCRUD sqlDetalle =await ControladorDetalleVenta.GuardarEditarEliminar(objDetalle, 0);
+                if (sqlDetalle.estado == false)
                 {
                     return false;
                 }
                 else
                 {
-                    CargarDG();
+                    await CargarDG();
                     PosicionDG();
                     return true;
                 }
@@ -591,12 +592,12 @@ namespace SERINSI_PC.Formularios.Ventas
                 contenidoPresentacion_frm= Convert.ToDecimal(fila.Cells["contenidoPresentacion"].Value);
             }
         }
-        private void dgListaDetalleCompra_CellClick(object sender, DataGridViewCellEventArgs e)
+        private async void dgListaDetalleCompra_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             SeleccionarDetalle();
             if (dgListaDetalleCompra.Columns[e.ColumnIndex].Name == "btnEliminar")
             {
-                EliminarDetalle(IdDetalle_frm);
+                await EliminarDetalle(IdDetalle_frm);
                 PosicionDG();
             }
 
@@ -607,9 +608,9 @@ namespace SERINSI_PC.Formularios.Ventas
                 AddOwnedForm(frm);
                 frm.ShowDialog();
 
-                EditarCantidadDetalle(IdDetalle_frm,VariablesPublicas.cantidadKilogramo);
+                await EditarCantidadDetalle(IdDetalle_frm,VariablesPublicas.cantidadKilogramo);
 
-                CargarDG();
+                await CargarDG();
                 PosicionDG();
             }
 
@@ -623,7 +624,7 @@ namespace SERINSI_PC.Formularios.Ventas
                     frm.IdDetalle_frm = IdDetalle_frm;
                     frm.Cantidad_frm = cantidad_frm;
                     frm.ShowDialog();
-                    CargarDG();
+                    await CargarDG();
                     PosicionDG();
                 }
                 else
@@ -634,40 +635,40 @@ namespace SERINSI_PC.Formularios.Ventas
             }
         }
 
-        private void EliminarDetalle(int IdDetalle)
+        private async Task EliminarDetalle(int IdDetalle)
         {
             DetalleVenta objdetalle = new DetalleVenta();
-            objdetalle = ControladorDetalleVenta.ConsultarX_IDDetalle(IdDetalle);
+            objdetalle =await ControladorDetalleVenta.ConsultarX_IDDetalle(IdDetalle);
             if (objdetalle != null)
             {
-                bool sql = ControladorDetalleVenta.GuardarEditarEliminar(objdetalle,2);
-                if (sql == true)
+                RespuestaCRUD sql =await ControladorDetalleVenta.GuardarEditarEliminar(objdetalle,2);
+                if (sql.estado == true)
                 {
-                    CargarDG();
+                    await CargarDG();
                 }
             }
         }
-        public void EditarCantidadDetalle(int IdDetalle,decimal cantidad)
+        public async Task EditarCantidadDetalle(int IdDetalle,decimal cantidad)
         {
             DetalleVenta objdetalle = new DetalleVenta();
-            objdetalle = ControladorDetalleVenta.ConsultarX_IDDetalle(IdDetalle);
+            objdetalle =await ControladorDetalleVenta.ConsultarX_IDDetalle(IdDetalle);
             if (objdetalle != null)
             {
                 v_productoVenta venta = new v_productoVenta();
-                venta = ControladorProducto.Consultar_IdInventario_IdSede(IdInevntario_frm,VariablesPublicas.IdEmpresaLogueada);
+                venta =await ControladorProducto.Consultar_IdInventario_IdSede(IdInevntario_frm,VariablesPublicas.IdEmpresaLogueada);
                 if (venta != null)
                 {
                     if (venta.inventarioActual/contenidoPresentacion_frm >= cantidad)
                     {
                         objdetalle.cantidadDetalle = cantidad;
-                        bool sql = ControladorDetalleVenta.GuardarEditarEliminar(objdetalle, 1);
+                        RespuestaCRUD sql =await ControladorDetalleVenta.GuardarEditarEliminar(objdetalle, 1);
                     }
                     else
                     {
                         if (VariablesPublicas.VentasEnNegativo == 1)
                         {
                             objdetalle.cantidadDetalle = cantidad;
-                            bool sql = ControladorDetalleVenta.GuardarEditarEliminar(objdetalle, 1);
+                            RespuestaCRUD sql =await ControladorDetalleVenta.GuardarEditarEliminar(objdetalle, 1);
                         }
                         else
                         {
@@ -680,16 +681,16 @@ namespace SERINSI_PC.Formularios.Ventas
 
             }
         }
-        private void btnNuevaCaja_Click(object sender, EventArgs e)
+        private async void btnNuevaCaja_Click(object sender, EventArgs e)
         {
-            NuevaCaja();
+            await NuevaCaja();
         }
-        private void NuevaCaja()
+        private async Task NuevaCaja()
         {
             //generamos el guid de la venta a usar
             CrearGuid();
             //creamos un nuevo registro en la table ventas con el guid generado
-            bool nuevo = NuevaVenta();
+            bool nuevo = await NuevaVenta();
             if (nuevo == false)
             {
                 return;
@@ -697,32 +698,32 @@ namespace SERINSI_PC.Formularios.Ventas
             //hallamos el idde la venta
             HallarIDVenta();
             //ahora creamos la relacion de la venta con el cajero
-            bool relacion = CrearR_VentaUsuario();
+            bool relacion =await CrearR_VentaUsuario();
             if (relacion == false)
             {
                 return;
             }
-            CargarDG();
-            CargarCajas();
+            await CargarDG();
+            await CargarCajas();
             PosicionDG();
             txtCodigoBarra.Focus();
         }
-        private void CargarCajas()
+        private async Task CargarCajas()
         {
             try
             {
                 flPanelCajas.Controls.Clear();
 
                 //lo primero es contar cuantas categorias hay
-                DataTable objCP = new DataTable();
-                objCP = controladorRVentarUsuario.Lista(VariablesPublicas.IdUsuarioLogueado, 1);
+                List<R_VentaUsuario> objCP = new List<R_VentaUsuario>();
+                objCP =await controladorRVentarUsuario.Lista(VariablesPublicas.IdUsuarioLogueado, 1);
 
                 if (objCP == null) return;
 
-                foreach (DataRow row in objCP.Rows)
+                foreach (var row in objCP)
                 {
                     Panel panel = new Panel();
-                    string nombrePanel = "panelCajas" + Convert.ToString(Convert.ToString(row["id"]));
+                    string nombrePanel = "panelCajas" + Convert.ToString(Convert.ToString(row.id));
                     panel.Name = nombrePanel;
                     panel.Width = Convert.ToInt16(60);
                     panel.Height = Convert.ToInt16(58);
@@ -739,7 +740,7 @@ namespace SERINSI_PC.Formularios.Ventas
                     panel.Controls.Add(labelCaja);
 
                     Button buttonCajas = new Button();
-                    buttonCajas.Text = Convert.ToString(Convert.ToString(row["idVenta"]));
+                    buttonCajas.Text = Convert.ToString(Convert.ToString(row.idVenta));
                     //buttonCajas.Width = Convert.ToInt16(60);
                     buttonCajas.Height = Convert.ToInt16(35);
                     buttonCajas.Dock = DockStyle.Bottom;
@@ -772,7 +773,7 @@ namespace SERINSI_PC.Formularios.Ventas
                 txtCodigoBarra.Focus();
             }
         }
-        private void Vender()
+        private async Task Vender()
         {
             //if (MessageBox.Show("¿Desea agregar una observación a la venta?", "¡Obserbacion!", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) == DialogResult.Yes)
             //{
@@ -796,28 +797,28 @@ namespace SERINSI_PC.Formularios.Ventas
 
 
             //consultamos si el usuario tiene una venta activa
-            bool activa = ConsultarVentaActiva();
+            bool activa =await ConsultarVentaActiva();
             if (activa == true)
             {
-                CargarDG();
-                CargarCajas();
+                await CargarDG();
+                await CargarCajas();
                 PosicionDG();
                 txtCodigoBarra.Focus();
                 return;
             }
-            NuevaCaja();
+            await NuevaCaja();
 
         }
-        private void btnVender_Click(object sender, EventArgs e)
+        private async void btnVender_Click(object sender, EventArgs e)
         {
-            Vender();
+            await Vender();
         }
-        private void BuscarPedido()
+        private async Task BuscarPedido()
         {
             //lo primero que devemos hacer es crear la relacion entre el id de la venta con el guid del pedido
             //para eso consultamos el id de la venta y guid del pedido en la table de V_Pedidos
             V_Pedido v_Pedido = new V_Pedido();
-            v_Pedido = controladorPedidoVenta.Consultar_giaPedido(txtGuidPedido.Text);
+            v_Pedido =await controladorPedidoVenta.Consultar_giaPedido(txtGuidPedido.Text);
             if (v_Pedido != null)
             {
                 VariablesPublicas.IdCliente = v_Pedido.idCliente;
@@ -826,26 +827,26 @@ namespace SERINSI_PC.Formularios.Ventas
                 VariablesPublicas.giaPedido = v_Pedido.guiaPedido;
 
                 R_PedidoVenta r_Pedido = new R_PedidoVenta();
-                r_Pedido = controladorPedidoVenta.Consultar_IdVenta(IdVenta_Frm);
+                r_Pedido =await controladorPedidoVenta.Consultar_IdVenta(IdVenta_Frm);
                 if (r_Pedido == null)
                 {
                     //abtes de crear la relacion verificamos que el guid del pedido tambien este libre
                     R_PedidoVenta pedidoVenta=new R_PedidoVenta();
-                    pedidoVenta = controladorR_PedidoVenta.Consultar_GuidPedido(v_Pedido.guidPedido);
+                    pedidoVenta =await controladorR_PedidoVenta.Consultar_GuidPedido(v_Pedido.guidPedido);
                     if (pedidoVenta == null)
                     {
                         r_Pedido = new R_PedidoVenta();
                         r_Pedido.id = 0;
                         r_Pedido.idVenta = IdVenta_Frm;
                         r_Pedido.guidPedido = v_Pedido.guidPedido;
-                        bool crud = controladorR_PedidoVenta.Crud(r_Pedido, 0);
-                        if (crud == true)
+                        RespuestaCRUD crud =await controladorR_PedidoVenta.Crud(r_Pedido, 0);
+                        if (crud.estado == true)
                         {
                             bool cargar = CargarDetallePedido();
                             if (cargar == true)
                             {
                                 //MessageBox.Show("¡Pedido Cargado correctamente...!", "¡OK!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                                CargarDG();
+                                await CargarDG();
                             }
                         }
                     }

@@ -15,31 +15,36 @@ namespace DAL.Controladores
 {
     public class ControladorDetalleCompra
     {
-        public static DataTable ConsultarTotales(int IdCompra)
+        public static async Task<ClassTotales> ConsultarTotalesAsync(int IdCompra)
         {
             try
             {
-                ConexionSQL.AbrirConexion();
-                SqlCommand cmd = ConexionSQL.connection.CreateCommand();
-                cmd.CommandText = "select "+
-"isnull(SUM(cantidad * precioUnitario),0) as subTotal," +
-"isnull(sum(cantidad * valorDescuento),0) as totalDescuento," +
-"isnull(SUM(cantidad * valorIva),0) as totalIVA " +
-"from DetalleCompra "+
-"where idCompra = "+IdCompra;
-                DataTable dt = new DataTable();
-                SqlDataAdapter ad = new SqlDataAdapter(cmd);
-                ad.Fill(dt);
-                ConexionSQL.CerrarConexion();
-                if (dt.Rows.Count > 0)
-                {
-                    return dt;
-                }
-                return null;
+                // Importante: como IdCompra es int, no hay riesgo de inyección por concatenación aquí.
+                // Aun así, mantenemos el query claro y controlado.
+                string query = $@"
+SELECT
+    ISNULL(SUM(cantidad * precioUnitario), 0) AS subTotal,
+    ISNULL(SUM(cantidad * valorDescuento), 0) AS totalDescuento,
+    ISNULL(SUM(cantidad * valorIva), 0) AS totalIVA
+FROM DetalleCompra
+WHERE idCompra = {IdCompra};";
+
+                
+
+                // false = NO lista (retorna 1 resultado), true = modo async (según tu patrón)
+                string jsonResult = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (string.IsNullOrWhiteSpace(jsonResult))
+                    return new ClassTotales { subTotal=0, totalDescuento=0, totalIVA=0 };
+
+                var jsonReal = JsonConvert.DeserializeObject<ClassTotales>(jsonResult);
+
+                return jsonReal;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string error = ex.Message;
+                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
         }
@@ -245,7 +250,7 @@ namespace DAL.Controladores
             {
                 var query = $@"select * from V_DetalleCompra where idCompra = {IdCompa}";
                 var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
-
+                
                 if (!string.IsNullOrEmpty(resp))
                     return JsonConvert.DeserializeObject<List<V_DetalleCompra>>(resp);
 
@@ -295,12 +300,12 @@ namespace DAL.Controladores
                   and idInventario = {IdInventario}
             ";
 
-                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
 
                 if (!string.IsNullOrEmpty(resp))
                 {
-                    var data = JsonConvert.DeserializeObject<List<dynamic>>(resp);
-                    return Convert.ToDecimal(data[0].total);
+                    var data = JsonConvert.DeserializeObject<ClassSumaTotal>(resp);
+                    return data.total;
                 }
 
                 return 0;

@@ -11,6 +11,7 @@ using DAL.Controladores.Tienda;
 using DAL.Modelo;
 using SERINSI_PC.Formularios.Inventario;
 using SERINSI_PC.Clases;
+using DAL;
 
 namespace SERINSI_PC.Formularios.Ventas
 {
@@ -65,10 +66,10 @@ namespace SERINSI_PC.Formularios.Ventas
                 }
             }
         }
-        private void GestionarDivision(int Boton)
+        private async Task GestionarDivision(int Boton)
         {
             Bodega objBodega = new Bodega();
-            objBodega = ControladorBodega.ConsultarX_IdVidision(IdDivision);
+            objBodega =await ControladorBodega.ConsultarX_IdVidision(IdDivision);
             if (objBodega != null)
             {
                 if(Boton == 0)
@@ -83,8 +84,8 @@ namespace SERINSI_PC.Formularios.Ventas
             }
             objBodega.id = IdDivision;
             objBodega.nombreBodega = txtDivision.Text;
-            bool sql = ControladorBodega.Crear_Editar_Eliminar_DivisionInventario(objBodega,Boton);
-            if (sql == true)
+            RespuestaCRUD sql =await ControladorBodega.Crear_Editar_Eliminar_DivisionInventario(objBodega,Boton);
+            if (sql.estado == true)
             {
                 if(Boton == 0)
                 {

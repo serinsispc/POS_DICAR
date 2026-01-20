@@ -1,4 +1,5 @@
-﻿using DAL.Controladores;
+﻿using DAL;
+using DAL.Controladores;
 using DAL.Modelo;
 using SERINSI_PC.Clases;
 using System;
@@ -42,8 +43,8 @@ namespace SERINSI_PC.Formularios.Seguridad
                     objLicencia = new Licencia();
                     objLicencia.id = 0;
                     objLicencia.clave = LicenciaIngresada;
-                    bool sql = ControladorLicenciaSoftware.Crear_Editar_Eliminar_LicenciaSoftware(objLicencia, 0);
-                    if (sql == true)
+                    RespuestaCRUD sql =await ControladorLicenciaSoftware.Crear_Editar_Eliminar_LicenciaSoftware(objLicencia, 0);
+                    if (sql.estado == true)
                     {
                         MessageBox.Show("La licencia fue registrada correctamente.", "Producto Activado", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         this.Close();

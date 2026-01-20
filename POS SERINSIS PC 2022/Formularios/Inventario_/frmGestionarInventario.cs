@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using DAL.Modelo;
 using Invenpol_Parqueadero_Motos.Clases;
+using DAL;
 
 namespace SERINSI_PC.Formularios.Inventario
 {
@@ -48,14 +49,14 @@ namespace SERINSI_PC.Formularios.Inventario
             txtValorUtilidad.Text = Convert.ToString(valorUtilidad);
 
         }
-        private void frmGestionarInventario_Load(object sender, EventArgs e)
+        private async void frmGestionarInventario_Load(object sender, EventArgs e)
         {
             CargarDG();
             CargarPresentacion();
             GestionarBotones(0);
             CargarListaPrecio();
 
-            SeleccionarInventario();
+            await SeleccionarInventario();
             CargarDGPrecios();
 
             txtPrecioPublico.Focus();
@@ -142,7 +143,7 @@ namespace SERINSI_PC.Formularios.Inventario
             }
         }
 
-        private void SeleccionarInventario()
+        private async Task SeleccionarInventario()
         {
             try
             {
@@ -159,7 +160,7 @@ namespace SERINSI_PC.Formularios.Inventario
 
                     //en esta parte hallamos el inventario total
                     InventarioTotal inventarioTotal = new InventarioTotal();
-                    inventarioTotal = controladorInventarioTotal.ConsultarIdProducto(IdProducto_frm,VariablesPublicas.IdEmpresaLogueada);
+                    inventarioTotal =await controladorInventarioTotal.ConsultarIdProducto(IdProducto_frm,VariablesPublicas.IdEmpresaLogueada);
                     if (inventarioTotal != null)
                     {
                         cantidadTotalUnidad_frm =Convert.ToDecimal(inventarioTotal.inventarioInical);
@@ -177,7 +178,7 @@ namespace SERINSI_PC.Formularios.Inventario
 
                     //consultamos Precios por el idInventario
                     Precios objPrecios = new Precios();
-                    objPrecios = controladorPrecio.ConsultarIdInventario(IdInventario_frm);
+                    objPrecios =await controladorPrecio.ConsultarIdInventario(IdInventario_frm);
                     if (objPrecios != null)
                     {
                         cmbListaPrecios.SelectedValue = Convert.ToInt32(objPrecios.idListaPrecios);
@@ -207,11 +208,11 @@ namespace SERINSI_PC.Formularios.Inventario
                 btnEliminar.Enabled = true;
             }
         }
-        private void GestionarInventarioTotal(int Boton)
+        private async Task GestionarInventarioTotal(int Boton)
         {
             //primero verificamos que el produco no tenga inventario total
             InventarioTotal inventarioTotal = new InventarioTotal();
-            inventarioTotal = controladorInventarioTotal.ConsultarIdProducto(IdProducto_frm, VariablesPublicas.IdEmpresaLogueada);
+            inventarioTotal =await controladorInventarioTotal.ConsultarIdProducto(IdProducto_frm, VariablesPublicas.IdEmpresaLogueada);
             if (inventarioTotal == null)
             {
                 inventarioTotal = new InventarioTotal();
@@ -241,20 +242,20 @@ namespace SERINSI_PC.Formularios.Inventario
                 inventarioTotal.porcentajeDescuento = Convert.ToDecimal(txtPorcentajeDescuento.Text);
                 inventarioTotal.stockInvetario = Convert.ToDecimal(txtStock.Text) * Convert.ToDecimal(txtContenido.Text);
             }
-            bool crudInvnetarioTotal = controladorInventarioTotal.CrearEditarEliminarInventarioTotal(inventarioTotal,Boton);
-            if (crudInvnetarioTotal == false)
+            RespuestaCRUD crudInvnetarioTotal =await controladorInventarioTotal.CrearEditarEliminarInventarioTotal(inventarioTotal,Boton);
+            if (crudInvnetarioTotal.estado == false)
             {
                 MessageBox.Show("El producto " + tituloFormulario.Text + " no se pudo agregar.", "¡Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-            GestionarInventario(Boton);
+            await GestionarInventario(Boton);
         }
-        private void GestionarInventario(int Boton)
+        private async Task GestionarInventario(int Boton)
         {
             //hora gestionamos la tabla inventario 
             DAL.Modelo.Inventario objInventario = new DAL.Modelo.Inventario();
-            objInventario = controladorInventario.ConsultarIdProducto_IdPresentacion(IdProducto_frm, Convert.ToInt32(cmbPresentacion.SelectedValue), VariablesPublicas.IdEmpresaLogueada);
+            objInventario =await controladorInventario.ConsultarIdProducto_IdPresentacion(IdProducto_frm, Convert.ToInt32(cmbPresentacion.SelectedValue), VariablesPublicas.IdEmpresaLogueada);
             if (objInventario != null)
             {
                 if (Boton == 0)
@@ -280,8 +281,8 @@ namespace SERINSI_PC.Formularios.Inventario
             objInventario.contenidoPresentacion = Convert.ToDecimal(txtContenido.Text);
             objInventario.idSede = VariablesPublicas.IdEmpresaLogueada;
             objInventario.guidInventario = guidInventario_frm;
-            bool sql = controladorInventario.CrearEditarEliminarInventario(objInventario, Boton);
-            if (sql == true)
+            RespuestaCRUD sql =await controladorInventario.CrearEditarEliminarInventario(objInventario, Boton);
+            if (sql.estado == true)
             {
                 if (Boton == 2)
                 {
@@ -298,19 +299,19 @@ namespace SERINSI_PC.Formularios.Inventario
                 //    IdInventario_frm = objINV.id;
                 //}
 
-                GestionarPrecios();
+                await GestionarPrecios();
             }
             else
             {
                 MessageBox.Show("A ocurrido un error inesperado y no se guardó el inventario.", "¡Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        private void GestionarPrecios()
+        private async Task GestionarPrecios()
         {
             int Boton = 0;
             int IdPrecios = 0;
             Precios objPrecios = new Precios();
-            objPrecios = controladorPrecio.Consultar_IdProducto_IdINventario_IdListaPrecios(IdProducto_frm,IdInventario_frm,Convert.ToInt32(cmbListaPrecios.SelectedValue));
+            objPrecios =await controladorPrecio.Consultar_IdProducto_IdINventario_IdListaPrecios(IdProducto_frm,IdInventario_frm,Convert.ToInt32(cmbListaPrecios.SelectedValue));
             if (objPrecios != null)
             {
                 Boton = 1;
@@ -328,8 +329,8 @@ namespace SERINSI_PC.Formularios.Inventario
             objPrecios.utilidad = valorUtilidad_frm;
             objPrecios.PrecioVenta = precioPublico_frm;
             objPrecios.porcentajeUtilidad = porcentajeUtilidad_frm;
-            bool sql = controladorPrecio.CrearEditarEliminarCostoPrecio(objPrecios,Boton);
-            if (sql == true)
+            RespuestaCRUD sql =await controladorPrecio.CrearEditarEliminarCostoPrecio(objPrecios,Boton);
+            if (sql.estado == true)
             {
                 CargarDG();
                 LimpiarFormulario();
@@ -729,7 +730,7 @@ namespace SERINSI_PC.Formularios.Inventario
             }
         }
 
-        private void bunifuFlatButton1_Click(object sender, EventArgs e)
+        private async void bunifuFlatButton1_Click(object sender, EventArgs e)
         {
             if (MessageBox.Show("¿está seguro de eliminar el precio seleccionado?", "¡Eliminar!", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) == DialogResult.Yes)
             {
@@ -744,11 +745,11 @@ namespace SERINSI_PC.Formularios.Inventario
                     MostarValores();
 
                     Precios objPrecios = new Precios();
-                    objPrecios = controladorPrecio.ConsultarId(idPrecio);
+                    objPrecios =await controladorPrecio.ConsultarId(idPrecio);
                     if (objPrecios != null)
                     {
-                        bool sql = controladorPrecio.CrearEditarEliminarCostoPrecio(objPrecios, 2);
-                        if (sql == true)
+                        RespuestaCRUD sql =await controladorPrecio.CrearEditarEliminarCostoPrecio(objPrecios, 2);
+                        if (sql.estado == true)
                         {
                             CargarDGPrecios();
                         }

@@ -41,24 +41,24 @@ namespace SERINSI_PC.Formularios.Orden_de_Servicio
             }
         }
 
-        private void btnGuardar_Click(object sender, EventArgs e)
+        private async void btnGuardar_Click(object sender, EventArgs e)
         {
             if (txtNombreArticulo.Text != "")
             {
                 if (btnGuardar.Text == "Guardar")
                 {
-                    GestionarArticulo(0);
+                    await GestionarArticulo(0);
                 }
                 else
                 {
-                    GestionarArticulo(1);
+                    await GestionarArticulo(1);
                 }
             }
         }
-        private void GestionarArticulo(int Boton)
+        private async Task GestionarArticulo(int Boton)
         {
             TipoArticulo objArticulo = new TipoArticulo();
-            objArticulo = contorladorArticuloServicio.consultarID(IdArticulo);
+            objArticulo =await contorladorArticuloServicio.consultarID(IdArticulo);
             if (objArticulo != null)
             {
                 if(Boton == 0)
@@ -74,7 +74,7 @@ namespace SERINSI_PC.Formularios.Orden_de_Servicio
             }
             objArticulo.id = IdArticulo;
             objArticulo.nombreTipoArticulo = txtNombreArticulo.Text;
-            bool sql = contorladorArticuloServicio.CrearEditarEliminarArticulo(objArticulo,Boton);
+            bool sql =await contorladorArticuloServicio.CrearEditarEliminarArticulo(objArticulo,Boton);
             if (sql == true)
             {
                 if(Boton == 0)
@@ -97,11 +97,11 @@ namespace SERINSI_PC.Formularios.Orden_de_Servicio
             }
         }
 
-        private void btnEliminar_Click(object sender, EventArgs e)
+        private async void btnEliminar_Click(object sender, EventArgs e)
         {
             if (txtNombreArticulo.Text != "")
             {
-                GestionarArticulo(2);
+                await GestionarArticulo(2);
             }
         }
 

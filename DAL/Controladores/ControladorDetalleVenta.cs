@@ -198,9 +198,9 @@ WHERE idVenta = {numero} AND idPrecios = {IdPrecio}";
         public static async Task<List<R_DetalleVenta>> FiltrarX_IdVenta(int IDVENTA)
         {
             var q = $"SELECT * FROM R_DetalleVenta WHERE idVentaV={IDVENTA}";
-            var r = await Conection_SQL.ConsultaSQLServer(q, false, true);
-            var json = JsonConvert.DeserializeObject<string>(r);
-            return JsonConvert.DeserializeObject<List<R_DetalleVenta>>(json);
+            var r = await Conection_SQL.ConsultaSQLServer(q, true, true);
+            if (r == null) return null;
+            return JsonConvert.DeserializeObject<List<R_DetalleVenta>>(r);
         }
 
         // ======================================================
@@ -213,8 +213,8 @@ SELECT ISNULL(SUM(cantidadDetalle),0) total
 FROM DetalleVenta
 WHERE idInventario={IdInventario} AND idSede={IdSede}";
             var r = await Conection_SQL.ConsultaSQLServer(q, false, true);
-            var json = JsonConvert.DeserializeObject<string>(r);
-            return Convert.ToDecimal(JsonConvert.DeserializeObject<List<dynamic>>(json)[0].total);
+            var json = JsonConvert.DeserializeObject<ClassSumaTotal>(r);
+            return json.total;
         }
 
         public static async Task<decimal> SumarTotalDetalles(DateTime fecha, int IdSede)

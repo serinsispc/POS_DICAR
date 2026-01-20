@@ -80,6 +80,7 @@ namespace DAL.Controladores
             }
             catch (Exception ex)
             {
+                string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
@@ -107,6 +108,7 @@ WHERE nombreProveedor = N'{proveedor}'
             }
             catch (Exception ex)
             {
+                string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
@@ -126,6 +128,7 @@ WHERE nombreProveedor = N'{proveedor}'
             }
             catch (Exception ex)
             {
+                string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
@@ -152,6 +155,7 @@ ORDER BY nombreProveedor";
             }
             catch (Exception ex)
             {
+                string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
@@ -173,6 +177,7 @@ ORDER BY nombreProveedor";
             }
             catch (Exception ex)
             {
+                string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;

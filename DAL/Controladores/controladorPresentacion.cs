@@ -52,9 +52,7 @@ namespace DAL.Controladores
             {
                 var query = "SELECT * FROM V_Presentacion WITH (NOLOCK) ORDER BY nombrePresentacion;";
                 var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
-
-                var jsonReal = JsonConvert.DeserializeObject<string>(resp);
-                return JsonConvert.DeserializeObject<List<SQL.Views.V_Presentacion>>(jsonReal);
+                return JsonConvert.DeserializeObject<List<SQL.Views.V_Presentacion>>(resp);
             }
             catch (Exception ex)
             {

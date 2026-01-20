@@ -16,6 +16,7 @@
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
     <IsWebBootstrapper>false</IsWebBootstrapper>
+    <TargetFrameworkProfile />
     <PublishUrl>D:\Clientes_IIS\DICAR\POS\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -27,12 +28,11 @@
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
     <UpdateUrl>https://www.serinsispc.com/DICAR/POS/</UpdateUrl>
-    <ApplicationRevision>61</ApplicationRevision>
+    <ApplicationRevision>63</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -475,6 +475,12 @@
     <Compile Include="Formularios\frmClienteTienda.Designer.cs">
       <DependentUpon>frmClienteTienda.cs</DependentUpon>
     </Compile>
+    <Compile Include="Formularios\FrmLoading.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Formularios\FrmLoading.Designer.cs">
+      <DependentUpon>FrmLoading.cs</DependentUpon>
+    </Compile>
     <Compile Include="Formularios\frmMensague.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -879,6 +885,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Formularios\frmClienteTienda.resx">
       <DependentUpon>frmClienteTienda.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Formularios\FrmLoading.resx">
+      <DependentUpon>FrmLoading.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Formularios\frmMensague.resx">
       <DependentUpon>frmMensague.cs</DependentUpon>

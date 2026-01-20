@@ -68,7 +68,10 @@ namespace DAL.Controladores
             {
                 var query = "SELECT * FROM V_Vendedor";
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true);
-
+                if(respuesta=="null")
+                {
+                    return null;
+                }
                 return JsonConvert.DeserializeObject<List<V_Vendedor>>(respuesta);
             }
             catch (Exception ex)
@@ -87,10 +90,14 @@ namespace DAL.Controladores
             {
                 var query = $"SELECT TOP 1 * FROM Vendedor WHERE id = {IdVendedor}";
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
-
-                // Normalmente devuelve JSON de tabla -> lista
-                var lista = JsonConvert.DeserializeObject<List<Vendedor>>(respuesta);
-                return (lista != null && lista.Count > 0) ? lista[0] : null;
+                if(respuesta!="null")
+                {
+                    return JsonConvert.DeserializeObject<Vendedor>(respuesta);
+                }
+                else
+                {
+                    return null;
+                }
             }
             catch (Exception ex)
             {

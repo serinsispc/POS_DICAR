@@ -3,6 +3,7 @@ using DAL.Controladores;
 using DAL.Controladores.Tienda;
 using DAL.Modelo;
 using Invenpol_Parqueadero_Motos.Clases;
+using POS_SERINSIS_PC_2022.Formularios;
 using SERINSI_PC.Clases;
 using SERINSI_PC.Formularios.Inventario;
 using SERINSI_PC.Formularios.Inventario_;
@@ -59,6 +60,8 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Tiemda
         public int IdPrecios_frm = 0;
         public decimal cantidadAnterior = 0;
 
+        List<V_DetalleCompra> listaDetalle = new List<V_DetalleCompra>();
+
         Guid guidCompra_Frm;
         public frmCompras()
         {
@@ -79,7 +82,29 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Tiemda
         }
         private async void frmCompras_Load(object sender, EventArgs e)
         {
-            await Load_frm();
+
+            FrmLoading loading = null;
+            try
+            {
+                using (OpenFileDialog ofd = new OpenFileDialog())
+                {
+                    loading = FrmLoading.ShowLoading(this, "Cargarndo...");
+                    // inicio
+
+
+                    await Load_frm();
+
+
+                    // fin
+                    FrmLoading.CloseLoading(this, loading);
+                }
+            }
+            catch (Exception ex)
+            {
+                FrmLoading.CloseLoading(this, loading);
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+          
         }
         private async Task Load_frm()
         {
@@ -88,7 +113,7 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Tiemda
 
             /* en esta parte verificamos si hay una compra con el estado AI en 1 */
             Compras compras = new Compras();
-            compras = ControladorCompra.ConsultarEstadoAI(1,VariablesPublicas.IdEmpresaLogueada);
+            compras =await ControladorCompra.ConsultarEstadoAI(1,VariablesPublicas.IdEmpresaLogueada);
             if (compras != null)
             {
                 IdCompra_frm = compras.id;
@@ -104,10 +129,10 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Tiemda
                 txtFacturaCompra.Text = "0";
                 IdEstadoCompra_frm = 1;
                 /*en esta parte gestionamos la compra nueva*/
-                GestionarCompra(0);
+                await GestionarCompra(0);
                 /*consultamos el id de la compra*/
                 compras = new Compras();
-                compras = ControladorCompra.ConsultarXGuid(guidCompra_Frm);
+                compras =await ControladorCompra.ConsultarXGuid(guidCompra_Frm);
                 if (compras != null)
                 {
                     IdCompra_frm = compras.id;
@@ -117,39 +142,41 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Tiemda
                     IdEstadoCompra_frm = Convert.ToInt32(compras.idEstadoAI);
                 }
             }
-            CargarDGDetalle();
+            await CargarDGDetalle();
             labelTitulo.Text = "Compra # " + IdCompra_frm;
             txtFacturaCompra.Focus();
         }
-        private void CargarDGDetalle()
+        private async Task CargarDGDetalle()
         {
-            dgDetalleCompra.DataSource = ControladorDetalleCompra.listaXIdCompra(IdCompra_frm);
+            listaDetalle=await ControladorDetalleCompra.listaXIdCompra(IdCompra_frm);
+            if(listaDetalle==null)
+            {
+                listaDetalle = new List<V_DetalleCompra>();
+            }
+            dgDetalleCompra.DataSource = listaDetalle;
 
-            DataTable totalesCompra = new DataTable();
-            totalesCompra = ControladorDetalleCompra.ConsultarTotales(IdCompra_frm);
+            ClassTotales totalesCompra = new ClassTotales();
+            totalesCompra =await ControladorDetalleCompra.ConsultarTotalesAsync(IdCompra_frm);
             if (totalesCompra != null)
             {
-                foreach (DataRow rows in totalesCompra.Rows)
-                {
-                    SubTotal = (decimal)rows["subTotal"];
-                    Descuento = (decimal)rows["totalDescuento"];
-                    Iva = (decimal)rows["totalIVA"];
-                }
+                SubTotal = totalesCompra.subTotal;
+                Descuento = totalesCompra.totalDescuento;
+                Iva = totalesCompra.totalIVA;
             }
 
             Total = (SubTotal - Descuento) + Iva;
 
-            Total = ControladorDetalleCompra.SumaSubTotalCompra(IdCompra_frm);
+            Total =await ControladorDetalleCompra.SumaSubTotalCompra(IdCompra_frm);
 
             txtSubTotal.Text= "$ " + string.Format("{0:#,##0.##}", SubTotal);
             textDescuento.Text = "$ " + string.Format("{0:#,##0.##}", Descuento);
             txtIva.Text = "$ " + string.Format("{0:#,##0.##}", Iva);
             txtTotal.Text = "$ " + string.Format("{0:#,##0.##}", Total);
         }
-        private void CrearNuevaCompra()
+        private async Task CrearNuevaCompra()
         {
             Compras objCompras = new Compras();
-            objCompras = ControladorCompra.ConsultarXGuid(guidCompra_Frm);
+            objCompras =await ControladorCompra.ConsultarXGuid(guidCompra_Frm);
             if (objCompras != null)
             {
                 IdCompra_frm = objCompras.id;
@@ -172,7 +199,7 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Tiemda
                 objCompras.saldoCompra = 0;
                 objCompras.extencionArchivo = "--";
                 objCompras.totalDescuento = 0;
-                bool sql = ControladorCompra.GuardarEditarEliminarCompra(objCompras,0);
+                bool sql =await ControladorCompra.GuardarEditarEliminarCompra(objCompras,0);
                 if (sql == false)
                 {
                     MessageBox.Show("Ha ocurrido un error inesperado.", "¡Error!",MessageBoxButtons.OK,MessageBoxIcon.Error);
@@ -181,14 +208,14 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Tiemda
                 }
                 else
                 {
-                    HallarIdCompra();
+                    await HallarIdCompra();
                 }
             }
         }
-        private void HallarIdCompra()
+        private async Task HallarIdCompra()
         {
             Compras objCompras = new Compras();
-            objCompras = ControladorCompra.ConsultarXGuid(guidCompra_Frm);
+            objCompras =await ControladorCompra.ConsultarXGuid(guidCompra_Frm);
             if (objCompras != null)
             {
                 IdCompra_frm = objCompras.id;
@@ -212,7 +239,7 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Tiemda
             cmbProveedor.DataSource = null;
             cmbProveedor.ValueMember = "id";
             cmbProveedor.DisplayMember = "nombreProveedor";
-            cmbProveedor.DataSource =await ControladorProveedor.listaCompleta();
+            cmbProveedor.DataSource =await ControladorProveedor.ListaCompleta();
         }
 
         private void txtFacturaCompra_KeyDown(object sender, KeyEventArgs e)
@@ -515,7 +542,7 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Tiemda
                 return false;
             }
         }
-        private void btnAgregarProducto_Click(object sender, EventArgs e)
+        private async void btnAgregarProducto_Click(object sender, EventArgs e)
         {
             //verificamos los campos obligatorios
             bool campos = verificarCampos();
@@ -526,11 +553,11 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Tiemda
             }
 
 
-            sumaCompras = ControladorDetalleCompra.SumaCompras(IdInventario_frm, VariablesPublicas.IdEmpresaLogueada);
-            sumaVentas = ControladorDetalleVenta.SumaVentaProducto(IdInventario_frm,VariablesPublicas.IdEmpresaLogueada);
+            sumaCompras =await ControladorDetalleCompra.SumaCompras(IdInventario_frm, VariablesPublicas.IdEmpresaLogueada);
+            sumaVentas =await ControladorDetalleVenta.SumaVentaProducto(IdInventario_frm,VariablesPublicas.IdEmpresaLogueada);
             int Boton = 0;
             //lo primero es agragar el producto a la lista de detalle compra
-            DetalleCompra objDetalleCompra = ControladorDetalleCompra.ConsultarIdCompra_idInventario(IdCompra_frm,IdInventario_frm);
+            DetalleCompra objDetalleCompra =await ControladorDetalleCompra.ConsultarIdCompra_idInventario(IdCompra_frm,IdInventario_frm);
             if (objDetalleCompra != null)
             {
                 //    MessageBox.Show("¡el producto "+txtDescripcion.Text+" ya se encuentra agregado!", "¡Error!",MessageBoxButtons.OK,MessageBoxIcon.Error);
@@ -596,19 +623,19 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Tiemda
                 objDetalleCompra.idProducto = IdProducto_frm;
                 objDetalleCompra.idInventarioTotal = IdInventarioTotal_frm;
             }
-            bool sqlDetalleCompra = ControladorDetalleCompra.GuardarEditarEliminarCompra(objDetalleCompra,Boton);
+            bool sqlDetalleCompra =await ControladorDetalleCompra.GuardarEditarEliminarCompra(objDetalleCompra,Boton);
             if (sqlDetalleCompra == true)
             {
                 InventarioTotal inventarioTotal = new InventarioTotal();
-                inventarioTotal = controladorInventarioTotal.ConsultarIdProducto(IdProducto_frm,VariablesPublicas.IdEmpresaLogueada);
+                inventarioTotal =await controladorInventarioTotal.ConsultarIdProducto(IdProducto_frm,VariablesPublicas.IdEmpresaLogueada);
                 if (inventarioTotal != null)
                 {
                     inventarioTotal.costoUnidad = Convert.ToDecimal(txtCostoUnidad.Text);
-                    bool crud = controladorInventarioTotal.CrearEditarEliminarInventarioTotal(inventarioTotal, 1);
-                    if (crud == true)
+                    RespuestaCRUD crud =await controladorInventarioTotal.CrearEditarEliminarInventarioTotal(inventarioTotal, 1);
+                    if (crud.estado == true)
                     {
                         MessageBox.Show("¡Inventario actualizado correctamente...!", "¡OK!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                        Load_frm();
+                        await Load_frm();
                     }
                 }
             }
@@ -641,7 +668,7 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Tiemda
                 string error = ex.Message;
             }
         }
-        private void btnEliminar_Click(object sender, EventArgs e)
+        private async void btnEliminar_Click(object sender, EventArgs e)
         {
             if (dgDetalleCompra.RowCount > 0 && dgDetalleCompra.CurrentRow.Index >= 0)
             {
@@ -654,10 +681,10 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Tiemda
                 if (MessageBox.Show("¿Está seguro de eliminar el producto "+Convert.ToString(fila.Cells["descripcionProducto"].Value)+" "+Convert.ToString(fila.Cells["nombrePresentacion"].Value)+" ?", "¡Eliminar!",MessageBoxButtons.YesNo,MessageBoxIcon.Question,MessageBoxDefaultButton.Button2) == DialogResult.Yes)
                 {
                     DetalleCompra objDetalleCompra = new DetalleCompra();
-                    objDetalleCompra = ControladorDetalleCompra.ConsultaX_idDetalle(IdDetalleCompra_frm);
+                    objDetalleCompra =await ControladorDetalleCompra.ConsultaX_idDetalle(IdDetalleCompra_frm);
                     if (objDetalleCompra != null)
                     {
-                        bool eliminar = ControladorDetalleCompra.GuardarEditarEliminarCompra(objDetalleCompra,2);
+                        bool eliminar =await ControladorDetalleCompra.GuardarEditarEliminarCompra(objDetalleCompra,2);
                         if (eliminar == true)
                         {
                             btnLimpiar.PerformClick();
@@ -960,10 +987,10 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Tiemda
                 e.Handled = true;
             }
         }
-        private bool GestionarCompra(int Boton)
+        private async Task<bool> GestionarCompra(int Boton)
         {
             Compras objCompras = new Compras();
-            objCompras = ControladorCompra.ConsultaListaX_IdCompra_Entity(IdCompra_frm);
+            objCompras =await ControladorCompra.ConsultaListaX_IdCompra_Entity(IdCompra_frm);
             if (objCompras != null)
             {
                 if(Boton == 0)
@@ -990,14 +1017,14 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Tiemda
             objCompras.extencionArchivo = Extencion;
             objCompras.totalDescuento = Descuento;
             objCompras.idEstadoAI = IdEstadoCompra_frm;
-            bool sqlCompra = ControladorCompra.GuardarEditarEliminarCompra(objCompras, Boton);
+            bool sqlCompra =await ControladorCompra.GuardarEditarEliminarCompra(objCompras, Boton);
             if (sqlCompra == true)
             {
                 return true;
             }
             return false;
         }
-        private void btnGuardarCompra_Click(object sender, EventArgs e)
+        private async void btnGuardarCompra_Click(object sender, EventArgs e)
         {
             //verificamos los campos obligatorios
             bool campos = verificarCamposCompra();
@@ -1007,7 +1034,7 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Tiemda
                 return;
             }
             IdEstadoCompra_frm = 2;
-            bool gcompra=GestionarCompra(1);
+            bool gcompra=await GestionarCompra(1);
             if (gcompra == true)
             {
                 MessageBox.Show("¡La compra fue guardada correctamente...!", "¡OK!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
@@ -1015,7 +1042,7 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Tiemda
                 SubTotal = 0;
                 Iva = 0;
                 Total = 0;
-                Load_frm();
+                await Load_frm();
             }
         }
 
@@ -1025,7 +1052,7 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Tiemda
         }
 
         string ArchivoTExto;
-        private void btnPDF_Click(object sender, EventArgs e)
+        private async void btnPDF_Click(object sender, EventArgs e)
         {
             try
             {
@@ -1054,7 +1081,7 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Tiemda
                 {
                     //en esta parte insertamos el registro del archivo a la bae de datos 
                     ArchivoCompras archivoCompras = new ArchivoCompras();
-                    archivoCompras = controladorArchivoCompra.ConsultarGuidArchivo(guidArchivo_frm);
+                    archivoCompras =await controladorArchivoCompra.ConsultarGuidArchivo(guidArchivo_frm);
                     if (archivoCompras != null)
                     {
                         MessageBox.Show("El archivo ya existe.", "¡Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -1066,7 +1093,7 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Tiemda
                         archivoCompras.idCompra = IdCompra_frm;
                         archivoCompras.guidArchivo = guidArchivo_frm;
                         archivoCompras.extencion = Extencion;
-                        bool insert = controladorArchivoCompra.CrearEditarEliminar(archivoCompras,0);
+                        bool insert =await controladorArchivoCompra.CrearEditarEliminar(archivoCompras,0);
                         if (insert == true)
                         {
                             MessageBox.Show("El archivo fue cargado correctamente.", "¡OK!", MessageBoxButtons.OK, MessageBoxIcon.Information);

@@ -64,26 +64,26 @@ namespace SERINSI_PC.Formularios.Inventario_
             }
         }
 
-        private void btnEliminar_Click(object sender, EventArgs e)
+        private async void btnEliminar_Click(object sender, EventArgs e)
         {
             try
             {
                 SeleccionarCompra();
                 //prosedemos a eliminar el detalle
                 List<DetalleCompra> detalleCompra = new List<DetalleCompra>();
-                detalleCompra = ControladorDetalleCompra.Lista_XidCompra(IdCompra_frm);
+                detalleCompra =await ControladorDetalleCompra.Lista_XidCompra(IdCompra_frm);
                 if (detalleCompra != null)
                 {
-                    bool deleteDetalle = ControladorDetalleCompra.EliminarLista(IdCompra_frm);
+                    bool deleteDetalle =await ControladorDetalleCompra.EliminarLista(IdCompra_frm);
                     if (deleteDetalle == true)
                     {
                         //ahora eliminamos la compra
                         Compras compras = new Compras();
                         EliminarPagos(IdCompra_frm);
-                        compras = ControladorCompra.Consultar_Id(IdCompra_frm);
+                        compras =await ControladorCompra.Consultar_Id(IdCompra_frm);
                         if (compras != null)
                         {
-                            bool deleteCompra = ControladorCompra.GuardarEditarEliminarCompra(compras,2);
+                            bool deleteCompra =await ControladorCompra.GuardarEditarEliminarCompra(compras,2);
                             if (deleteCompra == true)
                             {
                                 MessageBox.Show("Compra eliminada correctamente.","Eliminado",MessageBoxButtons.OK,MessageBoxIcon.Information);
@@ -96,10 +96,10 @@ namespace SERINSI_PC.Formularios.Inventario_
                         //ahora eliminamos la compra
                         Compras compras = new Compras();
                         EliminarPagos(IdCompra_frm);
-                        compras = ControladorCompra.Consultar_Id(IdCompra_frm);
+                        compras =await ControladorCompra.Consultar_Id(IdCompra_frm);
                         if (compras != null)
                         {
-                            bool deleteCompra = ControladorCompra.GuardarEditarEliminarCompra(compras, 2);
+                            bool deleteCompra =await ControladorCompra.GuardarEditarEliminarCompra(compras, 2);
                             if (deleteCompra == true)
                             {
                                 MessageBox.Show("Compra eliminada correctamente.", "Eliminado", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -137,7 +137,7 @@ namespace SERINSI_PC.Formularios.Inventario_
         Guid guidArchivo_frm;
         byte[] Arreglo;
         string ArchivoTExto;
-        private void button1_Click(object sender, EventArgs e)
+        private async void button1_Click(object sender, EventArgs e)
         {
             SeleccionarCompra();
             try
@@ -167,7 +167,7 @@ namespace SERINSI_PC.Formularios.Inventario_
                 {
                     //en esta parte insertamos el registro del archivo a la bae de datos 
                     ArchivoCompras archivoCompras = new ArchivoCompras();
-                    archivoCompras = controladorArchivoCompra.ConsultarGuidArchivo(guidArchivo_frm);
+                    archivoCompras =await controladorArchivoCompra.ConsultarGuidArchivo(guidArchivo_frm);
                     if (archivoCompras != null)
                     {
                         MessageBox.Show("El archivo ya existe.", "¡Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -179,7 +179,7 @@ namespace SERINSI_PC.Formularios.Inventario_
                         archivoCompras.idCompra = IdCompra_frm;
                         archivoCompras.guidArchivo = guidArchivo_frm;
                         archivoCompras.extencion = Extencion;
-                        bool insert = controladorArchivoCompra.CrearEditarEliminar(archivoCompras, 0);
+                        bool insert =await controladorArchivoCompra.CrearEditarEliminar(archivoCompras, 0);
                         if (insert == true)
                         {
                             MessageBox.Show("El archivo fue cargado correctamente.", "¡OK!", MessageBoxButtons.OK, MessageBoxIcon.Information);

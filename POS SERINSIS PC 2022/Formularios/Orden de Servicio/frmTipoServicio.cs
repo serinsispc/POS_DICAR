@@ -1,4 +1,5 @@
-﻿using DAL.Controladores.OrdenServicio;
+﻿using DAL;
+using DAL.Controladores.OrdenServicio;
 using DAL.Modelo;
 using System;
 using System.Collections.Generic;
@@ -19,10 +20,10 @@ namespace SERINSI_PC.Formularios.Orden_de_Servicio
         {
             InitializeComponent();
         }
-        private void GestionarServicio(int Boton)
+        private async Task GestionarServicio(int Boton)
         {
             TipoServicio objServicio = new TipoServicio();
-            objServicio = controladorTipoServicio.consultarID(IdServicio);
+            objServicio =await controladorTipoServicio.consultarID(IdServicio);
             if (objServicio != null)
             {
                 if (Boton == 0)
@@ -38,8 +39,8 @@ namespace SERINSI_PC.Formularios.Orden_de_Servicio
             }
             objServicio.id = IdServicio;
             objServicio.nombreTipoServicio = txtNombreServicio.Text;
-            bool sql = controladorTipoServicio.CrearEditarEliminarArticulo(objServicio, Boton);
-            if (sql == true)
+            RespuestaCRUD sql =await controladorTipoServicio.CrearEditarEliminarArticulo(objServicio, Boton);
+            if (sql.estado == true)
             {
                 if (Boton == 0)
                 {

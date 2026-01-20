@@ -1,4 +1,5 @@
-﻿using DAL.Controladores;
+﻿using DAL;
+using DAL.Controladores;
 using DAL.Modelo;
 using System;
 using System.Collections.Generic;
@@ -19,16 +20,16 @@ namespace SERINSI_PC.Formularios.Inventario
             InitializeComponent();
         }
         int IdTipoMedida = 0;
-        private void frmTipoMedida_Load(object sender, EventArgs e)
+        private async void frmTipoMedida_Load(object sender, EventArgs e)
         {
             //cargarmos los datos de la lista
-            CargarDG();
+            await CargarDG();
             btnGuardar.Text = "Crear";
             txtTipoMedida.Focus();
         }
-        private void CargarDG()
+        private async Task CargarDG()
         {
-            dgTipoMedida.DataSource = ControladorTipoMedida.listaCompleta();
+            dgTipoMedida.DataSource =await ControladorTipoMedida.ListaCompleta();
         }
         private void SeleccionarTipoMedida()
         {
@@ -47,10 +48,10 @@ namespace SERINSI_PC.Formularios.Inventario
         {
             SeleccionarTipoMedida();
         }
-        private void GestionarTipoMedida(int Boton)
+        private async Task GestionarTipoMedida(int Boton)
         {
-            TipoMedida objTipoMedida = new TipoMedida();
-            objTipoMedida = ControladorTipoMedida.ConsultarID(IdTipoMedida);
+            DAL.Controladores.TipoMedida objTipoMedida = new DAL.Controladores.TipoMedida();
+            objTipoMedida =await ControladorTipoMedida.ConsultarID(IdTipoMedida);
             if (objTipoMedida != null)
             {
                 if (Boton == 0)
@@ -61,14 +62,14 @@ namespace SERINSI_PC.Formularios.Inventario
             }
             if (Boton == 0)
             {
-                objTipoMedida = new TipoMedida();
+                objTipoMedida = new DAL.Controladores.TipoMedida();
                 IdTipoMedida = 0;
             }
             objTipoMedida.id = IdTipoMedida;
             objTipoMedida.nombreTipoMedida = txtTipoMedida.Text;
             objTipoMedida.letraTipoMedida = txtSiglas.Text;
-            bool sqlTipo = ControladorTipoMedida.CrearEditarEliminarTipoMedida(objTipoMedida, Boton);
-            if (sqlTipo == true)
+            RespuestaCRUD sqlTipo =await ControladorTipoMedida.CrearEditarEliminarTipoMedida(objTipoMedida, Boton);
+            if (sqlTipo.estado == true)
             {
                 if (Boton == 2)
                 {

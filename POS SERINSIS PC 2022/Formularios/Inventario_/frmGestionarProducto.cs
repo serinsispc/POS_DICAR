@@ -1,4 +1,5 @@
-﻿using DAL.Controladores;
+﻿using DAL;
+using DAL.Controladores;
 using DAL.Controladores.Administrador;
 using DAL.Controladores.Tienda;
 using DAL.Controladores.Version_Software;
@@ -59,9 +60,9 @@ namespace SERINSI_PC.Formularios.Inventario
                 }
             }
         }
-        private void frmGestionarProducto_Load(object sender, EventArgs e)
+        private async void frmGestionarProducto_Load(object sender, EventArgs e)
         {
-            LLenarCMBTipoMedida();
+            await LLenarCMBTipoMedida();
             LLenarCMBEstadoProducto();
             LLenarCMBCategoria();
             if(TipoEvento == 0 )
@@ -71,12 +72,12 @@ namespace SERINSI_PC.Formularios.Inventario
             }
             txtCodigo.Focus();
         }
-        private void LLenarCMBTipoMedida()
+        private async Task LLenarCMBTipoMedida()
         {
             cmbTipoMedida.DataSource = null;
             cmbTipoMedida.ValueMember = "id";
             cmbTipoMedida.DisplayMember = "letraTipoMedida";
-            cmbTipoMedida.DataSource = ControladorTipoMedida.listaCompleta();
+            cmbTipoMedida.DataSource =await ControladorTipoMedida.ListaCompleta();
             cmbTipoMedida.SelectedValue = IdTipoMedida;
         }
         private void LLenarCMBEstadoProducto()
@@ -93,7 +94,7 @@ namespace SERINSI_PC.Formularios.Inventario
             cmbCategoria.DataSource = ControladorCategoriaProducto.ListaCompleta();
             cmbCategoria.SelectedValue = IdCategoria;
         }
-        private void btnGuardar_Click(object sender, EventArgs e)
+        private async void btnGuardar_Click(object sender, EventArgs e)
         {
             //validamos los campos
             bool campos = ValidarCampos();
@@ -101,11 +102,11 @@ namespace SERINSI_PC.Formularios.Inventario
             {
                 if (TipoEvento == 0)
                 {
-                    GestionarProducto(0);
+                    await GestionarProducto(0);
                 }
                 else
                 {
-                    GestionarProducto(1);
+                    await GestionarProducto(1);
                 }
             }
             else
@@ -128,12 +129,12 @@ namespace SERINSI_PC.Formularios.Inventario
 
 
             Producto objproducto = new Producto();
-            objproducto = ControladorProducto.ConsultarGuid(guidProducto);
+            objproducto =await ControladorProducto.ConsultarGuid(guidProducto);
             if (objproducto != null)
             {
                 if (Boton == 0)
                 {
-                    bool respuesta = VerificarCodigo(txtCodigo.Text);
+                    bool respuesta =await VerificarCodigo(txtCodigo.Text);
                     if (respuesta == true)
                     {
                         MessageBox.Show("El codigo ( " + txtCodigo.Text + " ) ya existe ", "¡Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -147,7 +148,7 @@ namespace SERINSI_PC.Formularios.Inventario
             {
                 objproducto = new Producto();
                 IdProducto = 0;
-                bool respuesta = VerificarCodigo(txtCodigo.Text);
+                bool respuesta =await VerificarCodigo(txtCodigo.Text);
                 if (respuesta == true)
                 {
                     MessageBox.Show("El codigo ( " + txtCodigo.Text + " ) ya existe ", "¡Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -169,8 +170,8 @@ namespace SERINSI_PC.Formularios.Inventario
             {
                 objproducto.gramera = 0;
             }
-            bool sqlProducto = ControladorProducto.GuardarEditarEliminarProducto(objproducto,Boton);
-            if (sqlProducto == true)
+            RespuestaCRUD sqlProducto =await ControladorProducto.GuardarEditarEliminarProducto(objproducto,Boton);
+            if (sqlProducto.estado == true)
             {
                 MessageBox.Show("El producto " + txtDescripcion.Text + " fue " + btnGuardar.Text + " correctamente.", "¡OK!", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
@@ -180,9 +181,9 @@ namespace SERINSI_PC.Formularios.Inventario
             }
             this.Close();
         }
-        private bool VerificarCodigo(string codigo)
+        private async Task<bool> VerificarCodigo(string codigo)
         {
-            bool respuesta = ControladorProducto.ConsultarCodigo(codigo);
+            bool respuesta =await ControladorProducto.ConsultarCodigo(codigo);
             return respuesta;
         }
         private bool ValidarCampos()
@@ -320,20 +321,20 @@ namespace SERINSI_PC.Formularios.Inventario
             LLenarCMBCategoria();
         }
 
-        private void btnActualizar_Click(object sender, EventArgs e)
+        private async void btnActualizar_Click(object sender, EventArgs e)
         {
-            LLenarCMBTipoMedida();
+            await LLenarCMBTipoMedida();
             LLenarCMBEstadoProducto();
             LLenarCMBCategoria();
         }
 
-        private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        private async void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             frmTipoMedida frm = new frmTipoMedida();
             AddOwnedForm(frm);
             frm.tituloFormulario.Text = "Tipo de Medida";
             frm.ShowDialog();
-            LLenarCMBTipoMedida();
+            await LLenarCMBTipoMedida();
         }
     }
 }

@@ -42,36 +42,36 @@ namespace Invenpol_Parqueadero_Motos.Formularios
 
         int Utilidad_frm;
 
-        private void rbAño_CheckedChanged(object sender, EventArgs e)
+        private async void rbAño_CheckedChanged(object sender, EventArgs e)
         {
             if (rbAño.Checked == true)
             {
                 TipoFiltro = "Año";
-                FiltrarReporte();
+                await FiltrarReporte();
             }
         }
 
-        private void rbMes_CheckedChanged(object sender, EventArgs e)
+        private async void rbMes_CheckedChanged(object sender, EventArgs e)
         {
             if (rbMes.Checked == true)
             {
                 TipoFiltro = "Mes";
-                FiltrarReporte();
+                await FiltrarReporte();
             }
         }
 
-        private void rbDia_CheckedChanged(object sender, EventArgs e)
+        private async void rbDia_CheckedChanged(object sender, EventArgs e)
         {
             if (rbDia.Checked == true)
             {
                 TipoFiltro = "Dia";
-                FiltrarReporte();
+                await FiltrarReporte();
             }
         }
-        private void FiltrarReporte()
+        private async Task FiltrarReporte()
         {
             CargarVentasVendedor();
-            FiltrarReporteGeneral();
+            await FiltrarReporteGeneral();
             FiltrarVentas();
             FiltrarPagosCC();
             FiltrarPagosCP();
@@ -114,19 +114,19 @@ namespace Invenpol_Parqueadero_Motos.Formularios
             }
 
         }
-        private void HallarUtilidad()
+        private async Task HallarUtilidad()
         {
             if (TipoFiltro == "Año")
             {
-                Utilidad_frm = contorladorUtilidad.HallarCostoVentaAño(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
+                Utilidad_frm =await contorladorUtilidad.HallarCostoVentaAño(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
             }
             if (TipoFiltro == "Mes")
             {
-                Utilidad_frm = contorladorUtilidad.HallarCostoVentaMes(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
+                Utilidad_frm =await contorladorUtilidad.HallarCostoVentaMes(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
             }
             if (TipoFiltro == "Dia")
             {
-                Utilidad_frm = contorladorUtilidad.HallarCostoVentaDia(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
+                Utilidad_frm =await contorladorUtilidad.HallarCostoVentaDia(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
             }
         }
         private void FiltrarGastos()
@@ -207,17 +207,17 @@ namespace Invenpol_Parqueadero_Motos.Formularios
                 dglistaVentas.DataSource = ControladorVenta.FiltroX_H_Dia(dtFecha.Value,VariablesPublicas.IdEmpresaLogueada);
             }
         }
-        private void FiltrarReporteGeneral()
+        private async Task FiltrarReporteGeneral()
         {
-            hallarPagoCP();
+            await hallarPagoCP();
 
-            hallarVentas();
-            hallarCosto();
+            await hallarVentas();
+            await hallarCosto();
             HallarUtilidad();
-            hallarGastos();
+            await hallarGastos();
 
        
-            hallarPagoCC();
+            await hallarPagoCC();
 
             Ganancia = Utilidad_frm - Gastos;
             //Costo = Gastos + PagoCP;
@@ -234,37 +234,37 @@ namespace Invenpol_Parqueadero_Motos.Formularios
             txtGanancia.Text= "$ " + string.Format("{0:#,##0.##}", Convert.ToDouble(Ganancia));
             txtUtilidad.Text = "$ " + string.Format("{0:#,##0.##}", Convert.ToDouble(Utilidad_frm));
         }
-        private void hallarGastos()
+        private async Task hallarGastos()
         {
             if (TipoFiltro == "Año")
             {
-                Gastos = ControladorGastos.HallarTotalGastosAño(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
+                Gastos =await ControladorGastos.HallarTotalGastosAño(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
             }
             if (TipoFiltro == "Mes")
             {
-                Gastos = ControladorGastos.HallarTotalGastosMes(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
+                Gastos =await ControladorGastos.HallarTotalGastosMes(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
             }
             if (TipoFiltro == "Dia")
             {
-                Gastos = ControladorGastos.HallarTotalGastosDia(dtFecha.Value,VariablesPublicas.IdEmpresaLogueada);
+                Gastos =await ControladorGastos.HallarTotalGastosDia(dtFecha.Value,VariablesPublicas.IdEmpresaLogueada);
             }
         }
-        private void hallarPagoCC()
+        private async Task hallarPagoCC()
         {
             if (TipoFiltro == "Año")
             {
-                PagoCC = ControladorPagosCreditoTienda.SumarPagosX_Año(dtFecha.Value,VariablesPublicas.IdEmpresaLogueada);
+                PagoCC =await ControladorPagosCreditoTienda.SumarPagosX_Año(dtFecha.Value,VariablesPublicas.IdEmpresaLogueada);
             }
             if (TipoFiltro == "Mes")
             {
-                PagoCC = ControladorPagosCreditoTienda.SumarPagosX_Mes(dtFecha.Value,VariablesPublicas.IdEmpresaLogueada);
+                PagoCC =await ControladorPagosCreditoTienda.SumarPagosX_Mes(dtFecha.Value,VariablesPublicas.IdEmpresaLogueada);
             }
             if (TipoFiltro == "Dia")
             {
-                PagoCC = ControladorPagosCreditoTienda.SumarPagosX_Dia(dtFecha.Value,VariablesPublicas.IdEmpresaLogueada);
+                PagoCC =await ControladorPagosCreditoTienda.SumarPagosX_Dia(dtFecha.Value,VariablesPublicas.IdEmpresaLogueada);
             }
         }
-        private void hallarVentas()
+        private async Task hallarVentas()
         {
             if (TipoFiltro == "Año")
             {
@@ -276,10 +276,10 @@ namespace Invenpol_Parqueadero_Motos.Formularios
             }
             if (TipoFiltro == "Dia")
             {
-                Ventas = ControladorVenta.TotalVentasTiendaDia(dtFecha.Value, "CONTADO",VariablesPublicas.IdEmpresaLogueada);
+                Ventas =await ControladorVenta.TotalVentasTiendaDia(dtFecha.Value, "CONTADO",VariablesPublicas.IdEmpresaLogueada);
             }
         }
-        private void hallarCosto()
+        private async Task hallarCosto()
         {
             if (TipoFiltro == "Año")
             {
@@ -287,26 +287,26 @@ namespace Invenpol_Parqueadero_Motos.Formularios
             }
             if (TipoFiltro == "Mes")
             {
-                Costo = ControladorVenta.CostoTiendaMes(dtFecha.Value, "CONTADO", VariablesPublicas.IdEmpresaLogueada);
+                Costo =await ControladorVenta.CostoTiendaMes(dtFecha.Value, "CONTADO", VariablesPublicas.IdEmpresaLogueada);
             }
             if (TipoFiltro == "Dia")
             {
-                Costo = ControladorVenta.CostoTiendaDia(dtFecha.Value, "CONTADO", VariablesPublicas.IdEmpresaLogueada);
+                Costo =await ControladorVenta.CostoTiendaDia(dtFecha.Value, "CONTADO", VariablesPublicas.IdEmpresaLogueada);
             }
         }
-        private void hallarPagoCP()
+        private async Task hallarPagoCP()
         {
             if (TipoFiltro == "Año")
             {
-                PagoCP = ControladorPagosCompras.hallarTotalPagoCPAño(dtFecha.Value,VariablesPublicas.IdEmpresaLogueada);
+                PagoCP =await ControladorPagosCompras.hallarTotalPagoCPAño(dtFecha.Value,VariablesPublicas.IdEmpresaLogueada);
             }
             if (TipoFiltro == "Mes")
             {
-                PagoCP = ControladorPagosCompras.hallarTotalPagoCPMes(dtFecha.Value,VariablesPublicas.IdEmpresaLogueada);
+                PagoCP =await ControladorPagosCompras.hallarTotalPagoCPMes(dtFecha.Value,VariablesPublicas.IdEmpresaLogueada);
             }
             if (TipoFiltro == "Dia")
             {
-                PagoCP = ControladorPagosCompras.hallarTotalPagoCPDia(dtFecha.Value,VariablesPublicas.IdEmpresaLogueada);
+                PagoCP =await ControladorPagosCompras.hallarTotalPagoCPDia(dtFecha.Value,VariablesPublicas.IdEmpresaLogueada);
             }
         }
 

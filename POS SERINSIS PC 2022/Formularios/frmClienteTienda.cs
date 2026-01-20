@@ -1,4 +1,5 @@
-﻿using DAL.Controladores;
+﻿using DAL;
+using DAL.Controladores;
 using DAL.Modelo;
 using Invenpol_Parqueadero_Motos.Clases;
 using Invenpol_Parqueadero_Motos.Formularios.Tiemda;
@@ -33,7 +34,7 @@ namespace SERINSI_PC.Formularios.Ventas
             txtNombreCliente.Focus();
         }
 
-        private void txtNIT_KeyDown(object sender, KeyEventArgs e)
+        private async void   txtNIT_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
             {
@@ -41,7 +42,7 @@ namespace SERINSI_PC.Formularios.Ventas
                 {
                     //en esta parte buscamos al cliente por el nit
                     Clientes objCliente = new Clientes();
-                    objCliente = ControladorClienteTienda.ConsultarX_NIT(txtNIT.Text);
+                    objCliente =await ControladorClienteTienda.ConsultarX_NIT(txtNIT.Text);
                     if (objCliente != null)
                     {
                         IdCliente = objCliente.id;
@@ -101,13 +102,13 @@ namespace SERINSI_PC.Formularios.Ventas
                 txtTelefono.Focus();
             }
         }
-        private void btnCrear_Click(object sender, EventArgs e)
+        private async void btnCrear_Click(object sender, EventArgs e)
         {
             //Lo primero que debemos hacer es verificar los campos 
             bool Campos = EvaluarCampos();
             if (Campos == true)
             {
-                GestionarCliente(0);
+                await GestionarCliente(0);
             }
             else
             {
@@ -128,10 +129,10 @@ namespace SERINSI_PC.Formularios.Ventas
                 return false;
             }
         }
-        private void GestionarCliente(int Boton)
+        private async Task GestionarCliente(int Boton)
         {
             Clientes objCT = new Clientes();
-            objCT = ControladorClienteTienda.ConsultarX_ID(IdCliente);
+            objCT =await ControladorClienteTienda.ConsultarX_ID(IdCliente);
             if (objCT != null)
             {
                 if (Boton == 0)
@@ -143,7 +144,7 @@ namespace SERINSI_PC.Formularios.Ventas
             if (Boton == 0)
             {
                 Clientes objCT2 = new Clientes();
-                objCT = ControladorClienteTienda.ConsultarX_Nombre(txtNombreCliente.Text);
+                objCT =await ControladorClienteTienda.ConsultarX_Nombre(txtNombreCliente.Text);
                 if (objCT != null)
                 {
                     if (Boton == 0)
@@ -169,7 +170,7 @@ namespace SERINSI_PC.Formularios.Ventas
             objCT.idSede = VariablesPublicas.IdEmpresaLogueada;
             objCT.codigoCliente = txtCodigo.Text;
             objCT.correo = txtCorrero.Text;
-            bool SQL = ControladorClienteTienda.Crear_Editar_Elimnar_ClienteTienda(objCT, Boton);
+            bool SQL =await ControladorClienteTienda.Crear_Editar_Elimnar_ClienteTienda(objCT, Boton);
             if (SQL == true)
             {
                 if (Boton == 0)
@@ -208,13 +209,13 @@ namespace SERINSI_PC.Formularios.Ventas
                 btnEditar.Enabled = true;
             }
         }
-        private void btnEditar_Click(object sender, EventArgs e)
+        private async void btnEditar_Click(object sender, EventArgs e)
         {
             //Lo primero que debemos hacer es verificar los campos 
             bool Campos = EvaluarCampos();
             if (Campos == true)
             {
-                GestionarCliente(1);
+                await GestionarCliente(1);
             }
             else
             {
@@ -260,7 +261,7 @@ namespace SERINSI_PC.Formularios.Ventas
             }
             txtNombreCliente.Focus();
         }
-        private void btnCredito_Click(object sender, EventArgs e)
+        private async void btnCredito_Click(object sender, EventArgs e)
         {
             int Boton = 0;
             int IdRelacion = 0;
@@ -268,7 +269,7 @@ namespace SERINSI_PC.Formularios.Ventas
             {
                 //en esta parte creamos la relacion de venta cliente
                 R_VentaCliente objRVC = new R_VentaCliente();
-                objRVC = controladorRVentaCleinte.ConsultarRelacion(IdVenta);
+                objRVC =await controladorRVentaCleinte.ConsultarRelacion(IdVenta);
                 if (objRVC != null)
                 {
                     Boton = 1;
@@ -285,8 +286,8 @@ namespace SERINSI_PC.Formularios.Ventas
                 objRVC.idVenta = IdVenta;
                 objRVC.idCliente = IdCliente;
                 objRVC.idSede = VariablesPublicas.IdEmpresaLogueada;
-                bool sqlRelacion = controladorRVentaCleinte.CrearEditarEliminar_R_VentaCleinte(objRVC, Boton);
-                if (sqlRelacion == true)
+                RespuestaCRUD sqlRelacion =await controladorRVentaCleinte.Crud(objRVC, Boton);
+                if (sqlRelacion.estado == true)
                 {
                     VariablesPublicas.IdCliente = IdCliente;
                     frmCobroCaja frm2 = Owner as frmCobroCaja;

@@ -50,7 +50,7 @@ namespace SERINSI_PC.Formularios.Inventario_
             dgArchivosCompras.DataSource = controladorArchivoCompra.Listra_IdCompra(IdCompra_frm);
         }
 
-        private void btnEliminar_Click(object sender, EventArgs e)
+        private async void btnEliminar_Click(object sender, EventArgs e)
         {
             if (dgArchivosCompras.RowCount > 0 && dgArchivosCompras.CurrentRow.Index >= 0)
             {
@@ -62,10 +62,10 @@ namespace SERINSI_PC.Formularios.Inventario_
 
 
                 ArchivoCompras archivoCompras = new ArchivoCompras();
-                archivoCompras = controladorArchivoCompra.ConsultarIdArchivo(id_frm);
+                archivoCompras =await controladorArchivoCompra.ConsultarIdArchivo(id_frm);
                 if (archivoCompras != null)
                 {
-                    bool delete = controladorArchivoCompra.CrearEditarEliminar(archivoCompras,2);
+                    bool delete =await controladorArchivoCompra.CrearEditarEliminar(archivoCompras,2);
                     if (delete == true)
                     {
                         dgArchivosCompras.DataSource = controladorArchivoCompra.Listra_IdCompra(IdCompra_frm);

@@ -1,4 +1,5 @@
-﻿using DAL.Controladores;
+﻿using DAL;
+using DAL.Controladores;
 using DAL.Modelo;
 using Invenpol_Parqueadero_Motos.Clases;
 using System;
@@ -78,14 +79,14 @@ namespace SERINSI_PC.Formularios.Fabrica
             this.Close();
         }
 
-        private void frmInsumoOrden_Load(object sender, EventArgs e)
+        private async void frmInsumoOrden_Load(object sender, EventArgs e)
         {
             CargarDG();
-            SumarTotal();
+            await SumarTotal();
         }
-        private void SumarTotal()
+        private async Task SumarTotal()
         {
-            TotalInsumos = controladorDetalleOrdenFabrica.SumaTotalDetalleINsumo(IdOrdenFabrica);
+            TotalInsumos =await controladorDetalleOrdenFabrica.SumaTotalDetalleINsumo(IdOrdenFabrica);
             totalText.Text = "$ " + string.Format("{0:#,##0.##}", Convert.ToDouble(TotalInsumos));
         }
         private void CargarDG()
@@ -93,7 +94,7 @@ namespace SERINSI_PC.Formularios.Fabrica
             dgDetalleOrden.DataSource = controladorDetalleOrdenFabrica.Filtro_IDOrden(IdOrdenFabrica);
         }
 
-        private void btnAgregarINsumo_Click(object sender, EventArgs e)
+        private async void btnAgregarINsumo_Click(object sender, EventArgs e)
         {
             if(txtCodigoINsumo.Text!="" &&
                txtCantidadActualInsumo.Text!=""&&
@@ -102,18 +103,18 @@ namespace SERINSI_PC.Formularios.Fabrica
                txtCantidad.Text!=""&&
                txtCostoTotalINsumo.Text != "")
             {
-                GestionarInsumo();
+                await GestionarInsumo();
             }
             else
             {
                 MessageBox.Show("Aún hay campos vacíos ", "Error",MessageBoxButtons.OK,MessageBoxIcon.Error);
             }
         }
-        private void GestionarInsumo()
+        private async Task GestionarInsumo()
         {
             int Boton;
             DetalleOrdenFabrica objDetalle = new DetalleOrdenFabrica();
-            objDetalle = controladorDetalleOrdenFabrica.consultarIdDetalleOrden(IdDetalle);
+            objDetalle =await controladorDetalleOrdenFabrica.consultarIdDetalleOrden(IdDetalle);
             if (objDetalle != null)
             {
                 Boton = 2;
@@ -135,14 +136,14 @@ namespace SERINSI_PC.Formularios.Fabrica
                 objDetalle.costoInsumoUnidad = Convert.ToDecimal(txtCostoInsumo.Text);
                 objDetalle.costoTotalInsumoOrden = Convert.ToDecimal(txtCostoTotalINsumo.Text);
             }
-            bool sql = controladorDetalleOrdenFabrica.CrearEditarEliminarDetalleOrdenFabrica(objDetalle,Boton);
-            if (sql == true)
+            RespuestaCRUD sql =await controladorDetalleOrdenFabrica.CrearEditarEliminarDetalleOrdenFabrica(objDetalle,Boton);
+            if (sql.estado == true)
             {
                 //en esta parte actualizamos la cantidad del insumo
                 ActualizarCantidadINsumo(Boton);
                 //en esta parte actualizamos el total de la orden
                 SumarTotal();
-                ActualizarOrden();
+                await ActualizarOrden();
                 limpiarFormulario();
             }
             else
@@ -168,17 +169,17 @@ namespace SERINSI_PC.Formularios.Fabrica
             //    bool sql = controladorInventario.CrearEditarEliminarInventario(objInventario,1);
             //}
         }
-        private void ActualizarOrden()
+        private async Task ActualizarOrden()
         {
             OrdenFabrica objOrden = new OrdenFabrica();
-            objOrden = controladorOrdenFabrica.consultarID(IdOrdenFabrica);
+            objOrden =await controladorOrdenFabrica.consultarID(IdOrdenFabrica);
             if (objOrden != null)
             {
                 objOrden.costoOrdenInsumo = TotalInsumos;
                 objOrden.totalConstoOren = TotalInsumos +Convert.ToDecimal(objOrden.costoOrdenManoObra);
                 objOrden.Producido = objOrden.ValorFinalOrden - objOrden.totalConstoOren;
-                bool sql = controladorOrdenFabrica.CrearEditarElimminarOrdenFabrica(objOrden,1);
-                if (sql == false)
+                RespuestaCRUD sql =await controladorOrdenFabrica.CrearEditarElimminarOrdenFabrica(objOrden,1);
+                if (sql.estado == false)
                 {
                     MessageBox.Show("Se fue posible actualizar los valores de la orden.", "Error",MessageBoxButtons.OK,MessageBoxIcon.Error);
                 }

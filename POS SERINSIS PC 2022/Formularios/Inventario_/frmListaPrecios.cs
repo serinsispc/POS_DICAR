@@ -1,4 +1,5 @@
-﻿using DAL.Controladores;
+﻿using DAL;
+using DAL.Controladores;
 using DAL.Modelo;
 using System;
 using System.Collections.Generic;
@@ -49,10 +50,10 @@ namespace SERINSI_PC.Formularios.Inventario
         {
             SeleccionarLista();
         }
-        private void GestionarListaPrecios(int Boton)
+        private async Task GestionarListaPrecios(int Boton)
         {
             ListaPrecios objLista = new ListaPrecios();
-            objLista = controladorListaPrecios.ConsultarID(IdListaPrecios);
+            objLista =await controladorListaPrecios.ConsultarID(IdListaPrecios);
             if (objLista != null)
             {
                 if (Boton == 0)
@@ -68,8 +69,8 @@ namespace SERINSI_PC.Formularios.Inventario
             }
             objLista.id = IdListaPrecios;
             objLista.nombreLista = txtLista.Text;
-            bool sqlLista = controladorListaPrecios.CrearEditarEliminarListaPrecios(objLista, Boton);
-            if (sqlLista == true)
+            RespuestaCRUD sqlLista =await controladorListaPrecios.CrearEditarEliminarListaPrecios(objLista, Boton);
+            if (sqlLista.estado == true)
             {
                 if (Boton == 2)
                 {

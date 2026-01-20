@@ -1,4 +1,5 @@
-﻿using DAL.Controladores;
+﻿using DAL;
+using DAL.Controladores;
 using DAL.Controladores.Contabilidad;
 using DAL.Modelo;
 using Invenpol_Parqueadero_Motos.Clases;
@@ -164,7 +165,7 @@ namespace SERINSI_PC.Formularios.Inventario
             }
         }
 
-        private void btnPagar_Click(object sender, EventArgs e)
+        private async void btnPagar_Click(object sender, EventArgs e)
         {
             if (dgListaCompras.RowCount > 0 && dgListaCompras.CurrentRow.Index >= 0)
             {
@@ -175,16 +176,16 @@ namespace SERINSI_PC.Formularios.Inventario
                         if (MessageBox.Show("esta seguro de agregar el pago del bolsillo " + cmbTipoBosillo.Text, "Agregar Pago", MessageBoxButtons.YesNo, MessageBoxIcon.Question,MessageBoxDefaultButton.Button2) == DialogResult.Yes)
                         {
                             //agragamos el pago
-                            GestionarPago(0);
+                            await GestionarPago(0);
                         }
                     }
                 }
             }
         }
-        private void GestionarPago(int Boton)
+        private async Task GestionarPago(int Boton)
         {
             PagosCompras objPago = new PagosCompras();
-            objPago = ControladorPagosCompras.ConsultarX_IdPago(IdPago);
+            objPago =await ControladorPagosCompras.ConsultarX_IdPago(IdPago);
             if (objPago != null)
             {
                 if (Boton == 0)
@@ -206,8 +207,8 @@ namespace SERINSI_PC.Formularios.Inventario
             objPago.idBolsillo = Convert.ToInt32(cmbTipoBosillo.SelectedValue);
             objPago.idBaseCaja = VariablesPublicas.IdBaseActiva;
             objPago.idSede = VariablesPublicas.IdEmpresaLogueada;
-            bool sql = ControladorPagosCompras.Crear_Editar_Eliminar_PagoCompra(objPago, Boton);
-            if (sql == true)
+            RespuestaCRUD sql =await ControladorPagosCompras.Crear_Editar_Eliminar_PagoCompra(objPago, Boton);
+            if (sql.estado == true)
             {
                 if (Boton == 0)
                 {
@@ -219,7 +220,7 @@ namespace SERINSI_PC.Formularios.Inventario
                 }
                 //ahora actualizamos la cueta
                 Compras objCompra = new Compras();
-                objCompra = ControladorCompra.ConsultaListaX_IdCompra_Entity(IdCompra_frm);
+                objCompra =await ControladorCompra.ConsultaListaX_IdCompra_Entity(IdCompra_frm);
                 if (objCompra != null)
                 {
                     if (Boton == 0)
@@ -232,7 +233,7 @@ namespace SERINSI_PC.Formularios.Inventario
                         objCompra.valorPagadoCompra = ValorPagado - Convert.ToInt32(txtValorAPagar.Text);
                         objCompra.saldoCompra = Saldo + Convert.ToInt32(txtValorAPagar.Text);
                     }
-                    bool sqlCompra = ControladorCompra.GuardarEditarEliminarCompra(objCompra, 1);
+                    bool sqlCompra =await ControladorCompra.GuardarEditarEliminarCompra(objCompra, 1);
                     if (sqlCompra == true)
                     {
                         MessageBox.Show("La cuenta N° " + NumeroCompra + " fue actualizada correctamente.", "Pago agregado", MessageBoxButtons.OK, MessageBoxIcon.Information);

@@ -55,10 +55,10 @@ WHERE idVenta = {idVenta}
 ORDER BY id DESC;";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+                if (respuesta == null) return null;
 
-                var lista = JsonConvert.DeserializeObject<List<ConsecutivoRecibo>>(jsonReal);
-                return (lista != null && lista.Count > 0) ? lista[0] : null;
+                var lista = JsonConvert.DeserializeObject<ConsecutivoRecibo>(respuesta);
+                return lista;
             }
             catch (Exception ex)
             {

@@ -85,8 +85,28 @@ namespace POS_SERINSIS_PC_2022.Formularios.Configuracion
 
         private void frmBuscardorCliente_Load(object sender, EventArgs e)
         {
+            FrmLoading loading = null;
+            try
+            {
+                using (OpenFileDialog ofd = new OpenFileDialog())
+                {
+                    loading = FrmLoading.ShowLoading(this, "Cargarndo...");
+                    // inicio
 
 
+                    dgBuscarCliente.DataSource = ListaCliente;
+
+
+                    // fin
+                    FrmLoading.CloseLoading(this, loading);
+                }
+            }
+            catch (Exception ex)
+            {
+                FrmLoading.CloseLoading(this, loading);
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            
         }
 
         private void txtBuscarCiudad_TextChanged(object sender, EventArgs e)

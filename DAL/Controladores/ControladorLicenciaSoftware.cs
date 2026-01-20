@@ -53,13 +53,10 @@ FROM Licencia WITH (NOLOCK)
 WHERE clave = N'{lic}'
 ORDER BY id DESC;";
 
-                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
-
-                // respuesta viene como string JSON serializado
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true);
 
                 // convertimos a lista para tomar el primer registro
-                var lista = JsonConvert.DeserializeObject<List<Licencia>>(jsonReal);
+                var lista = JsonConvert.DeserializeObject<List<Licencia>>(respuesta);
 
                 return (lista != null && lista.Count > 0) ? lista[0] : null;
             }

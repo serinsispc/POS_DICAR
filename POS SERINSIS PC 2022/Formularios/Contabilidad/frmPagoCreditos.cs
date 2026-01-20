@@ -13,6 +13,7 @@ using SERINSI_PC.Formularios.Ventas;
 using SERINSI_PC.Formularios.Contabilidad;
 using Invenpol_Parqueadero_Motos.Clases;
 using System.Security.Cryptography;
+using DAL;
 
 namespace Invenpol_Parqueadero_Motos.Formularios.Tiemda
 {
@@ -48,10 +49,10 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Tiemda
             this.Close();
         }
 
-        private void frmPagoCreditos_Load(object sender, EventArgs e)
+        private async void frmPagoCreditos_Load(object sender, EventArgs e)
         {
             cargarBolsillo();
-            hallarTotalPendiente();
+            await hallarTotalPendiente();
             LlenarDGCompleto();
             txtBuscadorCliente.Focus();
         }
@@ -61,10 +62,10 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Tiemda
             cmbBolsillo.DisplayMember = "nombreBolsillo";
             cmbBolsillo.DataSource = ControladorBilsillo.listaCompleta();
         }
-        private void hallarTotalPendiente()
+        private async Task hallarTotalPendiente()
         {
             //en esta parte llenamos el total de los creditos pendientes
-            TotalCreditosPendientes = ControladorClienteTienda.SumarTotalCreditosPendientes();
+            TotalCreditosPendientes =await ControladorClienteTienda.SumarTotalCreditosPendientes();
             txtTotalCreditoPendiente.Text = "Total Pendiente: $ " + string.Format("{0:#,##0.##}", TotalCreditosPendientes);
         }
         private void LlenarDGCompleto()
@@ -144,27 +145,27 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Tiemda
                 //NumeroFactura = Convert.ToInt32(fila.Cells["numeroVenta"].Value);
             }
         }
-        private void btnPagar_Click(object sender, EventArgs e)
+        private async void btnPagar_Click(object sender, EventArgs e)
         {
-            Trasladar();
+            await Trasladar();
         }
-        private void Trasladar()
+        private async Task Trasladar()
         {
             DetalleVenta objDV = new DetalleVenta();
-            objDV = ControladorDetalleVenta.ConsultarX_IDDetalle(IdDetalle);
+            objDV =await ControladorDetalleVenta.ConsultarX_IDDetalle(IdDetalle);
             if (objDV != null)
             {
-                bool sql = ControladorDetalleVenta.GuardarEditarEliminar(objDV, 1);
-                if (sql == true)
+                RespuestaCRUD sql =await ControladorDetalleVenta.GuardarEditarEliminar(objDV, 1);
+                if (sql.estado == true)
                 {
                     LlenarFacturas();
                 }
             }
         }
 
-        private void btnCargar_Click(object sender, EventArgs e)
+        private async void btnCargar_Click(object sender, EventArgs e)
         {
-            Trasladar();
+            await Trasladar();
         }
         private void txtEfectivo_KeyDown(object sender, KeyEventArgs e)
         {
@@ -201,7 +202,7 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Tiemda
             }
         }
 
-        private void btnPagarCredito_Click(object sender, EventArgs e)
+        private async void btnPagarCredito_Click(object sender, EventArgs e)
         {
             if (txtValorAPagar.Text != "")
             {
@@ -217,7 +218,7 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Tiemda
                     return;
                 }
                 //En esta parte actualizamos el pago en la tabla de ventas.
-                ActualizarPagoVentas(Convert.ToInt32(txtValorAPagar.Text));
+                await ActualizarPagoVentas(Convert.ToInt32(txtValorAPagar.Text));
                 ActualizarCredito();
                 //ahora cargamos los txt
                 txtNombreCliente.Text = "";
@@ -233,12 +234,12 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Tiemda
                 txtEfectivo.Text = "";
                 txtValorAPagar.Text = "";
                 txtBuscadorCliente.Focus();
-                hallarTotalPendiente();
+                await hallarTotalPendiente();
   
             }
         }
         int IdVenta = 0;
-        private void ActualizarPagoVentas(decimal ValorAPagar)
+        private async Task ActualizarPagoVentas(decimal ValorAPagar)
         {
             IdVenta = 0;
             if (MessageBox.Show("¿Está seguro de agregar el dinero de bolsillo "+ cmbBolsillo.Text +"?", "Bolsillo", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
@@ -253,12 +254,12 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Tiemda
                 decimal ValorIngresado = ValorAPagar;
 
                 V_R_VentaCliente v_R_VentaCliente = new V_R_VentaCliente();
-                v_R_VentaCliente = ControladorVenta.ConsultarX_IdCleinte_EstadoVenta(IdCliente_frm, "PENDIENTE");
+                v_R_VentaCliente = await ControladorVenta.ConsultarX_IdCleinte_EstadoVenta(IdCliente_frm, "PENDIENTE");
                 if (v_R_VentaCliente != null)
                 {
                     IdVenta = v_R_VentaCliente.id;
                     V_TablaVentas v_TablaVentas = new V_TablaVentas();
-                    v_TablaVentas = ControladorVenta.ConsultaX_V_id(IdVenta);
+                    v_TablaVentas =await ControladorVenta.ConsultaX_V_id(IdVenta);
                     if (v_TablaVentas != null)
                     {
                        
@@ -289,35 +290,35 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Tiemda
                         objPCT.idBasecaja = VariablesPublicas.IdBaseActiva;
                         objPCT.idBolsillo = Convert.ToInt32(cmbBolsillo.SelectedValue);
                         objPCT.idSede = VariablesPublicas.IdEmpresaLogueada;
-                        bool sqlPago = ControladorPagosCreditoTienda.Crear_Editar_Eliminar_PagoCreditoTienda(objPCT, 0);
-                        if (sqlPago == true)
+                        RespuestaCRUD sqlPago =await ControladorPagosCreditoTienda.Crear_Editar_Eliminar_PagoCreditoTienda(objPCT, 0);
+                        if (sqlPago.estado == true)
                         {
                             //consultar si la venta queda con saldo pendiente
                             V_TablaVentas tv = new V_TablaVentas();
-                            tv = ControladorVenta.ConsultaX_V_id(IdVenta);
+                            tv =await ControladorVenta.ConsultaX_V_id(IdVenta);
                             if (tv != null)
                             {
                                 if (tv.totalPendienteVenta == 0)
                                 {
                                     R_PedidoVenta r_PedidoVenta = new R_PedidoVenta();
-                                    r_PedidoVenta = controladorR_PedidoVenta.Consultar_idVenta(tv.id);
+                                    r_PedidoVenta = await controladorR_PedidoVenta.Consultar_idVenta(tv.id);
                                     if (r_PedidoVenta != null)
                                     {
                                         Pedidos pedidos = new Pedidos();
-                                        pedidos = controladorPedidos.Consultar_guid(r_PedidoVenta.guidPedido);
+                                        pedidos =await controladorPedidos.Consultar_guid(r_PedidoVenta.guidPedido);
                                         if (pedidos != null)
                                         {
                                             pedidos.idEstadoPedido = 3;
-                                            bool crud = controladorPedidos.Crud(pedidos, 1);
-                                            if (crud == true)
+                                            RespuestaCRUD crud =await controladorPedidos.Crud(pedidos, 1);
+                                            if (crud.estado == true)
                                             {
                                                 //cambiamos estado venta
                                                 TablaVentas tablaVentas = new TablaVentas();
-                                                tablaVentas = ControladorVenta.ConsultaX_id(tv.id);
+                                                tablaVentas =await ControladorVenta.ConsultaX_id(tv.id);
                                                 if (tablaVentas != null)
                                                 {
                                                     tablaVentas.estadoVenta = "CANCELADO";
-                                                    bool crud_venta = ControladorVenta.Crud(tablaVentas, 1);
+                                                    bool crud_venta =await ControladorVenta.Crud(tablaVentas, 1);
                                                 }
                                             }
                                         }
@@ -418,7 +419,7 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Tiemda
             txtSaldo.Text = "$ " + string.Format("{0:#,##0.##}", Convert.ToDouble(Saldo));
         }
 
-        private void label10_Click(object sender, EventArgs e)
+        private async void label10_Click(object sender, EventArgs e)
         {
             SeleccionarFactura();
             frmVerPagosCredito frm = new frmVerPagosCredito();
@@ -427,7 +428,7 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Tiemda
             frm.ShowDialog();
 
             cargarBolsillo();
-            hallarTotalPendiente();
+            await hallarTotalPendiente();
             LlenarDGCompleto();
             txtBuscadorCliente.Focus();
         }

@@ -34,16 +34,16 @@ namespace SERINSI_PC.Formularios.Ventas
             InitializeComponent();
         }
 
-        private void frmDetalleFacturaCredito_Load(object sender, EventArgs e)
+        private async void frmDetalleFacturaCredito_Load(object sender, EventArgs e)
         {
-            dgDetalleVenta.DataSource = ControladorDetalleVenta.ListaDetalleVentaProductos(IDVenta_frm);
+            dgDetalleVenta.DataSource =await ControladorDetalleVenta.ListaDetalleVenta(IDVenta_frm);
         }
 
         private void btnCerrar_Click(object sender, EventArgs e)
         {
             this.Close();
         }
-        private void SeleccionarProducto()
+        private async Task SeleccionarProducto()
         {
             if (dgDetalleVenta.RowCount > 0 && dgDetalleVenta.CurrentRow.Index >= 0)
             {
@@ -52,7 +52,7 @@ namespace SERINSI_PC.Formularios.Ventas
                 IdInventario_frm= Convert.ToInt32(fila.Cells["idInventario"].Value);
                 //hallamos el id del producto
                 DAL.Modelo.Inventario objInventario = new DAL.Modelo.Inventario();
-                objInventario = controladorInventario.ConsultarId(IdInventario_frm);
+                objInventario =await controladorInventario.ConsultarId(IdInventario_frm);
                 if (objInventario != null)
                 {
                     IdProducto = objInventario.idProducto;
@@ -93,20 +93,20 @@ namespace SERINSI_PC.Formularios.Ventas
             }
         }
 
-        private void btnAnular_Click(object sender, EventArgs e)
+        private async void btnAnular_Click(object sender, EventArgs e)
         {
             CantidadActual = CantidadAnterior - CantidadARetornar;
             TotalDetalle_frm = PrecioDetalle * CantidadActual;
             if (MessageBox.Show("Esta seguro de retornar ( " + CantidadARetornar + " ) unidades del producto ( " + DescripcionProducto_frm + " )", "Retornar", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
                 DetalleVenta objDetalle = new DetalleVenta();
-                objDetalle = ControladorDetalleVenta.ConsultarX_IDDetalle(IdDetalle);
+                objDetalle = await ControladorDetalleVenta.ConsultarX_IDDetalle(IdDetalle);
                 if (objDetalle != null)
                 {
                     objDetalle.cantidadDetalle = CantidadActual;
                     //objDetalle.totalDetalle = TotalDetalle_frm;
-                    bool sql = ControladorDetalleVenta.GuardarEditarEliminar(objDetalle, 1);
-                    if (sql == true)
+                    RespuestaCRUD sql =await ControladorDetalleVenta.GuardarEditarEliminar(objDetalle, 1);
+                    if (sql.estado == true)
                     {
                         //en esta parte retornamos la cantidad anulada al inventario
                         bool retornar = RetornarInventario(CantidadARetornar);

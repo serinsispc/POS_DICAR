@@ -29,8 +29,8 @@ namespace SERINSI_PC.Formularios.Ventas
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             this.dgPedidos = new System.Windows.Forms.DataGridView();
             this.id = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.guidPedido = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -70,9 +70,7 @@ namespace SERINSI_PC.Formularios.Ventas
             this.panel3 = new System.Windows.Forms.Panel();
             this.panel4 = new System.Windows.Forms.Panel();
             this.panel5 = new System.Windows.Forms.Panel();
-            this.btnImp1 = new FontAwesome.Sharp.IconButton();
             this.btnReImprimirGrupo = new FontAwesome.Sharp.IconButton();
-            this.btnReImprimir1 = new FontAwesome.Sharp.IconButton();
             ((System.ComponentModel.ISupportInitialize)(this.dgPedidos)).BeginInit();
             this.flowLayoutPanel1.SuspendLayout();
             this.panel1.SuspendLayout();
@@ -90,14 +88,14 @@ namespace SERINSI_PC.Formularios.Ventas
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.dgPedidos.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
-            dataGridViewCellStyle5.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle5.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle5.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            dataGridViewCellStyle5.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle5.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle5.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle5.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dgPedidos.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle5;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgPedidos.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             this.dgPedidos.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgPedidos.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.id,
@@ -122,6 +120,7 @@ namespace SERINSI_PC.Formularios.Ventas
             this.dgPedidos.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.dgPedidos.Size = new System.Drawing.Size(993, 283);
             this.dgPedidos.TabIndex = 0;
+            this.dgPedidos.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgPedidos_CellContentClick);
             // 
             // id
             // 
@@ -245,9 +244,9 @@ namespace SERINSI_PC.Formularios.Ventas
             // totalPedido
             // 
             this.totalPedido.DataPropertyName = "totalPedido";
-            dataGridViewCellStyle6.Format = "C0";
-            dataGridViewCellStyle6.NullValue = null;
-            this.totalPedido.DefaultCellStyle = dataGridViewCellStyle6;
+            dataGridViewCellStyle2.Format = "C0";
+            dataGridViewCellStyle2.NullValue = null;
+            this.totalPedido.DefaultCellStyle = dataGridViewCellStyle2;
             this.totalPedido.HeaderText = "Total";
             this.totalPedido.Name = "totalPedido";
             this.totalPedido.ReadOnly = true;
@@ -275,7 +274,7 @@ namespace SERINSI_PC.Formularios.Ventas
             this.btnFacturar.Padding = new System.Windows.Forms.Padding(2, 0, 0, 0);
             this.btnFacturar.Size = new System.Drawing.Size(142, 45);
             this.btnFacturar.TabIndex = 51;
-            this.btnFacturar.Text = "Facturar Grupo";
+            this.btnFacturar.Text = "Facturar";
             this.btnFacturar.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
             this.btnFacturar.UseVisualStyleBackColor = true;
             this.btnFacturar.Click += new System.EventHandler(this.btnFacturar_Click);
@@ -284,7 +283,7 @@ namespace SERINSI_PC.Formularios.Ventas
             // 
             this.btnVerDetalle.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnVerDetalle.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnVerDetalle.IconChar = FontAwesome.Sharp.IconChar.FileAlt;
+            this.btnVerDetalle.IconChar = FontAwesome.Sharp.IconChar.FileText;
             this.btnVerDetalle.IconColor = System.Drawing.Color.Black;
             this.btnVerDetalle.IconFont = FontAwesome.Sharp.IconFont.Auto;
             this.btnVerDetalle.IconSize = 40;
@@ -345,7 +344,7 @@ namespace SERINSI_PC.Formularios.Ventas
             this.btnAlistamiento.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnAlistamiento.Enabled = false;
             this.btnAlistamiento.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnAlistamiento.IconChar = FontAwesome.Sharp.IconChar.CartFlatbed;
+            this.btnAlistamiento.IconChar = FontAwesome.Sharp.IconChar.DollyFlatbed;
             this.btnAlistamiento.IconColor = System.Drawing.Color.Black;
             this.btnAlistamiento.IconFont = FontAwesome.Sharp.IconFont.Auto;
             this.btnAlistamiento.IconSize = 40;
@@ -488,9 +487,7 @@ namespace SERINSI_PC.Formularios.Ventas
             this.flowLayoutPanel1.Controls.Add(this.btnAlistamiento);
             this.flowLayoutPanel1.Controls.Add(this.btnVerDetalle);
             this.flowLayoutPanel1.Controls.Add(this.btnFacturar);
-            this.flowLayoutPanel1.Controls.Add(this.btnImp1);
             this.flowLayoutPanel1.Controls.Add(this.btnReImprimirGrupo);
-            this.flowLayoutPanel1.Controls.Add(this.btnReImprimir1);
             this.flowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Top;
             this.flowLayoutPanel1.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.flowLayoutPanel1.Location = new System.Drawing.Point(0, 0);
@@ -543,25 +540,6 @@ namespace SERINSI_PC.Formularios.Ventas
             this.panel5.Size = new System.Drawing.Size(88, 55);
             this.panel5.TabIndex = 90;
             // 
-            // btnImp1
-            // 
-            this.btnImp1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnImp1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnImp1.IconChar = FontAwesome.Sharp.IconChar.FileInvoiceDollar;
-            this.btnImp1.IconColor = System.Drawing.Color.Black;
-            this.btnImp1.IconFont = FontAwesome.Sharp.IconFont.Auto;
-            this.btnImp1.IconSize = 40;
-            this.btnImp1.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnImp1.Location = new System.Drawing.Point(1309, 3);
-            this.btnImp1.Name = "btnImp1";
-            this.btnImp1.Padding = new System.Windows.Forms.Padding(2, 0, 0, 0);
-            this.btnImp1.Size = new System.Drawing.Size(142, 45);
-            this.btnImp1.TabIndex = 90;
-            this.btnImp1.Text = "Facturar 1";
-            this.btnImp1.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
-            this.btnImp1.UseVisualStyleBackColor = true;
-            this.btnImp1.Click += new System.EventHandler(this.btnImp1_Click);
-            // 
             // btnReImprimirGrupo
             // 
             this.btnReImprimirGrupo.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
@@ -571,34 +549,15 @@ namespace SERINSI_PC.Formularios.Ventas
             this.btnReImprimirGrupo.IconFont = FontAwesome.Sharp.IconFont.Auto;
             this.btnReImprimirGrupo.IconSize = 40;
             this.btnReImprimirGrupo.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnReImprimirGrupo.Location = new System.Drawing.Point(1457, 3);
+            this.btnReImprimirGrupo.Location = new System.Drawing.Point(1309, 3);
             this.btnReImprimirGrupo.Name = "btnReImprimirGrupo";
             this.btnReImprimirGrupo.Padding = new System.Windows.Forms.Padding(2, 0, 0, 0);
             this.btnReImprimirGrupo.Size = new System.Drawing.Size(142, 45);
             this.btnReImprimirGrupo.TabIndex = 92;
-            this.btnReImprimirGrupo.Text = "Imprimir Grupo";
+            this.btnReImprimirGrupo.Text = "Imprimir";
             this.btnReImprimirGrupo.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
             this.btnReImprimirGrupo.UseVisualStyleBackColor = true;
             this.btnReImprimirGrupo.Click += new System.EventHandler(this.btnReImprimirGrupo_Click);
-            // 
-            // btnReImprimir1
-            // 
-            this.btnReImprimir1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnReImprimir1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnReImprimir1.IconChar = FontAwesome.Sharp.IconChar.Print;
-            this.btnReImprimir1.IconColor = System.Drawing.Color.Black;
-            this.btnReImprimir1.IconFont = FontAwesome.Sharp.IconFont.Auto;
-            this.btnReImprimir1.IconSize = 40;
-            this.btnReImprimir1.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnReImprimir1.Location = new System.Drawing.Point(1605, 3);
-            this.btnReImprimir1.Name = "btnReImprimir1";
-            this.btnReImprimir1.Padding = new System.Windows.Forms.Padding(2, 0, 0, 0);
-            this.btnReImprimir1.Size = new System.Drawing.Size(142, 45);
-            this.btnReImprimir1.TabIndex = 93;
-            this.btnReImprimir1.Text = "Imprimir 1";
-            this.btnReImprimir1.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
-            this.btnReImprimir1.UseVisualStyleBackColor = true;
-            this.btnReImprimir1.Click += new System.EventHandler(this.btnReImprimir1_Click);
             // 
             // frm_pedidos
             // 
@@ -670,8 +629,6 @@ namespace SERINSI_PC.Formularios.Ventas
         private System.Windows.Forms.Panel panel3;
         private System.Windows.Forms.Panel panel4;
         private System.Windows.Forms.Panel panel5;
-        private FontAwesome.Sharp.IconButton btnImp1;
         private FontAwesome.Sharp.IconButton btnReImprimirGrupo;
-        private FontAwesome.Sharp.IconButton btnReImprimir1;
     }
 }

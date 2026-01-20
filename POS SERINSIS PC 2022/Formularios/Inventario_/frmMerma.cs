@@ -28,9 +28,9 @@ namespace SERINSI_PC.Formularios.Inventario
         public int idInventario_frm = 0;
         int idmerma_frm = 0;
         int cantidadPresentacion_frm = 0;
-        private void frmMerma_Load(object sender, EventArgs e)
+        private async void frmMerma_Load(object sender, EventArgs e)
         {
-            LLenarCMB();
+            await LLenarCMB();
             CargarDG();
             txtBuscarCodigo.Focus();
         }
@@ -38,12 +38,12 @@ namespace SERINSI_PC.Formularios.Inventario
         {
             dgMerma.DataSource = ControladorMerma.listaCompleta();
         }
-        public void LLenarCMB()
+        public async Task LLenarCMB()
         {
             cmbTipoMerma.DataSource = null;
             cmbTipoMerma.ValueMember = "id";
             cmbTipoMerma.DisplayMember = "nombreTipoMerma";
-            cmbTipoMerma.DataSource = ControladorTipoMerma.listaCompleta();
+            cmbTipoMerma.DataSource =await ControladorTipoMerma.ListaCompleta();
         }
 
 
@@ -55,7 +55,7 @@ namespace SERINSI_PC.Formularios.Inventario
             }
         }
 
-        private void btnGuardar_Click(object sender, EventArgs e)
+        private async void btnGuardar_Click(object sender, EventArgs e)
         {
             if (cmbTipoMerma.Text != "" &&
                txtBuscarCodigo.Text != "" &&
@@ -64,13 +64,13 @@ namespace SERINSI_PC.Formularios.Inventario
                txtObservacion.Text!="")
             {
                 cantidadPresentacion_frm = Convert.ToInt32(txtCantidad.Text);
-                GestionarMerma(0);
+                await GestionarMerma(0);
             }
         }
-        private void GestionarMerma(int Boton)
+        private async Task GestionarMerma(int Boton)
         {
             Merma objMerma = new Merma();
-            objMerma = ControladorMerma.ConsultarID(idmerma_frm);
+            objMerma =await ControladorMerma.ConsultarID(idmerma_frm);
             if (objMerma != null)
             {
                 if (Boton == 0)
@@ -91,8 +91,8 @@ namespace SERINSI_PC.Formularios.Inventario
             objMerma.fechaMerma = dtFechaMerma.Value;
             objMerma.cantidadMerma = cantidadPresentacion_frm;
             objMerma.observacion =txtObservacion.Text;
-            bool sql = ControladorMerma.Crud(objMerma, Boton);
-            if (sql == true)
+            RespuestaCRUD sql =await ControladorMerma.Crud(objMerma, Boton);
+            if (sql.estado == true)
             {
                 MessageBox.Show("producto descontado correctamente.", "Merma", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 CargarDG();
@@ -122,10 +122,10 @@ namespace SERINSI_PC.Formularios.Inventario
                 return false;
             }
         }
-        private void btnEliminar_Click(object sender, EventArgs e)
+        private async void btnEliminar_Click(object sender, EventArgs e)
         {
             SeleccionarMerma();
-            GestionarMerma(2);
+            await GestionarMerma(2);
         }
         private void SeleccionarMerma()
         {
@@ -177,14 +177,14 @@ namespace SERINSI_PC.Formularios.Inventario
             btnEliminar.BackColor = Color.Transparent;
         }
 
-        private void txtBuscarCodigo_KeyDown(object sender, KeyEventArgs e)
+        private async void txtBuscarCodigo_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
             {
                 if (txtBuscarCodigo.Text != "")
                 {
                     v_productoVenta objBuscador = new v_productoVenta();
-                    objBuscador = ControladorProducto.BuscarCodigo(VariablesPublicas.IdEmpresaLogueada, 1, txtBuscarCodigo.Text);
+                    objBuscador =await ControladorProducto.BuscarCodigo(VariablesPublicas.IdEmpresaLogueada, 1, txtBuscarCodigo.Text);
                     if (objBuscador != null)
                     {
                         idInventario_frm = objBuscador.idInventario;

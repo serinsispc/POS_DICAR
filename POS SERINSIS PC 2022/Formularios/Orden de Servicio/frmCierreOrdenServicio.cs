@@ -30,15 +30,15 @@ namespace SERINSI_PC.Formularios.Orden_de_Servicio
             frm.FactuarOrden = "no";
             this.Close();
         }
-        private bool VerificarPermisoSubModulo(int IdSubModulo)
+        private async Task<bool> VerificarPermisoSubModulo(int IdSubModulo)
         {
-            DataTable objPermisoSubModulo = new DataTable();
-            objPermisoSubModulo = ControladorPermisoSubModulo.consultarIdusuario(VariablesPublicas.IdUsuarioLogueado);
+            List<PermisoSubModulo> objPermisoSubModulo = new List<PermisoSubModulo>();
+            objPermisoSubModulo =await ControladorPermisoSubModulo.consultarIdusuario(VariablesPublicas.IdUsuarioLogueado);
             if (objPermisoSubModulo != null)
             {
-                foreach(DataRow rows1 in objPermisoSubModulo.Rows)
+                foreach(var rows1 in objPermisoSubModulo)
                 {
-                    if (Convert.ToInt32(rows1["idSubModulo"]) == IdSubModulo)
+                    if (Convert.ToInt32(rows1.idSubModulo) == IdSubModulo)
                     {
                         return true;
                     }
@@ -50,14 +50,14 @@ namespace SERINSI_PC.Formularios.Orden_de_Servicio
                 return false;
             }
         }
-        private void btnFacturarOrden_Click(object sender, EventArgs e)
+        private async void btnFacturarOrden_Click(object sender, EventArgs e)
         {
             if (VariablesPublicas.IdBaseActiva == 0)
             {
                 MessageBox.Show("Para poder continuar debe activar la base de la caja.", "Base Caja", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            bool permiso = VerificarPermisoSubModulo(11);
+            bool permiso =await VerificarPermisoSubModulo(11);
             if (permiso == true)
             {
 

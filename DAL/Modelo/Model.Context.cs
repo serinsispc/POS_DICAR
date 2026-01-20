@@ -49,6 +49,7 @@ namespace DAL.Modelo
         public virtual DbSet<DetalleTraslado> DetalleTraslado { get; set; }
         public virtual DbSet<DetalleVenta> DetalleVenta { get; set; }
         public virtual DbSet<DetalleVentaActiva> DetalleVentaActiva { get; set; }
+        public virtual DbSet<Empresas> Empresas { get; set; }
         public virtual DbSet<EstadoAI> EstadoAI { get; set; }
         public virtual DbSet<EstadoInventario> EstadoInventario { get; set; }
         public virtual DbSet<EstadoPedido> EstadoPedido { get; set; }
@@ -148,6 +149,682 @@ namespace DAL.Modelo
         public virtual DbSet<V_Traslados> V_Traslados { get; set; }
         public virtual DbSet<v_Usuario> v_Usuario { get; set; }
         public virtual DbSet<V_Vendedor> V_Vendedor { get; set; }
+    
+        public virtual ObjectResult<CRUD_AdminControl_Result> CRUD_AdminControl(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_AdminControl_Result>("CRUD_AdminControl", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_ArchivoCompras_Result> CRUD_ArchivoCompras(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_ArchivoCompras_Result>("CRUD_ArchivoCompras", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_AutorizacionPC_Result> CRUD_AutorizacionPC(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_AutorizacionPC_Result>("CRUD_AutorizacionPC", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_BaseCaja_Result> CRUD_BaseCaja(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_BaseCaja_Result>("CRUD_BaseCaja", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_Bodega_Result> CRUD_Bodega(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_Bodega_Result>("CRUD_Bodega", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_CategoriaProducto_Result> CRUD_CategoriaProducto(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_CategoriaProducto_Result>("CRUD_CategoriaProducto", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_Clientes_Result> CRUD_Clientes(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_Clientes_Result>("CRUD_Clientes", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_Compras_Result> CRUD_Compras(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_Compras_Result>("CRUD_Compras", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_ConsecutivoFactura_Result> CRUD_ConsecutivoFactura(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_ConsecutivoFactura_Result>("CRUD_ConsecutivoFactura", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_ConsecutivoRecibo_Result> CRUD_ConsecutivoRecibo(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_ConsecutivoRecibo_Result>("CRUD_ConsecutivoRecibo", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_ConsecutivoVentaUsado_Result> CRUD_ConsecutivoVentaUsado(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_ConsecutivoVentaUsado_Result>("CRUD_ConsecutivoVentaUsado", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_DestapeProducto_Result> CRUD_DestapeProducto(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_DestapeProducto_Result>("CRUD_DestapeProducto", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_DetalleCompra_Result> CRUD_DetalleCompra(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_DetalleCompra_Result>("CRUD_DetalleCompra", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_DetalleOrdenFabrica_Result> CRUD_DetalleOrdenFabrica(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_DetalleOrdenFabrica_Result>("CRUD_DetalleOrdenFabrica", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_DetalleTraslado_Result> CRUD_DetalleTraslado(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_DetalleTraslado_Result>("CRUD_DetalleTraslado", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_DetalleVenta_Result> CRUD_DetalleVenta(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_DetalleVenta_Result>("CRUD_DetalleVenta", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_Gastos_Result> CRUD_Gastos(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_Gastos_Result>("CRUD_Gastos", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_GuidTraslados_Result> CRUD_GuidTraslados(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_GuidTraslados_Result>("CRUD_GuidTraslados", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_Inventario_Result> CRUD_Inventario(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_Inventario_Result>("CRUD_Inventario", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_InventarioTotal_Result> CRUD_InventarioTotal(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_InventarioTotal_Result>("CRUD_InventarioTotal", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_LibroDiario_Result> CRUD_LibroDiario(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_LibroDiario_Result>("CRUD_LibroDiario", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_Licencia_Result> CRUD_Licencia(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_Licencia_Result>("CRUD_Licencia", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_ListaPrecios_Result> CRUD_ListaPrecios(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_ListaPrecios_Result>("CRUD_ListaPrecios", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_Merma_Result> CRUD_Merma(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_Merma_Result>("CRUD_Merma", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_OrdenFabrica_Result> CRUD_OrdenFabrica(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_OrdenFabrica_Result>("CRUD_OrdenFabrica", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_OrdenServicio_Result> CRUD_OrdenServicio(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_OrdenServicio_Result>("CRUD_OrdenServicio", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_PagosCompras_Result> CRUD_PagosCompras(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_PagosCompras_Result>("CRUD_PagosCompras", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_PagosCreditoTienda_Result> CRUD_PagosCreditoTienda(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_PagosCreditoTienda_Result>("CRUD_PagosCreditoTienda", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_Pedidos_Result> CRUD_Pedidos(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_Pedidos_Result>("CRUD_Pedidos", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_Precios_Result> CRUD_Precios(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_Precios_Result>("CRUD_Precios", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_Presentacion_Result> CRUD_Presentacion(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_Presentacion_Result>("CRUD_Presentacion", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_Producto_Result> CRUD_Producto(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_Producto_Result>("CRUD_Producto", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_Proveedor_Result> CRUD_Proveedor(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_Proveedor_Result>("CRUD_Proveedor", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_R_ClienteVendedor_Result> CRUD_R_ClienteVendedor(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_R_ClienteVendedor_Result>("CRUD_R_ClienteVendedor", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_R_PedidoVenta_Result> CRUD_R_PedidoVenta(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_R_PedidoVenta_Result>("CRUD_R_PedidoVenta", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_R_VentaCliente_Result> CRUD_R_VentaCliente(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_R_VentaCliente_Result>("CRUD_R_VentaCliente", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_R_VentaUsuario_Result> CRUD_R_VentaUsuario(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_R_VentaUsuario_Result>("CRUD_R_VentaUsuario", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_ReporteActualizacionEquipo_Result> CRUD_ReporteActualizacionEquipo(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_ReporteActualizacionEquipo_Result>("CRUD_ReporteActualizacionEquipo", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_ResponsableOrdenFabrica_Result> CRUD_ResponsableOrdenFabrica(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_ResponsableOrdenFabrica_Result>("CRUD_ResponsableOrdenFabrica", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_RutaActualizacionEquipo_Result> CRUD_RutaActualizacionEquipo(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_RutaActualizacionEquipo_Result>("CRUD_RutaActualizacionEquipo", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_Sede_Result> CRUD_Sede(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_Sede_Result>("CRUD_Sede", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_SedesAsignadas_Result> CRUD_SedesAsignadas(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_SedesAsignadas_Result>("CRUD_SedesAsignadas", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_TablaVentas_Result> CRUD_TablaVentas(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_TablaVentas_Result>("CRUD_TablaVentas", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_TipoArticulo_Result> CRUD_TipoArticulo(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_TipoArticulo_Result>("CRUD_TipoArticulo", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_TipoGasto_Result> CRUD_TipoGasto(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_TipoGasto_Result>("CRUD_TipoGasto", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_TipoMedida_Result> CRUD_TipoMedida(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_TipoMedida_Result>("CRUD_TipoMedida", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_TipoMerma_Result> CRUD_TipoMerma(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_TipoMerma_Result>("CRUD_TipoMerma", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_TipoServicio_Result> CRUD_TipoServicio(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_TipoServicio_Result>("CRUD_TipoServicio", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_Traslados_Result> CRUD_Traslados(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_Traslados_Result>("CRUD_Traslados", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_Usuario_Result> CRUD_Usuario(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_Usuario_Result>("CRUD_Usuario", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_Vendedor_Result> CRUD_Vendedor(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_Vendedor_Result>("CRUD_Vendedor", jsonParameter, funcionParameter);
+        }
+    
+        public virtual ObjectResult<CRUD_VersionSoftware_Result> CRUD_VersionSoftware(string json, Nullable<int> funcion)
+        {
+            var jsonParameter = json != null ?
+                new ObjectParameter("json", json) :
+                new ObjectParameter("json", typeof(string));
+    
+            var funcionParameter = funcion.HasValue ?
+                new ObjectParameter("funcion", funcion) :
+                new ObjectParameter("funcion", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<CRUD_VersionSoftware_Result>("CRUD_VersionSoftware", jsonParameter, funcionParameter);
+        }
     
         public virtual int EliminarArchivoComra(Nullable<int> idCompra)
         {

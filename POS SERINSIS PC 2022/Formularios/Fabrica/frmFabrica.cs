@@ -1,4 +1,5 @@
-﻿using DAL.Controladores;
+﻿using DAL;
+using DAL.Controladores;
 using DAL.Modelo;
 using System;
 using System.Collections.Generic;
@@ -94,12 +95,12 @@ namespace SERINSI_PC.Formularios.Fabrica
             frm.ShowDialog();
         }
 
-        private void btnEliminarOrden_Click(object sender, EventArgs e)
+        private async void btnEliminarOrden_Click(object sender, EventArgs e)
         {
             SeleccionarOrden();
             //en esta parte lo primero es consultar si la orden tiene cargado algun producto
             List<DetalleOrdenFabrica> objListaDetalleOrden = new List<DetalleOrdenFabrica>();
-            objListaDetalleOrden = controladorDetalleOrdenFabrica.Filtro_IDOrden(IdOrdenFabrica);
+            objListaDetalleOrden =await controladorDetalleOrdenFabrica.Filtro_IDOrden(IdOrdenFabrica);
             if (objListaDetalleOrden.Count > 0)
             {
                 MessageBox.Show(" Se a detectado que la orden seleccionada tiene cargado insumos,"+Environment.NewLine+
@@ -108,11 +109,11 @@ namespace SERINSI_PC.Formularios.Fabrica
             else
             {
                 OrdenFabrica objOrden = new OrdenFabrica();
-                objOrden = controladorOrdenFabrica.consultarID(IdOrdenFabrica);
+                objOrden =await controladorOrdenFabrica.consultarID(IdOrdenFabrica);
                 if (objOrden != null)
                 {
-                    bool sql = controladorOrdenFabrica.CrearEditarElimminarOrdenFabrica(objOrden,2);
-                    if (sql == true)
+                    RespuestaCRUD sql =await controladorOrdenFabrica.CrearEditarElimminarOrdenFabrica(objOrden,2);
+                    if (sql.estado == true)
                     {
                         llenarDGCOmpleta();
                     }

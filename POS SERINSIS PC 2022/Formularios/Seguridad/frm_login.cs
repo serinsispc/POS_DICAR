@@ -81,7 +81,7 @@ namespace SERINSI_PC.Formularios.Seguridad
             //en esta parte cargamos el logo de la empresa
             pbLogo.Image = ClassRuta.CargarLogo(VariablesPublicas.RutaImagenes, "\\Logo\\", "Logo.png");
             //en esta parte identificamos la targeta madre del equipo
-            VerificarConexionEquipo();
+            await VerificarConexionEquipo();
 
             txtUsuario.Focus();
         }
@@ -348,7 +348,7 @@ namespace SERINSI_PC.Formularios.Seguridad
                         objAPC.Version_pc = version;
                         objAPC.estado_equipo = 0;
                         objAPC.nombre_equipo = "nuevo";
-                        bool SQL = ControladorAutorizacionPC.Crear_Editar_Eliminar_Equipo(objAPC, 0);
+                        bool SQL =await ControladorAutorizacionPC.Crear_Editar_Eliminar_Equipo(objAPC, 0);
                         if (SQL == true)
                         {
 

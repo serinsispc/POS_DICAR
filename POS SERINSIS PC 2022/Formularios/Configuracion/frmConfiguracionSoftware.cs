@@ -52,7 +52,7 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Configuracion
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void frmConfiguracionSoftware_Load(object sender, EventArgs e)
+        private async void frmConfiguracionSoftware_Load(object sender, EventArgs e)
         {
             if (VariablesPublicas.IdTipoUsuario == 1)
             {
@@ -61,29 +61,29 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Configuracion
             //llenamos las variables
             idEmpresa = VariablesPublicas.IdEmpresaLogueada;
             //llamamos la funcion que se encarga de llenar los cmb
-            LLenarCmb();
+            await LLenarCmb();
             //llamamos la funcion que nos trae la informacion pedemdiendo el id de la empresa logueada
-            LLenarInformacion();
+            await LLenarInformacion();
             pbLogo.Image = ClassRuta.CargarLogo(VariablesPublicas.RutaImagenes, "\\Logo\\","Logo" + VariablesPublicas.IdEmpresaLogueada + ".png");
             //llamamos la impresora predeterminada
             String printerName = Impresor.ImpresoraPredeterminada();
             txtNombreImpresora.Text = printerName;
         }
-        public void LLenarCmb()
+        public async Task LLenarCmb()
         {
             cmbRegimen.Items.Add("--");
             cmbRegimen.Items.Add("NO RESPONSABLE DE IVA");
             cmbRegimen.Items.Add("COMUN");
             cmbRegimen.SelectedIndex = 0;
 
-            cmbTipoIpresora.DataSource = ControladorImpresora.listaCompleta();
+            cmbTipoIpresora.DataSource =await ControladorImpresora.listaCompleta();
             cmbTipoIpresora.ValueMember = "tamalo_papel";
             cmbTipoIpresora.DisplayMember = "nombre_impresora";
             cmbTipoIpresora.SelectedIndex = -1;
 
             cmbBodega.ValueMember = "id";
             cmbBodega.DisplayMember = "nombreBodega";
-            cmbBodega.DataSource= ControladorBodega.listaCompleta();
+            cmbBodega.DataSource=await ControladorBodega.listaCompleta();
 
             cbajonMonedero.Items.Add("si");
             cbajonMonedero.Items.Add("no");
@@ -91,11 +91,11 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Configuracion
         /// <summary>
         /// funcion para llenar los datos del parqueadero
         /// </summary>
-        public void LLenarInformacion()
+        public async Task LLenarInformacion()
         {
             //creamos un objeto para almacenar la información
             Sede objConfig = new Sede();
-            objConfig = ControladorSede.ConsultaXIdEmpresa(idEmpresa);
+            objConfig =await ControladorSede.ConsultaXIdEmpresa(idEmpresa);
             if (objConfig != null)//si se encontraron datos 
             {
                 //llenamos los campos del formulario
@@ -162,7 +162,7 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Configuracion
             }
             //en esta parte llenamos la autorizacion de facturacion electronica
             AutorizacionFacturacionElectronica autorizacion = new AutorizacionFacturacionElectronica();
-            autorizacion = controladorAutorazacion_FE.consultarAutorizacion(VariablesPublicas.IdEmpresaLogueada);
+            autorizacion =await controladorAutorazacion_FE.consultarAutorizacion(VariablesPublicas.IdEmpresaLogueada);
             if (autorizacion != null)
             {
                 txtPrefijo.Text = autorizacion.prefijo;
@@ -176,21 +176,21 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Configuracion
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void btnAceptar_Click(object sender, EventArgs e)
+        private async void btnAceptar_Click(object sender, EventArgs e)
         {
             //verificamos las condiciones
             bool Resp = Condiciones();
             if(Resp == true)
             {
                 //llamamos la funcion que se encarga de gestionar la configuracion y determinar si se va a crear,editar o eliminar
-                GestionarConfiguracion();
+                await GestionarConfiguracion();
             }
             else
             {
                 MessageBox.Show("Aún hay espacio vacío ", "ERROR",MessageBoxButtons.OK,MessageBoxIcon.Error);
             }
         }
-        public void GestionarConfiguracion()
+        public async Task GestionarConfiguracion()
         {
             if(idEmpresa ==0)
             {
@@ -202,7 +202,7 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Configuracion
             }
             //consultamos primero el id para saver si se va a crear o a editar
             Sede objconfig = new Sede();
-            objconfig = ControladorSede.ConsultaXIdEmpresa(VariablesPublicas.IdEmpresaLogueada);
+            objconfig =await ControladorSede.ConsultaXIdEmpresa(VariablesPublicas.IdEmpresaLogueada);
             if(objconfig == null)//preguntamos si el objeto trajo imformacion
             {
                 FechaCreacion = DateTime.Today;
@@ -284,10 +284,10 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Configuracion
             }
             objconfig.cajon_monedero = cbajonMonedero.Text;
             //ahora enviamos el objeto al controlador
-            bool Respuesta = ControladorSede.CrearEditarEliminarConfiguracion(objconfig, Boton);
+            bool Respuesta =await ControladorSede.CrearEditarEliminarConfiguracion(objconfig, Boton);
             if (Respuesta == true)
             {
-                Class_Informacion.CargarInformaionEmpresa();
+                await Class_Informacion.CargarInformaionEmpresa();
                 if (Boton == 0)
                 {
                     MessageBox.Show("La configuracion fue creada correcamente. ",

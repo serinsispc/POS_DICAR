@@ -6,16 +6,17 @@ using System.Collections.Generic;
 using winRdlc2;
 using System.Windows.Forms;
 using Invenpol_Parqueadero_Motos.Clases;
+using System.Threading.Tasks;
 
 namespace SERINSI_PC.Clases.TiketPOS
 {
     public class ClassImprimirDirecto
     {
         public static Form MdiParent { get; private set; }
-        public  static void CargarVarialesDatosEmpresa()
+        public  static async Task CargarVarialesDatosEmpresa()
         {
             Sede objCS = new Sede();
-            objCS = ControladorSede.ConsultaXIdEmpresa(VariablesPublicas.IdEmpresaLogueada);
+            objCS =await ControladorSede.ConsultaXIdEmpresa(VariablesPublicas.IdEmpresaLogueada);
             if (objCS != null)
             {
                 VariablesPublicas.NombreEmpresa = objCS.nombreSede;
@@ -27,27 +28,27 @@ namespace SERINSI_PC.Clases.TiketPOS
                 VariablesPublicas.PrefijoResolucion = objCS.prefijoFectura;
             }
         }
-        public static void FacturaVentaPOS(int IdVenta)
+        public static async Task FacturaVentaPOS(int IdVenta)
         {
             try
             {
                 List<R_DetalleVenta> ctx = new List<R_DetalleVenta>();
-                ctx = ControladorDetalleVenta.FiltrarX_IdVenta(IdVenta);
+                ctx =await ControladorDetalleVenta.FiltrarX_IdVenta(IdVenta);
 
                 V_TablaVentas v_TablaVentas = new V_TablaVentas();
-                v_TablaVentas = ControladorVenta.ConsultaX_V_id(IdVenta);
+                v_TablaVentas =await ControladorVenta.ConsultaX_V_id(IdVenta);
                 if (v_TablaVentas == null) return;
 
                 int iva =Convert.ToInt32(v_TablaVentas.ivaVenta);
 
                 dynamic dataSource = ctx;
-                CargarVarialesDatosEmpresa();
+                await CargarVarialesDatosEmpresa();
                 ReportParameter myPar35 = new ReportParameter();
                 if (VariablesPublicas.cufeFE != "")
                 {
                     //en esta parte consultamos la autorizafion de la dian en facturacionelectronica
                     AutorizacionFacturacionElectronica autorizacion = new AutorizacionFacturacionElectronica();
-                    autorizacion = controladorAutorazacion_FE.consultarAutorizacion(VariablesPublicas.IdEmpresaLogueada);
+                    autorizacion =await controladorAutorazacion_FE.consultarAutorizacion(VariablesPublicas.IdEmpresaLogueada);
                     if (autorizacion != null)
                     {
                         VariablesPublicas.PrefijoResolucion = autorizacion.prefijo;
@@ -113,7 +114,7 @@ namespace SERINSI_PC.Clases.TiketPOS
                 if (v_TablaVentas.nombreCliente!= "--")
                 {
                     Clientes cliente = new Clientes();
-                    cliente = ControladorClienteTienda.ConsultarX_Nombre(v_TablaVentas.nombreCliente);
+                    cliente =await ControladorClienteTienda.ConsultarX_Nombre(v_TablaVentas.nombreCliente);
                     if (cliente != null)
                     {
                         DocumentoCliente = cliente.documentoCliente;
@@ -194,25 +195,25 @@ namespace SERINSI_PC.Clases.TiketPOS
             }
         }
 
-        public static void FacturaVentaCarta(int Copias, int IdVenta)
+        public static async Task<bool> FacturaVentaCarta(int Copias, int IdVenta)
         {
             try
             {
                 V_TablaVentas v_TablaVentas = new V_TablaVentas();
-                v_TablaVentas = ControladorVenta.ConsultaX_V_id(IdVenta);
+                v_TablaVentas =await ControladorVenta.ConsultaX_V_id(IdVenta);
                 if (v_TablaVentas == null)
                 {
-                    return;
+                    return false;
                 }
 
 
                 int iva = Convert.ToInt32(v_TablaVentas.ivaVenta);
 
                 List<R_DetalleVenta> ctx = new List<R_DetalleVenta>();
-                ctx = ControladorDetalleVenta.FiltrarX_IdVenta(IdVenta);
+                ctx =await ControladorDetalleVenta.FiltrarX_IdVenta(IdVenta);
 
                 dynamic dataSource = ctx;
-                CargarVarialesDatosEmpresa();
+                await CargarVarialesDatosEmpresa();
                 LocalReport LRT = new LocalReport();
                 //en esta parte cargamos el reporte 
                 //System.Environment.CurrentDirectory 
@@ -251,7 +252,7 @@ namespace SERINSI_PC.Clases.TiketPOS
                 string barrio = " ";
                 if (v_TablaVentas.idCliente > 0)
                 {
-                    cliente = ControladorClienteTienda.ConsultarX_ID(v_TablaVentas.idCliente);
+                    cliente =await ControladorClienteTienda.ConsultarX_ID(v_TablaVentas.idCliente);
                     if (cliente != null)
                     {
                         nombreCliente = cliente.nombreCliente;
@@ -376,11 +377,13 @@ namespace SERINSI_PC.Clases.TiketPOS
 
                     cc.ImprimirTicket(printerName);
                 }
+                return true;    
             }
             catch (Exception ex)
             {
                 string Error = ex.Message;
                 MessageBox.Show(Error, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
             }
         }
 

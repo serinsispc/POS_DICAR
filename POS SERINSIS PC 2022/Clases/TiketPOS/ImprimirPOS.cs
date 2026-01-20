@@ -5,16 +5,17 @@ using System;
 using winRdlc2;
 using System.Windows.Forms;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace Invenpol_Parqueadero_Motos.Clases.TiketPOS
 {
     public class ImprimirPOS
     {
         public static Form MdiParent { get; private set; }
-        private static void CargarVarialesDatosEmpresa()
+        private static async Task CargarVarialesDatosEmpresa()
         {
             Sede objCS = new Sede();
-            objCS = ControladorSede.ConsultaXIdEmpresa(VariablesPublicas.IdEmpresaLogueada);
+            objCS =await ControladorSede.ConsultaXIdEmpresa(VariablesPublicas.IdEmpresaLogueada);
             if (objCS != null)
             {
                 VariablesPublicas.NombreEmpresa =objCS.nombreSede;

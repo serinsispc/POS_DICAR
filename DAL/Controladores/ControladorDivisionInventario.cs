@@ -105,6 +105,7 @@ namespace DAL.Controladores.Tienda
             }
             catch (Exception ex)
             {
+                string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
@@ -133,6 +134,7 @@ ORDER BY nombreBodega;";
             }
             catch (Exception ex)
             {
+                string error = ex.Message;
                 MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
