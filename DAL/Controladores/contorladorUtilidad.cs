@@ -23,12 +23,14 @@ namespace DAL.Controladores
                   and IdSede = {IdSede}
             ";
 
-                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+
 
                 if (!string.IsNullOrEmpty(resp))
                 {
-                    var data = JsonConvert.DeserializeObject<List<dynamic>>(resp);
-                    return Convert.ToInt32(data[0].total);
+                    var data = JsonConvert.DeserializeObject<ClassSumaTotal>(resp);
+                    return Convert.ToInt32(data.total);
                 }
 
                 return 0;
@@ -52,12 +54,14 @@ namespace DAL.Controladores
                   and IdSede = {IdSede}
             ";
 
-                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
+
+                if (resp == null) return 0;
 
                 if (!string.IsNullOrEmpty(resp))
                 {
-                    var data = JsonConvert.DeserializeObject<List<dynamic>>(resp);
-                    return Convert.ToInt32(data[0].total);
+                    var data = JsonConvert.DeserializeObject<ClassSumaTotal>(resp);
+                    return Convert.ToInt32(data.total);
                 }
 
                 return 0;
@@ -80,12 +84,12 @@ namespace DAL.Controladores
                   and IdSede = {IdSede}
             ";
 
-                var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
+                var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
 
                 if (!string.IsNullOrEmpty(resp))
                 {
-                    var data = JsonConvert.DeserializeObject<List<dynamic>>(resp);
-                    return Convert.ToInt32(data[0].total);
+                    var data = JsonConvert.DeserializeObject<ClassSumaTotal>(resp);
+                    return Convert.ToInt32(data.total);
                 }
 
                 return 0;

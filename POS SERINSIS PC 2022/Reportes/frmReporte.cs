@@ -494,20 +494,20 @@ namespace POS_SERINSIS_PC_2022.Reportes
                 MessageBox.Show("La vista del reporte no se encontro.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        public void ListaVentaTienda()
+        public async Task ListaVentaTienda()
         {
             DataTable ctx = new DataTable();
             if (TipoInforme == "Año")
             {
-                ctx = ControladorVenta.FiltroX_H_Año(FechaReporte, VariablesPublicas.IdEmpresaLogueada);
+                ctx =await ControladorVenta.FiltroX_H_Año(FechaReporte, VariablesPublicas.IdEmpresaLogueada);
             }
             if (TipoInforme == "Mes")
             {
-                ctx = ControladorVenta.FiltroX_H_Mes(FechaReporte, VariablesPublicas.IdEmpresaLogueada);
+                ctx =await ControladorVenta.FiltroX_H_Mes(FechaReporte, VariablesPublicas.IdEmpresaLogueada);
             }
             if (TipoInforme == "Dia")
             {
-                ctx = ControladorVenta.FiltroX_H_Dia(FechaReporte, VariablesPublicas.IdEmpresaLogueada);
+                ctx =await ControladorVenta.FiltroX_H_Dia(FechaReporte, VariablesPublicas.IdEmpresaLogueada);
             }
 
             if (ctx != null)

@@ -119,15 +119,15 @@ ORDER BY fecha DESC, id DESC;";
             try
             {
                 var query = $@"
-SELECT ISNULL(SUM(CAST(valor AS INT)),0) AS total
-FROM Gastos WITH (NOLOCK)
-WHERE idSede = {IdSede}
-  AND CAST(fecha AS date) = '{Fecha:yyyy-MM-dd}';";
+                SELECT ISNULL(SUM(CAST(valor AS INT)),0) AS total
+                FROM Gastos WITH (NOLOCK)
+                WHERE idSede = {IdSede}
+                  AND CAST(fecha AS date) = '{Fecha:yyyy-MM-dd}';";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
-                var row = JsonConvert.DeserializeObject<List<dynamic>>(jsonReal);
-                return Convert.ToInt32(row[0].total);
+                if (respuesta == null) return 0;
+                var row = JsonConvert.DeserializeObject<ClassSumaTotal>(respuesta);
+                return Convert.ToInt32(row.total);
             }
             catch (Exception ex)
             {
@@ -169,9 +169,9 @@ WHERE idSede = {IdSede}
   AND MONTH(fecha) = {Fecha.Month};";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
-                var row = JsonConvert.DeserializeObject<List<dynamic>>(jsonReal);
-                return Convert.ToInt32(row[0].total);
+                if (respuesta == null) return 0;
+                var row = JsonConvert.DeserializeObject<ClassSumaTotal>(respuesta);
+                return Convert.ToInt32(row.total);
             }
             catch (Exception ex)
             {
@@ -191,9 +191,9 @@ WHERE idSede = {IdSede}
   AND YEAR(fecha) = {Fecha.Year};";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
-                var row = JsonConvert.DeserializeObject<List<dynamic>>(jsonReal);
-                return Convert.ToInt32(row[0].total);
+                if (respuesta == null) return 0;
+                var row = JsonConvert.DeserializeObject<ClassSumaTotal>(respuesta);
+                return Convert.ToInt32(row.total);
             }
             catch (Exception ex)
             {
@@ -239,8 +239,8 @@ WHERE idSede = {IdSede}
 ORDER BY fecha DESC, id DESC;";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
-                return JsonConvert.DeserializeObject<List<V_Gastos>>(jsonReal);
+                if (respuesta == null) return null;
+                return JsonConvert.DeserializeObject<List<V_Gastos>>(respuesta);
             }
             catch (Exception ex)
             {
@@ -262,8 +262,8 @@ WHERE idSede = {IdSede}
 ORDER BY fecha DESC, id DESC;";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
-                return JsonConvert.DeserializeObject<List<V_Gastos>>(jsonReal);
+                if (respuesta == null) return null;
+                return JsonConvert.DeserializeObject<List<V_Gastos>>(respuesta);
             }
             catch (Exception ex)
             {
@@ -284,8 +284,8 @@ WHERE idSede = {IdSede}
 ORDER BY fecha DESC, id DESC;";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
-                return JsonConvert.DeserializeObject<List<V_Gastos>>(jsonReal);
+                if(respuesta == null) return null;
+                return JsonConvert.DeserializeObject<List<V_Gastos>>(respuesta);
             }
             catch (Exception ex)
             {

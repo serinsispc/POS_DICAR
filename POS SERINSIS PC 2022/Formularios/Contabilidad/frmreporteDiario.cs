@@ -2,8 +2,10 @@
 using DAL.Controladores.Contabilidad;
 using DAL.Controladores.Tienda;
 using DAL.Modelo;
+using DAL.SQL;
 using Invenpol_Parqueadero_Motos.Clases;
 using Microsoft.Reporting.WinForms;
+using Newtonsoft.Json;
 using POS_SERINSIS_PC_2022.Reportes;
 using SERINSI_PC.Formularios.Ventas;
 using System;
@@ -11,6 +13,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Globalization;
 using System.Linq;
 using System.Management.Instrumentation;
 using System.Text;
@@ -70,51 +73,132 @@ namespace Invenpol_Parqueadero_Motos.Formularios
         }
         private async Task FiltrarReporte()
         {
-            CargarVentasVendedor();
+            await CargarVentasVendedor();
             await FiltrarReporteGeneral();
-            FiltrarVentas();
-            FiltrarPagosCC();
-            FiltrarPagosCP();
-            FiltrarGastos();
-            FiltrarVentasCategorias();
+            await FiltrarVentas();
+            await FiltrarPagosCC();
+            await FiltrarPagosCP();
+            await FiltrarGastos();
+            await FiltrarVentasCategorias();
         }
-        private void CargarVentasVendedor()
+
+private async Task CargarVentasVendedor()
+    {
+        try
         {
-            try
+            DateTime fecha = dtFecha.Value;
+
+            string query = string.Empty;
+
+            if (TipoFiltro == "Dia")
             {
-                using(SistemaPOSEntities cn =new SistemaPOSEntities())
-                {
-                    DateTime fecha = dtFecha.Value;
-                    if (TipoFiltro == "Dia")
-                    {
-                        dgVentasVendedor.DataSource = cn.InformeVentasVendedor_dia(fecha.Month,fecha.Day,fecha.Year);
-                    }
-                    if (TipoFiltro == "Mes")
-                    {
-                        dgVentasVendedor.DataSource = cn.InformeVentasVendedor_mes(fecha.Month, fecha.Year);
-                    }
-                    if (TipoFiltro == "Año")
-                    {
-                        dgVentasVendedor.DataSource = cn.InformeVentasVendedor_year(fecha.Year);
-                    }
-                }
-                decimal totalVentasVendedor = 0;
-                decimal totalUtilidadVendedor = 0;
-                foreach (DataGridViewRow row in dgVentasVendedor.Rows)
-                {
-                    totalVentasVendedor += Convert.ToDecimal(row.Cells["total_iv"].Value);
-                    totalUtilidadVendedor += Convert.ToDecimal(row.Cells["utilidad"].Value);
-                }
-                text_TotalVentas.Text ="Venta: "+ totalVentasVendedor.ToString("C");
-                text_TotalUtilidad.Text ="Utilidad: "+ totalUtilidadVendedor.ToString("C");
+                query = $@"
+                EXEC dbo.InformeVentasVendedor_dia 
+                    {fecha.Month},
+                    {fecha.Day},
+                    {fecha.Year};
+            ";
             }
-            catch( Exception ex)
+            else if (TipoFiltro == "Mes")
             {
-                string error = ex.Message;
+                query = $@"
+                EXEC dbo.InformeVentasVendedor_mes
+                    {fecha.Month},
+                   {fecha.Year};
+            ";
+            }
+            else if (TipoFiltro == "Año")
+            {
+                query = $@"
+                EXEC dbo.InformeVentasVendedor_year
+                    {fecha.Year};
+            ";
+            }
+            else
+            {
+                dgVentasVendedor.DataSource = null;
+                text_TotalVentas.Text = "Venta: $0";
+                text_TotalUtilidad.Text = "Utilidad: $0";
+                return;
             }
 
+            // SELECT que retorna lista => (true, true)
+            string json = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+            DataTable dt = new DataTable();
+
+            if (!string.IsNullOrWhiteSpace(json) && json.Trim() != "[]")
+            {
+                dt = JsonConvert.DeserializeObject<DataTable>(json) ?? new DataTable();
+            }
+
+            dgVentasVendedor.AutoGenerateColumns = true;
+            dgVentasVendedor.DataSource = dt;
+
+            // Totales (mejor desde DataTable para evitar filas "nuevas" del grid)
+            decimal totalVentasVendedor = 0m;
+            decimal totalUtilidadVendedor = 0m;
+
+            if (dt != null && dt.Rows.Count > 0)
+            {
+                foreach (DataRow r in dt.Rows)
+                {
+                    totalVentasVendedor += ToDecimalSafe(r, "total_iv");
+                    totalUtilidadVendedor += ToDecimalSafe(r, "utilidad");
+                }
+            }
+
+            text_TotalVentas.Text = "Venta: " + totalVentasVendedor.ToString("C", CultureInfo.CurrentCulture);
+            text_TotalUtilidad.Text = "Utilidad: " + totalUtilidadVendedor.ToString("C", CultureInfo.CurrentCulture);
         }
-        private async Task HallarUtilidad()
+        catch (Exception ex)
+        {
+            string error = ex.Message;
+            MessageBox.Show(
+                "Ocurrió un error al cargar las ventas del vendedor.",
+                "Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            );
+        }
+    }
+
+    private decimal ToDecimalSafe(DataRow row, string colName)
+    {
+        try
+        {
+            if (row == null || row.Table == null || !row.Table.Columns.Contains(colName))
+                return 0m;
+
+            object val = row[colName];
+
+            if (val == null || val == DBNull.Value)
+                return 0m;
+
+            if (val is decimal d) return d;
+            if (val is double db) return Convert.ToDecimal(db);
+            if (val is float f) return Convert.ToDecimal(f);
+            if (val is int i) return i;
+            if (val is long l) return l;
+
+            string s = val.ToString();
+            if (string.IsNullOrWhiteSpace(s)) return 0m;
+
+            if (decimal.TryParse(s, NumberStyles.Any, CultureInfo.CurrentCulture, out decimal parsed))
+                return parsed;
+
+            if (decimal.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out parsed))
+                return parsed;
+
+            return 0m;
+        }
+        catch
+        {
+            return 0m;
+        }
+    }
+
+    private async Task HallarUtilidad()
         {
             if (TipoFiltro == "Año")
             {
@@ -129,82 +213,82 @@ namespace Invenpol_Parqueadero_Motos.Formularios
                 Utilidad_frm =await contorladorUtilidad.HallarCostoVentaDia(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
             }
         }
-        private void FiltrarGastos()
+        private async Task FiltrarGastos()
         {
             if (TipoFiltro == "Año")
             {
-                dgGastos.DataSource = ControladorGastos.FiltrarX_Año(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
+                dgGastos.DataSource =await ControladorGastos.FiltrarX_Año(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
             }
             if (TipoFiltro == "Mes")
             {
-                dgGastos.DataSource = ControladorGastos.FiltrarX_Mes(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
+                dgGastos.DataSource =await ControladorGastos.FiltrarX_Mes(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
             }
             if (TipoFiltro == "Dia")
             {
-                dgGastos.DataSource = ControladorGastos.FiltrarX_Dia(dtFecha.Value,VariablesPublicas.IdEmpresaLogueada);
+                dgGastos.DataSource =await ControladorGastos.FiltrarX_Dia(dtFecha.Value,VariablesPublicas.IdEmpresaLogueada);
             }
         }
-        private void FiltrarPagosCP()
+        private async Task FiltrarPagosCP()
         {
             if (TipoFiltro == "Año")
             {
-                dgCP.DataSource = ControladorCompra.FiltroX_Año(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
+                dgCP.DataSource =await ControladorCompra.FiltroX_Año(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
             }
             if (TipoFiltro == "Mes")
             {
-                dgCP.DataSource = ControladorCompra.FiltroX_Mes(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
+                dgCP.DataSource =await ControladorCompra.FiltroX_Mes(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
             }
             if (TipoFiltro == "Dia")
             {
-                dgCP.DataSource = ControladorCompra.FiltroX_Dia(dtFecha.Value,VariablesPublicas.IdEmpresaLogueada);
+                dgCP.DataSource =await ControladorCompra.FiltroX_Dia(dtFecha.Value,VariablesPublicas.IdEmpresaLogueada);
             }
         }
-        private void FiltrarPagosCC()
+        private async Task FiltrarPagosCC()
         {
             if (TipoFiltro == "Año")
             {
-                dgPagosCC.DataSource = ControladorPagosCreditoTienda.FiltroX_Año(dtFecha.Value,VariablesPublicas.IdEmpresaLogueada);
+                dgPagosCC.DataSource =await ControladorPagosCreditoTienda.FiltroX_Año(dtFecha.Value,VariablesPublicas.IdEmpresaLogueada);
             }
             if (TipoFiltro == "Mes")
             {
-                dgPagosCC.DataSource = ControladorPagosCreditoTienda.FiltroX_Mes(dtFecha.Value,VariablesPublicas.IdEmpresaLogueada);
+                dgPagosCC.DataSource =await ControladorPagosCreditoTienda.FiltroX_Mes(dtFecha.Value,VariablesPublicas.IdEmpresaLogueada);
             }
             if (TipoFiltro == "Dia")
             {
-                 dgPagosCC.DataSource = ControladorPagosCreditoTienda.FiltroX_Dia(dtFecha.Value,VariablesPublicas.IdEmpresaLogueada);
+                 dgPagosCC.DataSource =await ControladorPagosCreditoTienda.FiltroX_Dia(dtFecha.Value,VariablesPublicas.IdEmpresaLogueada);
             }
         }
-        private void FiltrarVentasCategorias()
+        private async Task FiltrarVentasCategorias()
         {
             if (TipoFiltro == "Año")
             {
-                dgListaVentasCategorias.DataSource = ControladorVenta.FiltroX_H_Año_Categorias(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
-                dgInformeCategorias.DataSource= ControladorVenta.FiltroX_H_Año_INFOCategorias(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
+                dgListaVentasCategorias.DataSource =await ControladorVenta.FiltroX_H_Año_Categorias(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
+                dgInformeCategorias.DataSource=await ControladorVenta.FiltroX_H_Año_INFOCategorias(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
             }
             if (TipoFiltro == "Mes")
             {
-                dgListaVentasCategorias.DataSource = ControladorVenta.FiltroX_H_Mes_Categorias(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
-                dgInformeCategorias.DataSource = ControladorVenta.FiltroX_H_Mes_INFOCategorias(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
+                dgListaVentasCategorias.DataSource =await ControladorVenta.FiltroX_H_Mes_Categorias(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
+                dgInformeCategorias.DataSource =await ControladorVenta.FiltroX_H_Mes_INFOCategorias(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
             }
             if (TipoFiltro == "Dia")
             {
-                dgListaVentasCategorias.DataSource = ControladorVenta.FiltroX_H_Dia_Categorias(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
-                dgInformeCategorias.DataSource = ControladorVenta.FiltroX_H_Dia_INFOCategorias(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
+                dgListaVentasCategorias.DataSource =await ControladorVenta.FiltroX_H_Dia_Categorias(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
+                dgInformeCategorias.DataSource =await ControladorVenta.FiltroX_H_Dia_INFOCategorias(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
             }
         }
-        private void FiltrarVentas()
+        private async Task FiltrarVentas()
         {
             if (TipoFiltro == "Año")
             {
-                dglistaVentas.DataSource = ControladorVenta.FiltroX_H_Año(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
+                dglistaVentas.DataSource =await ControladorVenta.FiltroX_H_Año(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
             }
             if (TipoFiltro == "Mes")
             {
-                dglistaVentas.DataSource = ControladorVenta.FiltroX_H_Mes(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
+                dglistaVentas.DataSource =await ControladorVenta.FiltroX_H_Mes(dtFecha.Value, VariablesPublicas.IdEmpresaLogueada);
             }
             if (TipoFiltro == "Dia")
             {
-                dglistaVentas.DataSource = ControladorVenta.FiltroX_H_Dia(dtFecha.Value,VariablesPublicas.IdEmpresaLogueada);
+                dglistaVentas.DataSource =await ControladorVenta.FiltroX_H_Dia(dtFecha.Value,VariablesPublicas.IdEmpresaLogueada);
             }
         }
         private async Task FiltrarReporteGeneral()
@@ -213,7 +297,7 @@ namespace Invenpol_Parqueadero_Motos.Formularios
 
             await hallarVentas();
             await hallarCosto();
-            HallarUtilidad();
+            await HallarUtilidad();
             await hallarGastos();
 
        
@@ -268,11 +352,11 @@ namespace Invenpol_Parqueadero_Motos.Formularios
         {
             if (TipoFiltro == "Año")
             {
-                Ventas = ControladorVenta.TotalVentasTiendaAño(dtFecha.Value,"CONTADO", VariablesPublicas.IdEmpresaLogueada);
+                Ventas =await ControladorVenta.TotalVentasTiendaAño(dtFecha.Value,"CONTADO", VariablesPublicas.IdEmpresaLogueada);
             }
             if (TipoFiltro == "Mes")
             {
-                Ventas = ControladorVenta.TotalVentasTiendaMes(dtFecha.Value, "CONTADO", VariablesPublicas.IdEmpresaLogueada);
+                Ventas =await ControladorVenta.TotalVentasTiendaMes(dtFecha.Value, "CONTADO", VariablesPublicas.IdEmpresaLogueada);
             }
             if (TipoFiltro == "Dia")
             {
@@ -283,7 +367,7 @@ namespace Invenpol_Parqueadero_Motos.Formularios
         {
             if (TipoFiltro == "Año")
             {
-                Costo = ControladorVenta.CostoTiendaAño(dtFecha.Value, "CONTADO", VariablesPublicas.IdEmpresaLogueada);
+                Costo =await ControladorVenta.CostoTiendaAño(dtFecha.Value, "CONTADO", VariablesPublicas.IdEmpresaLogueada);
             }
             if (TipoFiltro == "Mes")
             {
@@ -377,19 +461,19 @@ namespace Invenpol_Parqueadero_Motos.Formularios
             frm.ShowDialog();
         }
 
-        private void frmreporteDiario_Load(object sender, EventArgs e)
+        private async void frmreporteDiario_Load(object sender, EventArgs e)
         {
             using(SistemaPOSEntities cn =new SistemaPOSEntities())
             {
-                CargarCategorias();
+                await CargarCategorias();
             }
         }
-        private void CargarCategorias()
+        private async Task CargarCategorias()
         {
             cmbCategorias.DataSource = null;
             cmbCategorias.ValueMember = "id";
             cmbCategorias.DisplayMember = "nombreCategoria";
-            cmbCategorias.DataSource = ConotroladorCategoria.listaCompleta();
+            cmbCategorias.DataSource =await ConotroladorCategoria.listaCompleta();
         }
         private void tabPage1_Click(object sender, EventArgs e)
         {

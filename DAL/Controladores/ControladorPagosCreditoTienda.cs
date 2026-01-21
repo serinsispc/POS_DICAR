@@ -59,8 +59,8 @@ WHERE idSedePagoCredito = {IdSede}
 ORDER BY fecha_pago_credito_tienda_r_pago_credito DESC;";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true); // LISTA
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
-                return JsonConvert.DeserializeObject<List<R_PagoCredito>>(jsonReal);
+                if(respuesta==null) return null;
+                return JsonConvert.DeserializeObject<List<R_PagoCredito>>(respuesta);
             }
             catch (Exception ex)
             {
@@ -83,8 +83,8 @@ WHERE idSedePagoCredito = {IdSede}
 ORDER BY fecha_pago_credito_tienda_r_pago_credito DESC;";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true); // LISTA
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
-                return JsonConvert.DeserializeObject<List<R_PagoCredito>>(jsonReal);
+                if (respuesta == null) return null;
+                return JsonConvert.DeserializeObject<List<R_PagoCredito>>(respuesta);
             }
             catch (Exception ex)
             {
@@ -106,8 +106,8 @@ WHERE idSedePagoCredito = {IdSede}
 ORDER BY fecha_pago_credito_tienda_r_pago_credito DESC;";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true); // LISTA
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
-                return JsonConvert.DeserializeObject<List<R_PagoCredito>>(jsonReal);
+                if(respuesta==null) return null;
+                return JsonConvert.DeserializeObject<List<R_PagoCredito>>(respuesta);
             }
             catch (Exception ex)
             {
@@ -131,10 +131,10 @@ WHERE idSede = {IdSede}
   AND YEAR(fecha_pago_credito_tienda) = {Fecha.Year};";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+                if(respuesta==null) return 0;
 
-                var row = JsonConvert.DeserializeObject<List<dynamic>>(jsonReal);
-                return Convert.ToDecimal(row[0].total);
+                var row = JsonConvert.DeserializeObject<ClassSumaTotal>(respuesta);
+                return Convert.ToDecimal(row.total);
             }
             catch (Exception ex)
             {
@@ -156,10 +156,10 @@ WHERE idSede = {IdSede}
   AND MONTH(fecha_pago_credito_tienda) = {Fecha.Month};";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+                if (respuesta == null) return 0;
 
-                var row = JsonConvert.DeserializeObject<List<dynamic>>(jsonReal);
-                return Convert.ToDecimal(row[0].total);
+                var row = JsonConvert.DeserializeObject<ClassSumaTotal>(respuesta);
+                return Convert.ToDecimal(row.total);
             }
             catch (Exception ex)
             {
@@ -180,10 +180,10 @@ WHERE idSede = {IdSede}
   AND CONVERT(date, fecha_pago_credito_tienda) = CONVERT(date, '{Fecha:yyyy-MM-dd}');";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+                if (respuesta == null) return 0;
 
-                var row = JsonConvert.DeserializeObject<List<dynamic>>(jsonReal);
-                return Convert.ToDecimal(row[0].total);
+                var row = JsonConvert.DeserializeObject<ClassSumaTotal>(respuesta);
+                return Convert.ToDecimal(row.total);
             }
             catch (Exception ex)
             {

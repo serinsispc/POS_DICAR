@@ -139,7 +139,7 @@ WHERE tipoFactura = '{Tipo}'
                 return null;
             }
         }
-        public static decimal TotalVentasTiendaAño(DateTime Fecha, string TipoVenta, int IdSede)
+        public static async Task<decimal> TotalVentasTiendaAño(DateTime Fecha, string TipoVenta, int IdSede)
         {
             try
             {
@@ -155,19 +155,17 @@ WHERE IdSede = {IdSede}
   AND fechaVenta <  '{fin:yyyy-MM-dd HH:mm:ss}'
 ";
 
-                var respuesta = Conection_SQL
-                    .ConsultaSQLServer(query, false, true)
-                    .GetAwaiter()
-                    .GetResult();
+                var respuesta =await Conection_SQL
+                    .ConsultaSQLServer(query, false, true);
 
                 if (string.IsNullOrWhiteSpace(respuesta))
                     return 0;
 
                 var data = Newtonsoft.Json.JsonConvert
-                    .DeserializeObject<List<dynamic>>(respuesta);
+                    .DeserializeObject<ClassSumaTotal>(respuesta);
 
-                if (data != null && data.Count > 0 && data[0].Total != null)
-                    return Convert.ToDecimal(data[0].Total);
+                if (data != null && data.total != 0)
+                    return Convert.ToDecimal(data.total);
 
                 return 0;
             }
@@ -184,7 +182,7 @@ WHERE IdSede = {IdSede}
             }
         }
 
-        public static decimal CostoTiendaAño(DateTime Fecha, string TipoVenta, int IdSede)
+        public static async Task<decimal> CostoTiendaAño(DateTime Fecha, string TipoVenta, int IdSede)
         {
             try
             {
@@ -200,19 +198,17 @@ WHERE IdSede = {IdSede}
   AND fechaVenta <  '{fin:yyyy-MM-dd HH:mm:ss}'
 ";
 
-                var respuesta = Conection_SQL
-                    .ConsultaSQLServer(query, false, true)
-                    .GetAwaiter()
-                    .GetResult();
+                var respuesta =await Conection_SQL
+                    .ConsultaSQLServer(query, false, true);
 
                 if (string.IsNullOrWhiteSpace(respuesta))
                     return 0;
 
                 var data = Newtonsoft.Json.JsonConvert
-                    .DeserializeObject<List<dynamic>>(respuesta);
+                    .DeserializeObject<ClassSumaTotal>(respuesta);
 
-                if (data != null && data.Count > 0 && data[0].Total != null)
-                    return Convert.ToDecimal(data[0].Total);
+                if (data != null && data.total != 0)
+                    return Convert.ToDecimal(data.total);
 
                 return 0;
             }
@@ -229,7 +225,7 @@ WHERE IdSede = {IdSede}
             }
         }
 
-        public static decimal TotalVentasTiendaMes(DateTime Fecha, string TipoVenta, int IdSede)
+        public static async Task<decimal> TotalVentasTiendaMes(DateTime Fecha, string TipoVenta, int IdSede)
         {
             try
             {
@@ -249,19 +245,17 @@ WHERE IdSede = {IdSede}
   AND fechaVenta <  '{fin:yyyy-MM-dd HH:mm:ss}'
 ";
 
-                var respuesta = Conection_SQL
-                    .ConsultaSQLServer(query, false, true)
-                    .GetAwaiter()
-                    .GetResult();
+                var respuesta =await Conection_SQL
+                    .ConsultaSQLServer(query, false, true);
 
                 if (string.IsNullOrWhiteSpace(respuesta))
                     return 0;
 
                 var data = Newtonsoft.Json.JsonConvert
-                    .DeserializeObject<List<dynamic>>(respuesta);
+                    .DeserializeObject<ClassSumaTotal>(respuesta);
 
-                if (data != null && data.Count > 0 && data[0].Total != null)
-                    return Convert.ToDecimal(data[0].Total);
+                if (data != null &&  data.total != 0)
+                    return Convert.ToDecimal(data.total);
 
                 return 0;
             }
@@ -299,9 +293,9 @@ WHERE IdSede = {IdSede}
 
                 var json = await Conection_SQL.ConsultaSQLServer(query, false, true);
                 // Esperamos que la API retorne algo como: [{"Total":12345.67}]
-                var rows = JsonConvert.DeserializeObject<System.Collections.Generic.List<ScalarDecimalRow>>(json);
+                var rows = JsonConvert.DeserializeObject<ScalarDecimalRow>(json);
 
-                return (rows != null && rows.Count > 0) ? rows[0].Total : 0m;
+                return rows.Total;
             }
             catch (Exception ex)
             {
@@ -330,9 +324,9 @@ WHERE IdSede = {IdSede}
             ";
 
                 var json = await Conection_SQL.ConsultaSQLServer(query, false, true);
-                var rows = JsonConvert.DeserializeObject<System.Collections.Generic.List<ScalarDecimalRow>>(json);
+                var rows = JsonConvert.DeserializeObject<ScalarDecimalRow>(json);
 
-                return (rows != null && rows.Count > 0) ? rows[0].Total : 0m;
+                return rows.Total;
             }
             catch (Exception ex)
             {
@@ -361,9 +355,9 @@ WHERE IdSede = {IdSede}
             ";
 
                 var json = await Conection_SQL.ConsultaSQLServer(query, false, true);
-                var rows = JsonConvert.DeserializeObject<System.Collections.Generic.List<ScalarDecimalRow>>(json);
+                var rows = JsonConvert.DeserializeObject<ScalarDecimalRow>(json);
 
-                return (rows != null && rows.Count > 0) ? rows[0].Total : 0m;
+                return rows.Total;
             }
             catch (Exception ex)
             {
@@ -405,81 +399,107 @@ WHERE IdSede = {IdSede}
         // Escape simple por si luego activas el filtro tipoVenta
         private static string EscapeSql(string input)
             => (input ?? string.Empty).Replace("'", "''");
-        public static DataTable FiltroX_H_Año(DateTime Fecha,int IdSede)
+        public static async Task<DataTable> FiltroX_H_Año(DateTime Fecha, int IdSede)
         {
             try
             {
-                ConexionSQL.AbrirConexion();
-                SqlCommand cmd = ConexionSQL.connection.CreateCommand();
-                cmd.CommandText = "select *from V_TablaVentas where IdSede="+IdSede+" and YEAR(fechaVenta)=" + Fecha.Year;
-                DataTable dt = new DataTable();
-                SqlDataAdapter ad = new SqlDataAdapter(cmd);
-                ad.Fill(dt);
-                if (dt.Rows.Count > 0)
-                {
-                    return dt;
-                }
-                else
-                {
+                string query = $@"
+            SELECT *
+            FROM V_TablaVentas
+            WHERE IdSede = {IdSede}
+              AND YEAR(fechaVenta) = {Fecha.Year}
+        ";
+
+                // SELECT que retorna lista
+                string json = await Conection_SQL
+                    .ConsultaSQLServer(query, true, true);
+
+                if (string.IsNullOrWhiteSpace(json) || json.Trim() == "[]")
                     return null;
-                }
-            }
-            catch(Exception ex)
-            {
-                string error = ex.Message;
-                return null;
-            }
-        }
-        public static DataTable FiltroX_H_Mes(DateTime Fecha,int IdSede)
-        {
-            try
-            {
-                ConexionSQL.AbrirConexion();
-                SqlCommand cmd = ConexionSQL.connection.CreateCommand();
-                cmd.CommandText = "select *from V_TablaVentas where IdSede=" + IdSede + " and YEAR(fechaVenta)=" + Fecha.Year + " and " +
-                "MONTH(fechaVenta) = " + Fecha.Month;
-                DataTable dt = new DataTable();
-                SqlDataAdapter ad = new SqlDataAdapter(cmd);
-                ad.Fill(dt);
-                if (dt.Rows.Count > 0)
-                {
-                    return dt;
-                }
-                else
-                {
-                    return null;
-                }
+
+                DataTable dt = JsonConvert.DeserializeObject<DataTable>(json);
+
+                return (dt != null && dt.Rows.Count > 0) ? dt : null;
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
-                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    "Ocurrió un error de conexión.",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
                 return null;
             }
         }
-        public static DataTable FiltroX_H_Dia(DateTime Fecha,int IdSede)
+        public static async Task<DataTable> FiltroX_H_Mes(DateTime Fecha, int IdSede)
         {
             try
             {
-                ConexionSQL.AbrirConexion();
-                SqlCommand cmd = ConexionSQL.connection.CreateCommand();
-                cmd.CommandText = "select *from V_TablaVentas where IdSede=" + IdSede + " and YEAR(fechaVenta)=" + Fecha.Year+" and "+
-                "MONTH(fechaVenta) = "+Fecha.Month+" and DAY(fechaVenta) = "+Fecha.Day;
-                DataTable dt = new DataTable();
-                SqlDataAdapter ad = new SqlDataAdapter(cmd);
-                ad.Fill(dt);
-                if (dt.Rows.Count > 0)
-                {
-                    return dt;
-                }
-                else
-                {
+                string query = $@"
+            SELECT *
+            FROM V_TablaVentas
+            WHERE IdSede = {IdSede}
+              AND YEAR(fechaVenta) = {Fecha.Year}
+              AND MONTH(fechaVenta) = {Fecha.Month}
+        ";
+
+                // SELECT que retorna lista
+                string json = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                if (string.IsNullOrWhiteSpace(json) || json.Trim() == "[]")
                     return null;
-                }
+
+                DataTable dt = JsonConvert.DeserializeObject<DataTable>(json);
+
+                return (dt != null && dt.Rows.Count > 0) ? dt : null;
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
+                MessageBox.Show(
+                    "Ocurrió un error de conexión.",
+                    "Error De conexión",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
+                return null;
+            }
+        }
+        public static async Task<DataTable> FiltroX_H_Dia(DateTime Fecha, int IdSede)
+        {
+            try
+            {
+                string query = $@"
+            SELECT *
+            FROM V_TablaVentas
+            WHERE IdSede = {IdSede}
+              AND YEAR(fechaVenta) = {Fecha.Year}
+              AND MONTH(fechaVenta) = {Fecha.Month}
+              AND DAY(fechaVenta) = {Fecha.Day}
+        ";
+
+                // SELECT que retorna lista
+                string json = await Conection_SQL
+                    .ConsultaSQLServer(query, true, true);
+
+                if (string.IsNullOrWhiteSpace(json) || json.Trim() == "[]")
+                    return null;
+
+                DataTable dt = JsonConvert.DeserializeObject<DataTable>(json);
+
+                return (dt != null && dt.Rows.Count > 0) ? dt : null;
+            }
+            catch (Exception ex)
+            {
+                string error = ex.Message;
+                MessageBox.Show(
+                    "Ocurrió un error de conexión.",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
                 return null;
             }
         }
@@ -648,256 +668,290 @@ WHERE IdSede = {IdSede}
 
 
 
-        public static DataTable FiltroX_H_Año_Categorias(DateTime Fecha, int IdSede)
+        public static async Task<DataTable> FiltroX_H_Año_Categorias(DateTime Fecha, int IdSede)
         {
             try
             {
-                ConexionSQL.AbrirConexion();
-                SqlCommand cmd = ConexionSQL.connection.CreateCommand();
-                cmd.CommandText = "select *from V_ListaVentaCategoria where idSede_c=" + IdSede + " and YEAR(fechaVenta_c)=" + Fecha.Year;
-                DataTable dt = new DataTable();
-                SqlDataAdapter ad = new SqlDataAdapter(cmd);
-                ad.Fill(dt);
-                if (dt.Rows.Count > 0)
-                {
-                    return dt;
-                }
-                else
-                {
+                string query = $@"
+            SELECT *
+            FROM V_ListaVentaCategoria
+            WHERE idSede_c = {IdSede}
+              AND YEAR(fechaVenta_c) = {Fecha.Year}
+        ";
+
+                // SELECT que retorna lista
+                string json = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                if (string.IsNullOrWhiteSpace(json) || json.Trim() == "[]")
                     return null;
-                }
+
+                DataTable dt = JsonConvert.DeserializeObject<DataTable>(json);
+
+                return (dt != null && dt.Rows.Count > 0) ? dt : null;
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
+                MessageBox.Show(
+                    "Ocurrió un error de conexión.",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
                 return null;
             }
         }
-        public static DataTable FiltroX_H_Mes_Categorias(DateTime Fecha, int IdSede)
+        public static async Task<DataTable> FiltroX_H_Mes_Categorias(DateTime Fecha, int IdSede)
         {
             try
             {
-                ConexionSQL.AbrirConexion();
-                SqlCommand cmd = ConexionSQL.connection.CreateCommand();
-                cmd.CommandText = "select *from V_ListaVentaCategoria where idSede_c=" + IdSede + " and YEAR(fechaVenta_c)=" + Fecha.Year + " and " +
-                "MONTH(fechaVenta_c) = " + Fecha.Month;
-                DataTable dt = new DataTable();
-                SqlDataAdapter ad = new SqlDataAdapter(cmd);
-                ad.Fill(dt);
-                if (dt.Rows.Count > 0)
-                {
-                    return dt;
-                }
-                else
-                {
+                string query = $@"
+            SELECT *
+            FROM V_ListaVentaCategoria
+            WHERE idSede_c = {IdSede}
+              AND YEAR(fechaVenta_c) = {Fecha.Year}
+              AND MONTH(fechaVenta_c) = {Fecha.Month}
+        ";
+
+                // SELECT que retorna lista
+                string json = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                if (string.IsNullOrWhiteSpace(json) || json.Trim() == "[]")
                     return null;
-                }
+
+                DataTable dt = JsonConvert.DeserializeObject<DataTable>(json);
+
+                return (dt != null && dt.Rows.Count > 0) ? dt : null;
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
-                MessageBox.Show("Ocurrió un error de conexión.", "Error De conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return null;
-            }
-        }
-        public static DataTable FiltroX_H_Dia_Categorias(DateTime Fecha, int IdSede)
-        {
-            try
-            {
-                ConexionSQL.AbrirConexion();
-                SqlCommand cmd = ConexionSQL.connection.CreateCommand();
-                cmd.CommandText = "select *from V_ListaVentaCategoria where idSede_c=" + IdSede + " and YEAR(fechaVenta_c)=" + Fecha.Year + " and " +
-                "MONTH(fechaVenta_c) = " + Fecha.Month + " and DAY(fechaVenta_c) = " + Fecha.Day;
-                DataTable dt = new DataTable();
-                SqlDataAdapter ad = new SqlDataAdapter(cmd);
-                ad.Fill(dt);
-                if (dt.Rows.Count > 0)
-                {
-                    return dt;
-                }
-                else
-                {
-                    return null;
-                }
-            }
-            catch (Exception ex)
-            {
-                string error = ex.Message;
+                MessageBox.Show(
+                    "Ocurrió un error de conexión.",
+                    "Error De conexión",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
                 return null;
             }
         }
 
-
-
-
-        public static DataTable FiltroX_H_Año_INFOCategorias(DateTime Fecha, int IdSede)
+        public static async Task<DataTable> FiltroX_H_Dia_Categorias(DateTime Fecha, int IdSede)
         {
             try
             {
-                ConexionSQL.AbrirConexion();
-                SqlCommand cmd = ConexionSQL.connection.CreateCommand();
-                cmd.CommandText =
+                string query = $@"
+            SELECT *
+            FROM V_ListaVentaCategoria
+            WHERE idSede_c = {IdSede}
+              AND YEAR(fechaVenta_c) = {Fecha.Year}
+              AND MONTH(fechaVenta_c) = {Fecha.Month}
+              AND DAY(fechaVenta_c) = {Fecha.Day}
+        ";
 
-                    "select c.id as id_inf,c.nombreCategoria as nombreCategoria_inf," +
+                // SELECT que retorna lista
+                string json = await Conection_SQL.ConsultaSQLServer(query, true, true);
 
-                    "(select " +
-                    "isnull(SUM(cantidadDetalle), 0) " +
-                    "from V_DetalleCaja inner join " +
-                    "TablaVentas on V_DetalleCaja.idVenta = TablaVentas.id inner join " +
-                    "Precios on V_DetalleCaja.idPrecios = Precios.id inner join " +
-                    "Inventario on Precios.idInventario = Inventario.id inner join " +
-                    "Producto on Inventario.idProducto = Producto.id " +
-                    "where Producto.idCategoria = c.id and " +
-                    "TablaVentas.IdSede = "+IdSede+" and " +
-                    "  YEAR(fechaVenta) = "+Fecha.Year+ ") as cantidadProductos_inf, " +
-
-                    "(select " +
-                    "isnull(SUM(totalDetalle), 0) " +
-                    "from V_DetalleCaja inner join " +
-                    "TablaVentas on V_DetalleCaja.idVenta = TablaVentas.id inner join " +
-                    "Precios on V_DetalleCaja.idPrecios = Precios.id inner join " +
-                    "Inventario on Precios.idInventario = Inventario.id inner join " +
-                    "Producto on Inventario.idProducto = Producto.id " +
-                    "where Producto.idCategoria = c.id and " +
-                    "TablaVentas.IdSede = "+IdSede+" and " +
-                    "  YEAR(fechaVenta) = "+Fecha.Year+ ") as totalVentas_inf " +
-
-                    "from CategoriaProducto c";
-
-
-
-
-                DataTable dt = new DataTable();
-                SqlDataAdapter ad = new SqlDataAdapter(cmd);
-                ad.Fill(dt);
-                if (dt.Rows.Count > 0)
-                {
-                    return dt;
-                }
-                else
-                {
+                if (string.IsNullOrWhiteSpace(json) || json.Trim() == "[]")
                     return null;
-                }
+
+                DataTable dt = JsonConvert.DeserializeObject<DataTable>(json);
+
+                return (dt != null && dt.Rows.Count > 0) ? dt : null;
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
+                MessageBox.Show(
+                    "Ocurrió un error de conexión.",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
                 return null;
             }
         }
-        public static DataTable FiltroX_H_Mes_INFOCategorias(DateTime Fecha, int IdSede)
+
+
+
+
+        public static async Task<DataTable> FiltroX_H_Año_INFOCategorias(DateTime Fecha, int IdSede)
         {
             try
             {
-                ConexionSQL.AbrirConexion();
-                SqlCommand cmd = ConexionSQL.connection.CreateCommand();
-                cmd.CommandText =
+                string query = $@"
+            SELECT 
+                c.id AS id_inf,
+                c.nombreCategoria AS nombreCategoria_inf,
 
-                    "select c.id as id_inf,c.nombreCategoria as nombreCategoria_inf," +
+                (
+                    SELECT ISNULL(SUM(cantidadDetalle), 0)
+                    FROM V_DetalleCaja
+                    INNER JOIN TablaVentas ON V_DetalleCaja.idVenta = TablaVentas.id
+                    INNER JOIN Precios ON V_DetalleCaja.idPrecios = Precios.id
+                    INNER JOIN Inventario ON Precios.idInventario = Inventario.id
+                    INNER JOIN Producto ON Inventario.idProducto = Producto.id
+                    WHERE Producto.idCategoria = c.id
+                      AND TablaVentas.IdSede = {IdSede}
+                      AND YEAR(fechaVenta) = {Fecha.Year}
+                ) AS cantidadProductos_inf,
 
-                    "(select " +
-                    "isnull(SUM(cantidadDetalle), 0) " +
-                    "from V_DetalleCaja inner join " +
-                    "TablaVentas on V_DetalleCaja.idVenta = TablaVentas.id inner join " +
-                    "Precios on V_DetalleCaja.idPrecios = Precios.id inner join " +
-                    "Inventario on Precios.idInventario = Inventario.id inner join " +
-                    "Producto on Inventario.idProducto = Producto.id " +
-                    "where Producto.idCategoria = c.id and " +
-                    "TablaVentas.IdSede = " + IdSede + " and " +
-                    "  YEAR(fechaVenta) = " + Fecha.Year + " and " +
-                    "  MONTH(fechaVenta) = " + Fecha.Month + ") as cantidadProductos_inf, " +
+                (
+                    SELECT ISNULL(SUM(totalDetalle), 0)
+                    FROM V_DetalleCaja
+                    INNER JOIN TablaVentas ON V_DetalleCaja.idVenta = TablaVentas.id
+                    INNER JOIN Precios ON V_DetalleCaja.idPrecios = Precios.id
+                    INNER JOIN Inventario ON Precios.idInventario = Inventario.id
+                    INNER JOIN Producto ON Inventario.idProducto = Producto.id
+                    WHERE Producto.idCategoria = c.id
+                      AND TablaVentas.IdSede = {IdSede}
+                      AND YEAR(fechaVenta) = {Fecha.Year}
+                ) AS totalVentas_inf
 
-                    "(select " +
-                    "isnull(SUM(totalDetalle), 0) " +
-                    "from V_DetalleCaja inner join " +
-                    "TablaVentas on V_DetalleCaja.idVenta = TablaVentas.id inner join " +
-                    "Precios on V_DetalleCaja.idPrecios = Precios.id inner join " +
-                    "Inventario on Precios.idInventario = Inventario.id inner join " +
-                    "Producto on Inventario.idProducto = Producto.id " +
-                    "where Producto.idCategoria = c.id and " +
-                    "TablaVentas.IdSede = " + IdSede + " and " +
-                    "  YEAR(fechaVenta) = " + Fecha.Year + " and " +
-                    "  MONTH(fechaVenta) = " + Fecha.Month + ") as totalVentas_inf " +
+            FROM CategoriaProducto c
+        ";
 
-                    "from CategoriaProducto c";
+                // SELECT que retorna lista
+                string json = await Conection_SQL.ConsultaSQLServer(query, true, true);
 
-
-
-
-                DataTable dt = new DataTable();
-                SqlDataAdapter ad = new SqlDataAdapter(cmd);
-                ad.Fill(dt);
-                if (dt.Rows.Count > 0)
-                {
-                    return dt;
-                }
-                else
-                {
+                if (string.IsNullOrWhiteSpace(json) || json.Trim() == "[]")
                     return null;
-                }
+
+                DataTable dt = JsonConvert.DeserializeObject<DataTable>(json);
+
+                return (dt != null && dt.Rows.Count > 0) ? dt : null;
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
+                MessageBox.Show(
+                    "Ocurrió un error al consultar la información anual por categorías.",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
                 return null;
             }
         }
-        public static DataTable FiltroX_H_Dia_INFOCategorias(DateTime Fecha, int IdSede)
+        public static async Task<DataTable> FiltroX_H_Mes_INFOCategorias(DateTime Fecha, int IdSede)
         {
             try
             {
-                ConexionSQL.AbrirConexion();
-                SqlCommand cmd = ConexionSQL.connection.CreateCommand();
-                cmd.CommandText =
+                string query = $@"
+            SELECT 
+                c.id AS id_inf,
+                c.nombreCategoria AS nombreCategoria_inf,
 
-                    "select c.id as id_inf,c.nombreCategoria as nombreCategoria_inf," +
+                (
+                    SELECT ISNULL(SUM(cantidadDetalle), 0)
+                    FROM V_DetalleCaja
+                    INNER JOIN TablaVentas ON V_DetalleCaja.idVenta = TablaVentas.id
+                    INNER JOIN Precios ON V_DetalleCaja.idPrecios = Precios.id
+                    INNER JOIN Inventario ON Precios.idInventario = Inventario.id
+                    INNER JOIN Producto ON Inventario.idProducto = Producto.id
+                    WHERE Producto.idCategoria = c.id
+                      AND TablaVentas.IdSede = {IdSede}
+                      AND YEAR(fechaVenta) = {Fecha.Year}
+                      AND MONTH(fechaVenta) = {Fecha.Month}
+                ) AS cantidadProductos_inf,
 
-                    "(select " +
-                    "isnull(SUM(cantidadDetalle), 0) " +
-                    "from V_DetalleCaja inner join " +
-                    "TablaVentas on V_DetalleCaja.idVenta = TablaVentas.id inner join " +
-                    "Precios on V_DetalleCaja.idPrecios = Precios.id inner join " +
-                    "Inventario on Precios.idInventario = Inventario.id inner join " +
-                    "Producto on Inventario.idProducto = Producto.id " +
-                    "where Producto.idCategoria = c.id and " +
-                    "TablaVentas.IdSede = " + IdSede + " and " +
-                    "  YEAR(fechaVenta) = " + Fecha.Year + " and " +
-                    "  MONTH(fechaVenta) = " + Fecha.Month + " and " +
-                    "  DAY(fechaVenta) = " + Fecha.Day + ") as cantidadProductos_inf, " +
+                (
+                    SELECT ISNULL(SUM(totalDetalle), 0)
+                    FROM V_DetalleCaja
+                    INNER JOIN TablaVentas ON V_DetalleCaja.idVenta = TablaVentas.id
+                    INNER JOIN Precios ON V_DetalleCaja.idPrecios = Precios.id
+                    INNER JOIN Inventario ON Precios.idInventario = Inventario.id
+                    INNER JOIN Producto ON Inventario.idProducto = Producto.id
+                    WHERE Producto.idCategoria = c.id
+                      AND TablaVentas.IdSede = {IdSede}
+                      AND YEAR(fechaVenta) = {Fecha.Year}
+                      AND MONTH(fechaVenta) = {Fecha.Month}
+                ) AS totalVentas_inf
 
-                    "(select " +
-                    "isnull(SUM(totalDetalle), 0) " +
-                    "from V_DetalleCaja inner join " +
-                    "TablaVentas on V_DetalleCaja.idVenta = TablaVentas.id inner join " +
-                    "Precios on V_DetalleCaja.idPrecios = Precios.id inner join " +
-                    "Inventario on Precios.idInventario = Inventario.id inner join " +
-                    "Producto on Inventario.idProducto = Producto.id " +
-                    "where Producto.idCategoria = c.id and " +
-                    "TablaVentas.IdSede = " + IdSede + " and " +
-                    "  YEAR(fechaVenta) = " + Fecha.Year + " and " +
-                    "  MONTH(fechaVenta) = " + Fecha.Month + " and " +
-                    "  DAY(fechaVenta) = " + Fecha.Day + ") as totalVentas_inf " +
+            FROM CategoriaProducto c
+        ";
 
-                    "from CategoriaProducto c";
+                // SELECT que retorna lista
+                string json = await Conection_SQL.ConsultaSQLServer(query, true, true);
 
-
-
-
-                DataTable dt = new DataTable();
-                SqlDataAdapter ad = new SqlDataAdapter(cmd);
-                ad.Fill(dt);
-                if (dt.Rows.Count > 0)
-                {
-                    return dt;
-                }
-                else
-                {
+                if (string.IsNullOrWhiteSpace(json) || json.Trim() == "[]")
                     return null;
-                }
+
+                DataTable dt = JsonConvert.DeserializeObject<DataTable>(json);
+
+                return (dt != null && dt.Rows.Count > 0) ? dt : null;
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
+                MessageBox.Show(
+                    "Ocurrió un error al consultar la información mensual por categorías.",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
+                return null;
+            }
+        }
+        public static async Task<DataTable> FiltroX_H_Dia_INFOCategorias(DateTime Fecha, int IdSede)
+        {
+            try
+            {
+                string query = $@"
+            SELECT 
+                c.id AS id_inf,
+                c.nombreCategoria AS nombreCategoria_inf,
+
+                (
+                    SELECT ISNULL(SUM(cantidadDetalle), 0)
+                    FROM V_DetalleCaja
+                    INNER JOIN TablaVentas ON V_DetalleCaja.idVenta = TablaVentas.id
+                    INNER JOIN Precios ON V_DetalleCaja.idPrecios = Precios.id
+                    INNER JOIN Inventario ON Precios.idInventario = Inventario.id
+                    INNER JOIN Producto ON Inventario.idProducto = Producto.id
+                    WHERE Producto.idCategoria = c.id
+                      AND TablaVentas.IdSede = {IdSede}
+                      AND YEAR(fechaVenta) = {Fecha.Year}
+                      AND MONTH(fechaVenta) = {Fecha.Month}
+                      AND DAY(fechaVenta) = {Fecha.Day}
+                ) AS cantidadProductos_inf,
+
+                (
+                    SELECT ISNULL(SUM(totalDetalle), 0)
+                    FROM V_DetalleCaja
+                    INNER JOIN TablaVentas ON V_DetalleCaja.idVenta = TablaVentas.id
+                    INNER JOIN Precios ON V_DetalleCaja.idPrecios = Precios.id
+                    INNER JOIN Inventario ON Precios.idInventario = Inventario.id
+                    INNER JOIN Producto ON Inventario.idProducto = Producto.id
+                    WHERE Producto.idCategoria = c.id
+                      AND TablaVentas.IdSede = {IdSede}
+                      AND YEAR(fechaVenta) = {Fecha.Year}
+                      AND MONTH(fechaVenta) = {Fecha.Month}
+                      AND DAY(fechaVenta) = {Fecha.Day}
+                ) AS totalVentas_inf
+
+            FROM CategoriaProducto c
+        ";
+
+                // SELECT que retorna lista
+                string json = await Conection_SQL.ConsultaSQLServer(query, true, true);
+
+                if (string.IsNullOrWhiteSpace(json) || json.Trim() == "[]")
+                    return null;
+
+                DataTable dt = JsonConvert.DeserializeObject<DataTable>(json);
+
+                return (dt != null && dt.Rows.Count > 0) ? dt : null;
+            }
+            catch (Exception ex)
+            {
+                string error = ex.Message;
+                MessageBox.Show(
+                    "Ocurrió un error al consultar la información por categorías.",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
                 return null;
             }
         }

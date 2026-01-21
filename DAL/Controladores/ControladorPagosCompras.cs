@@ -109,10 +109,11 @@ WHERE idSede = {IdSede}
   AND YEAR(fechaPagoCompra) = {Fecha.Year};";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+          
+                if(respuesta==null) return 0;
 
-                var row = JsonConvert.DeserializeObject<List<dynamic>>(jsonReal);
-                return Convert.ToInt32(row[0].total);
+                var row = JsonConvert.DeserializeObject<ClassSumaTotal>(respuesta);
+                return Convert.ToInt32(row.total);
             }
             catch (Exception ex)
             {
@@ -134,10 +135,10 @@ WHERE idSede = {IdSede}
   AND MONTH(fechaPagoCompra) = {Fecha.Month};";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
-
-                var row = JsonConvert.DeserializeObject<List<dynamic>>(jsonReal);
-                return Convert.ToInt32(row[0].total);
+                
+                if(respuesta==null) return 0;
+                var row = JsonConvert.DeserializeObject<ClassSumaTotal>(respuesta);
+                return Convert.ToInt32(row.total);
             }
             catch (Exception ex)
             {
@@ -152,16 +153,16 @@ WHERE idSede = {IdSede}
             try
             {
                 var query = $@"
-SELECT ISNULL(SUM(CAST(valorPagadoCompra AS INT)),0) AS total
-FROM PagosCompras WITH (NOLOCK)
-WHERE idSede = {IdSede}
-  AND CONVERT(date, fechaPagoCompra) = CONVERT(date, '{Fecha:yyyy-MM-dd}');";
+                SELECT ISNULL(SUM(CAST(valorPagadoCompra AS INT)),0) AS total
+                FROM PagosCompras WITH (NOLOCK)
+                WHERE idSede = {IdSede}
+                AND CONVERT(date, fechaPagoCompra) = CONVERT(date, '{Fecha:yyyy-MM-dd}');";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
+               if(respuesta==null) return 0;
 
-                var row = JsonConvert.DeserializeObject<List<dynamic>>(jsonReal);
-                return Convert.ToInt32(row[0].total);
+                var row = JsonConvert.DeserializeObject<ClassSumaTotal>(respuesta);
+                return Convert.ToInt32(row.total);
             }
             catch (Exception ex)
             {
