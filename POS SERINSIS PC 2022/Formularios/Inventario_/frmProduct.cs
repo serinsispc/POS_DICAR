@@ -1,4 +1,4 @@
-﻿using DAL;
+using DAL;
 using DAL.Controladores;
 using DAL.Controladores.Administrador;
 using DAL.Controladores.Tienda;
@@ -45,11 +45,11 @@ namespace SERINSI_PC.Formularios.Inventario
         private async void frmProduct_Load(object sender, EventArgs e)
         {
             await LlenarCMB();
-            CargarGD(0);
+            await CargarGD(0);
         }
-        private void CargarGD(int elimi)
+        private async Task CargarGD(int elimi)
         {
-            dgLista.DataSource = ControladorProducto.listaCompleta(elimi);
+            dgLista.DataSource =await ControladorProducto.listaCompleta(elimi);
         }
         public async Task LlenarCMB()
         {
@@ -146,15 +146,15 @@ namespace SERINSI_PC.Formularios.Inventario
             }
         }
 
-        private void btnLimpiar_Click(object sender, EventArgs e)
+        private async void btnLimpiar_Click(object sender, EventArgs e)
         {
             txtCodigo.Text = "";
             txtDescripcion.Text = "";
-            CargarGD(0);
+            await CargarGD(0);
             txtCodigo.Focus();
         }
 
-        private void txtCodigo_KeyDown(object sender, KeyEventArgs e)
+        private async void txtCodigo_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
             {
@@ -164,21 +164,28 @@ namespace SERINSI_PC.Formularios.Inventario
                 }
                 else
                 {
-                    CargarGD(0);
+                    await CargarGD(0);
                 }
             }
         }
 
-        private void cmbCategoria_SelectedIndexChanged(object sender, EventArgs e)
+        private async void cmbCategoria_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (cmbCategoria.Text != "")
             {
-                dgLista.DataSource = ControladorProducto.FiltralCategoria(Convert.ToInt32(cmbCategoria.SelectedValue));
+                List<V_Producto> v_Producto=new List<V_Producto>();
+                v_Producto = await ControladorProducto.FiltralCategoria(Convert.ToInt32(cmbCategoria.SelectedValue));
+                if(v_Producto==null)
+                {
+                    dgLista.DataSource = v_Producto = new List<V_Producto>(); ;
+                    return;
+                }
+                dgLista.DataSource = v_Producto;
             }
             
         }
 
-        private void txtDescripcion_KeyDown(object sender, KeyEventArgs e)
+        private async void txtDescripcion_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
             {
@@ -188,7 +195,7 @@ namespace SERINSI_PC.Formularios.Inventario
                 }
                 else
                 {
-                    CargarGD(0);
+                    await CargarGD(0);
                 }
             }
         }
@@ -233,7 +240,7 @@ namespace SERINSI_PC.Formularios.Inventario
                 }
                 frm.pbImagenProducto.Image = ClassRuta.CargarProductoCategoria(VariablesPublicas.RutaImagenes, "\\Productos\\",Convert.ToString(objpro.guidProducto) + ".png");
                 frm.ShowDialog();
-                CargarGD(0);
+                await CargarGD(0);
             }
         }
 
@@ -334,7 +341,7 @@ namespace SERINSI_PC.Formularios.Inventario
             }
         }
 
-        private async void btnEliminarProducto_Click(object sender, EventArgs e)
+private async void btnEliminarProducto_Click(object sender, EventArgs e)
         {
             if (VariablesPublicas.TipoUsuarioLogueado == "Vendedor")
             {
@@ -344,26 +351,39 @@ namespace SERINSI_PC.Formularios.Inventario
             {
                 DataGridViewRow fila = dgLista.Rows[dgLista.CurrentRow.Index];
                 IdProducto_frm = Convert.ToInt32(fila.Cells["id"].Value);
-                InventarioTotal inventarioTotal = new InventarioTotal();
-                inventarioTotal =await controladorInventarioTotal.ConsultarIdProducto(IdProducto_frm,VariablesPublicas.IdEmpresaLogueada);
+                
+                // Eliminar inventario asociado primero
+                InventarioTotal inventarioTotal = await controladorInventarioTotal.ConsultarIdProducto(IdProducto_frm, VariablesPublicas.IdEmpresaLogueada);
                 if (inventarioTotal != null)
                 {
-                    RespuestaCRUD sqlEliminar =await controladorInventarioTotal.CrearEditarEliminarInventarioTotal(inventarioTotal,2);
+                    RespuestaCRUD sqlEliminar = await controladorInventarioTotal.CrearEditarEliminarInventarioTotal(inventarioTotal, 2);
+                    if (!sqlEliminar.estado)
+                    {
+                        MessageBox.Show("Error al eliminar el inventario asociado.", "¡Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
                 }
-                //cargamos el guid
-                Producto objpro = new Producto();
-                objpro =await ControladorProducto.consultarIdProducto(IdProducto_frm);
+                
+                // Marcar producto como eliminado (borrado lógico)
+                Producto objpro = await ControladorProducto.consultarIdProducto(IdProducto_frm);
                 if (objpro != null)
                 {
                     objpro.eliminado = 1;
-                    await ControladorProducto.GuardarEditarEliminarProducto(objpro,1);
-                    RespuestaCRUD sql =await ControladorProducto.GuardarEditarEliminarProducto(objpro,2);
+                    RespuestaCRUD sql = await ControladorProducto.GuardarEditarEliminarProducto(objpro, 2);
                     if (sql.estado == true)
                     {
                         CargarGD(0);
+                        MessageBox.Show("¡Producto eliminado correctamente.!", "¡Ok!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Error al eliminar el producto.", "¡Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
-                MessageBox.Show("¡Producto eliminado correctamente.!","¡Ok!",MessageBoxButtons.OK,MessageBoxIcon.Information);
+                else
+                {
+                    MessageBox.Show("Producto no encontrado.", "¡Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 

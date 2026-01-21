@@ -1,4 +1,4 @@
-﻿using POS_SERINSIS_PC_2022.Formularios;
+using POS_SERINSIS_PC_2022.Formularios;
 using SERINSI_PC.Formularios.Seguridad;
 using SERINSI_PC.Formularios.Ventas;
 using System;

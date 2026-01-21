@@ -56,9 +56,9 @@ FROM Producto WITH (NOLOCK)
 WHERE guidProducto = '{guidPro}';";
 
                 var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(resp);
-                var lista = JsonConvert.DeserializeObject<List<Producto>>(jsonReal);
-                return (lista != null && lista.Count > 0) ? lista[0] : null;
+                if (resp == null) return null;
+                var lista = JsonConvert.DeserializeObject<Producto>(resp);
+                return lista;
             }
             catch
             {
@@ -119,8 +119,8 @@ FROM V_Producto WITH (NOLOCK)
 WHERE idCategoria = {IdCategoria};";
 
                 var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(resp);
-                return JsonConvert.DeserializeObject<List<V_Producto>>(jsonReal);
+                if (resp == null) return null;
+                return JsonConvert.DeserializeObject<List<V_Producto>>(resp);
             }
             catch
             {
@@ -139,8 +139,8 @@ WHERE eliminado = {elimi}
 ORDER BY id DESC;";
 
                 var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(resp);
-                return JsonConvert.DeserializeObject<List<V_Producto>>(jsonReal);
+                if (resp == null) return null;
+                return JsonConvert.DeserializeObject<List<V_Producto>>(resp);
             }
             catch
             {
@@ -253,9 +253,9 @@ FROM Producto WITH (NOLOCK)
 WHERE id = {IdProducto};";
 
                 var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(resp);
-                var lista = JsonConvert.DeserializeObject<List<Producto>>(jsonReal);
-                return (lista != null && lista.Count > 0) ? lista[0] : null;
+               if(resp==null) return null;
+                var lista = JsonConvert.DeserializeObject<Producto>(resp);
+                return lista;
             }
             catch
             {
@@ -502,10 +502,10 @@ FROM Producto WITH (NOLOCK)
 WHERE codigoProducto = N'{c}';";
 
                 var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(resp);
-                var lista = JsonConvert.DeserializeObject<List<dynamic>>(jsonReal);
+                if (resp == null) return false;
+                var lista = JsonConvert.DeserializeObject<bool>(resp);
 
-                return (lista != null && lista.Count > 0);
+                return lista;
             }
             catch
             {

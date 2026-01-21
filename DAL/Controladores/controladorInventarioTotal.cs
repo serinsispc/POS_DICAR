@@ -104,14 +104,13 @@ WHERE idSedeIT = {IdSede}
 ORDER BY idIT DESC;";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true); // 👈 LISTA
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
-
-                return JsonConvert.DeserializeObject<List<V_InventarioTotal>>(jsonReal);
+                if (respuesta == null) return new List<V_InventarioTotal>();
+                return JsonConvert.DeserializeObject<List<V_InventarioTotal>>(respuesta);
             }
             catch (Exception ex)
             {
                 string error = ex.Message;
-                return null;
+                return new List<V_InventarioTotal>();
             }
         }
     }

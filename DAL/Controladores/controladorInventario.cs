@@ -105,9 +105,8 @@ WHERE idProducto = {IdProducto}
 ORDER BY id DESC;";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true); // 👈 LISTA
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
-
-                return JsonConvert.DeserializeObject<List<V_Inventario>>(jsonReal);
+                if (respuesta == null) return new List<V_Inventario>();
+                return JsonConvert.DeserializeObject<List<V_Inventario>>(respuesta);
             }
             catch (Exception ex)
             {

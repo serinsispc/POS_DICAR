@@ -51,37 +51,37 @@ namespace SERINSI_PC.Formularios.Inventario
         }
         private async void frmGestionarInventario_Load(object sender, EventArgs e)
         {
-            CargarDG();
-            CargarPresentacion();
+            await CargarDG();
+            await CargarPresentacion();
             GestionarBotones(0);
-            CargarListaPrecio();
+            await CargarListaPrecio();
 
             await SeleccionarInventario();
-            CargarDGPrecios();
+            await CargarDGPrecios();
 
             txtPrecioPublico.Focus();
         }
-        private void CargarListaPrecio()
+        private async Task CargarListaPrecio()
         {
             cmbListaPrecios.DataSource = null;
             cmbListaPrecios.ValueMember = "id";
             cmbListaPrecios.DisplayMember = "nombreLista";
-            cmbListaPrecios.DataSource = controladorListaPrecios.ListaCompleta();
+            cmbListaPrecios.DataSource =await controladorListaPrecios.ListaCompleta();
         }
-        private void CargarPresentacion()
+        private async Task CargarPresentacion()
         {
             cmbPresentacion.DataSource = null;
             cmbPresentacion.ValueMember = "id";
             cmbPresentacion.DisplayMember = "nombrePresentacion";
-            cmbPresentacion.DataSource = controladorPresentacion.ListaCompleta();
+            cmbPresentacion.DataSource =await controladorPresentacion.ListaCompleta();
         }
-        private void lbAgregarPresentacion_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        private async void lbAgregarPresentacion_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             frmPresentacion frm = new frmPresentacion();
             AddOwnedForm(frm);
             frm.tituloFormulario.Text = "Gestionar Presentación";
             frm.ShowDialog();
-            CargarPresentacion();
+            await CargarPresentacion();
         }
 
         private void btnCerrar_Click(object sender, EventArgs e)
@@ -286,7 +286,7 @@ namespace SERINSI_PC.Formularios.Inventario
             {
                 if (Boton == 2)
                 {
-                    CargarDG();
+                    await CargarDG();
                     LimpiarFormulario();
                     GestionarBotones(0);
                     return;
@@ -332,37 +332,37 @@ namespace SERINSI_PC.Formularios.Inventario
             RespuestaCRUD sql =await controladorPrecio.CrearEditarEliminarCostoPrecio(objPrecios,Boton);
             if (sql.estado == true)
             {
-                CargarDG();
+                await CargarDG();
                 LimpiarFormulario();
                 GestionarBotones(0);
             }
         }
-        private void btnEliminar_Click(object sender, EventArgs e)
+        private async void btnEliminar_Click(object sender, EventArgs e)
         {
             bool campos = ValidarCampos();
             if (campos == true)
             {
-                GestionarInventario(2);
-                CargarDG();
+                await GestionarInventario(2);
+                await CargarDG();
                 LimpiarFormulario();
                 GestionarBotones(0);
             }
         }
-        private void btn_Guardar()
+        private async Task btn_Guardar()
         {
             bool campos = ValidarCampos();
             if (campos == true)
             {
                 if (btnGuardar.Text == "Editar")
                 {
-                    GestionarInventarioTotal(1);
+                    await GestionarInventarioTotal(1);
                 }
                 else
                 {
-                    GestionarInventarioTotal(0);
+                    await GestionarInventarioTotal(0);
                 }
-                SeleccionarInventario();
-                CargarDGPrecios();
+                await SeleccionarInventario();
+                await CargarDGPrecios();
 
                 txtPrecioPublico.Focus();
             }
@@ -371,24 +371,24 @@ namespace SERINSI_PC.Formularios.Inventario
                 MessageBox.Show("¡Aún hay campos vacíos...!", "¡Error!",MessageBoxButtons.OK,MessageBoxIcon.Error);
             }
         }
-        private void btnGuardar_Click(object sender, EventArgs e)
+        private async void btnGuardar_Click(object sender, EventArgs e)
         {
-            btn_Guardar();
+            await btn_Guardar();
         }
-        private void CargarDG()
+        private async Task CargarDG()
         {
-            dgProducto.DataSource = controladorInventarioTotal.Filtrar_IdSede_IdProducto(VariablesPublicas.IdEmpresaLogueada,IdProducto_frm);
-            dgPrecentaciones.DataSource = controladorInventario.ListaCompleta(IdProducto_frm,VariablesPublicas.IdEmpresaLogueada);
+            dgProducto.DataSource =await controladorInventarioTotal.Filtrar_IdSede_IdProducto(VariablesPublicas.IdEmpresaLogueada,IdProducto_frm);
+            dgPrecentaciones.DataSource =await controladorInventario.ListaCompleta(IdProducto_frm,VariablesPublicas.IdEmpresaLogueada);
         }
 
-        private void dgInventario_CellClick(object sender, DataGridViewCellEventArgs e)
+        private async void dgInventario_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            SeleccionarInventario();
-            CargarDGPrecios();
+            await SeleccionarInventario();
+            await CargarDGPrecios();
         }
-        private void CargarDGPrecios()
+        private async Task CargarDGPrecios()
         {
-            dgPrecios.DataSource = controladorPrecio.ListaCompleta(IdInventario_frm,VariablesPublicas.IdEmpresaLogueada);
+            dgPrecios.DataSource =await controladorPrecio.ListaCompleta(IdInventario_frm,VariablesPublicas.IdEmpresaLogueada);
         }
         private void LimpiarFormulario()
         {
@@ -751,7 +751,7 @@ namespace SERINSI_PC.Formularios.Inventario
                         RespuestaCRUD sql =await controladorPrecio.CrearEditarEliminarCostoPrecio(objPrecios, 2);
                         if (sql.estado == true)
                         {
-                            CargarDGPrecios();
+                            await CargarDGPrecios();
                         }
                     }
                 }

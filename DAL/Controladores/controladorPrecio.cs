@@ -133,12 +133,11 @@ SELECT *
 FROM V_Precios WITH (NOLOCK)
 WHERE idSede = {IdSede}
   AND idInventario_v = {IdInventario}
-ORDER BY id DESC;";
+ORDER BY id_v DESC;";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true); // LISTA
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
-
-                return JsonConvert.DeserializeObject<List<V_Precios>>(jsonReal);
+                if (respuesta == null) return new List<V_Precios>();
+                return JsonConvert.DeserializeObject<List<V_Precios>>(respuesta);
             }
             catch (Exception ex)
             {

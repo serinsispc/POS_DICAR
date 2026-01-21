@@ -63,8 +63,8 @@ namespace SERINSI_PC.Formularios.Inventario
         private async void frmGestionarProducto_Load(object sender, EventArgs e)
         {
             await LLenarCMBTipoMedida();
-            LLenarCMBEstadoProducto();
-            LLenarCMBCategoria();
+            await LLenarCMBEstadoProducto();
+            await LLenarCMBCategoria();
             if(TipoEvento == 0 )
             {
                 cmbEstadoProducto.SelectedIndex=0;
@@ -80,18 +80,18 @@ namespace SERINSI_PC.Formularios.Inventario
             cmbTipoMedida.DataSource =await ControladorTipoMedida.ListaCompleta();
             cmbTipoMedida.SelectedValue = IdTipoMedida;
         }
-        private void LLenarCMBEstadoProducto()
+        private async Task LLenarCMBEstadoProducto()
         {
             cmbEstadoProducto.ValueMember = "id";
             cmbEstadoProducto.DisplayMember = "nombreEstadoAi";
-            cmbEstadoProducto.DataSource =ControladorEstadoAI.listaCompleta();
+            cmbEstadoProducto.DataSource =await ControladorEstadoAI.listaCompleta();
             cmbEstadoProducto.SelectedValue = IdEstadoProdcuto;
         }
-        public void LLenarCMBCategoria()
+        public async Task LLenarCMBCategoria()
         {
             cmbCategoria.ValueMember = "id";
             cmbCategoria.DisplayMember = "nombreCategoria";
-            cmbCategoria.DataSource = ControladorCategoriaProducto.ListaCompleta();
+            cmbCategoria.DataSource =await ControladorCategoriaProducto.ListaCompleta();
             cmbCategoria.SelectedValue = IdCategoria;
         }
         private async void btnGuardar_Click(object sender, EventArgs e)

@@ -54,8 +54,8 @@ FROM V_ListaPrecio WITH (NOLOCK)
 ORDER BY id DESC;";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true); // 👈 LISTA
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
-                return JsonConvert.DeserializeObject<List<V_ListaPrecio>>(jsonReal);
+                if (respuesta == null) return new List<V_ListaPrecio>();
+                return JsonConvert.DeserializeObject<List<V_ListaPrecio>>(respuesta);
             }
             catch (Exception ex)
             {

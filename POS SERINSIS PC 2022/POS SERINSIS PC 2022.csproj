@@ -28,7 +28,7 @@
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
     <UpdateUrl>https://www.serinsispc.com/DICAR/POS/</UpdateUrl>
-    <ApplicationRevision>64</ApplicationRevision>
+    <ApplicationRevision>67</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -505,6 +505,12 @@
     <Compile Include="Formularios\frmTutoriales.Designer.cs">
       <DependentUpon>frmTutoriales.cs</DependentUpon>
     </Compile>
+    <Compile Include="Formularios\frm_ia.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Formularios\frm_ia.Designer.cs">
+      <DependentUpon>frm_ia.cs</DependentUpon>
+    </Compile>
     <Compile Include="Formularios\frm_prueba_balanza.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -900,6 +906,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Formularios\frmTutoriales.resx">
       <DependentUpon>frmTutoriales.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Formularios\frm_ia.resx">
+      <DependentUpon>frm_ia.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Formularios\frm_prueba_balanza.resx">
       <DependentUpon>frm_prueba_balanza.cs</DependentUpon>

@@ -150,7 +150,7 @@
             this.codigoProducto.HeaderText = "Código";
             this.codigoProducto.Name = "codigoProducto";
             this.codigoProducto.ReadOnly = true;
-            this.codigoProducto.Width = 84;
+            this.codigoProducto.Width = 82;
             // 
             // descripcionProducto
             // 
@@ -158,7 +158,7 @@
             this.descripcionProducto.HeaderText = "Descripción";
             this.descripcionProducto.Name = "descripcionProducto";
             this.descripcionProducto.ReadOnly = true;
-            this.descripcionProducto.Width = 116;
+            this.descripcionProducto.Width = 115;
             // 
             // idTipoMedida
             // 
@@ -175,7 +175,7 @@
             this.nombreTipoMedida.HeaderText = "Tipo Medida";
             this.nombreTipoMedida.Name = "nombreTipoMedida";
             this.nombreTipoMedida.ReadOnly = true;
-            this.nombreTipoMedida.Width = 112;
+            this.nombreTipoMedida.Width = 120;
             // 
             // idCategoria
             // 
@@ -192,7 +192,6 @@
             this.nombreCategoria.HeaderText = "Categoria";
             this.nombreCategoria.Name = "nombreCategoria";
             this.nombreCategoria.ReadOnly = true;
-            this.nombreCategoria.Width = 102;
             // 
             // idEstadoAI
             // 
@@ -210,7 +209,7 @@
             this.nombreEstadoAi.Name = "nombreEstadoAi";
             this.nombreEstadoAi.ReadOnly = true;
             this.nombreEstadoAi.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-            this.nombreEstadoAi.Width = 82;
+            this.nombreEstadoAi.Width = 81;
             // 
             // idSede
             // 
@@ -480,7 +479,7 @@
             // 
             this.btnEditarProducto.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnEditarProducto.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnEditarProducto.IconChar = FontAwesome.Sharp.IconChar.FilePen;
+            this.btnEditarProducto.IconChar = FontAwesome.Sharp.IconChar.FileEdit;
             this.btnEditarProducto.IconColor = System.Drawing.Color.Black;
             this.btnEditarProducto.IconFont = FontAwesome.Sharp.IconFont.Auto;
             this.btnEditarProducto.IconSize = 40;

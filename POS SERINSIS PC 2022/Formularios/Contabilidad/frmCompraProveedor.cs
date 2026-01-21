@@ -159,7 +159,8 @@ namespace SERINSI_PC.Formularios.Inventario
                     }
                 }
             }
-            catch(Exception ex)
+            catch(Exception 
+            ex)
             {
 
             }
