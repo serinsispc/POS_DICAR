@@ -9,7 +9,7 @@ namespace Invenpol_Parqueadero_Motos.Clases
 {
     public class VariablesPublicas
     {
-        public static string version = "1.1";
+        public static string version = "1.2";
 
         public static string nombreVendedor = "";
         public static bool Gramera = false;
