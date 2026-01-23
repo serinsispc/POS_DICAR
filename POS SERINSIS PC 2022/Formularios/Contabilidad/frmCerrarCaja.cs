@@ -17,6 +17,8 @@ using System.Windows.Forms;
 using sib_api_v3_sdk.Api;
 using sib_api_v3_sdk.Model;
 using POS_SERINSIS_PC_2022.Reportes;
+using Task = System.Threading.Tasks.Task;
+using DAL;
 
 namespace SERINSI_PC.Formularios.Contabilidad
 {
@@ -49,10 +51,10 @@ namespace SERINSI_PC.Formularios.Contabilidad
         {
             InitializeComponent();
         }
-        private void frmCerrarCaja_Load(object sender, EventArgs e)
+        private async void frmCerrarCaja_Load(object sender, EventArgs e)
         {
             BaseCaja objBase = new BaseCaja();
-            objBase = ControladorBaseCaja.consultaBaseActiva("ACTIVA",VariablesPublicas.IdUsuarioLogueado,VariablesPublicas.IdEmpresaLogueada);
+            objBase =await ControladorBaseCaja.consultaBaseActiva("ACTIVA",VariablesPublicas.IdUsuarioLogueado,VariablesPublicas.IdEmpresaLogueada);
             if (objBase != null)
             {
                 IdBaseCaja = objBase.id;
@@ -70,10 +72,10 @@ namespace SERINSI_PC.Formularios.Contabilidad
 
             txtBaseCaja.Text = "$ " + string.Format("{0:#,##0.##}", Convert.ToDouble(valorBaseCaja));
 
-            cargarPagoCC();
-            cargarGastos();
-            cargarVentas();
-            cargarPagoCP();
+            await cargarPagoCC();
+            await cargarGastos();
+            await cargarVentas();
+            await cargarPagoCP();
 
             valorIngresosEfectivo = valorVentasEfectivo  + valorPagoCreditoEfectivo  ;
             valorIngresosTarjeta = valorVentasTarjeta + valorPagoCreditoTarjeta;
@@ -90,50 +92,50 @@ namespace SERINSI_PC.Formularios.Contabilidad
 
             txtTotalEfectivoCaja.Text = "$ " + string.Format("{0:#,##0.##}", Convert.ToDouble(valorTotalCaja));
         }
-        private void cargarGastos()
+        private async Task cargarGastos()
         {
-            valorGastosEfectivo = ControladorGastos.TotalGastosBolsillo(1,VariablesPublicas.IdBaseActiva);
+            valorGastosEfectivo =await ControladorGastos.TotalGastosBolsillo(1,VariablesPublicas.IdBaseActiva);
             txtGastosEfectivo.Text = "$ " + string.Format("{0:#,##0.##}", Convert.ToDouble(valorGastosEfectivo));
-            valorGastosTarjeta = ControladorGastos.TotalGastosBolsillo(2, VariablesPublicas.IdBaseActiva);
+            valorGastosTarjeta =await ControladorGastos.TotalGastosBolsillo(2, VariablesPublicas.IdBaseActiva);
             txtGastosTarjeta.Text = "$ " + string.Format("{0:#,##0.##}", Convert.ToDouble(valorGastosTarjeta));
         }
-        private void cargarPagoCP()
+        private async Task cargarPagoCP()
         {
-            valorComprasEfectivo = ControladorPagosCompras.pagoCPBolsilloFecha(1, VariablesPublicas.IdBaseActiva);
+            valorComprasEfectivo =await ControladorPagosCompras.pagoCPBolsilloFecha(1, VariablesPublicas.IdBaseActiva);
             txtComprasEfectivo.Text = "$ " + string.Format("{0:#,##0.##}", Convert.ToDouble(valorComprasEfectivo));
-            valorComprasTarjeta = ControladorPagosCompras.pagoCPBolsilloFecha(2, VariablesPublicas.IdBaseActiva);
+            valorComprasTarjeta =await ControladorPagosCompras.pagoCPBolsilloFecha(2, VariablesPublicas.IdBaseActiva);
             txtComprasTarjeta.Text = "$ " + string.Format("{0:#,##0.##}", Convert.ToDouble(valorComprasTarjeta));
 
         }
-        private void cargarPagoCC()
+        private async Task cargarPagoCC()
         {
-            valorPagoCreditoEfectivo = ControladorPagosCreditoTienda.pagoCCBolsilloFecha( VariablesPublicas.IdBaseActiva,1);
+            valorPagoCreditoEfectivo =await ControladorPagosCreditoTienda.pagoCCBolsilloFecha( VariablesPublicas.IdBaseActiva,1);
             txtPagosCreditosEfectivo.Text = "$ " + string.Format("{0:#,##0.##}", Convert.ToDouble(valorPagoCreditoEfectivo));
-            valorPagoCreditoTarjeta = ControladorPagosCreditoTienda.pagoCCBolsilloFecha(VariablesPublicas.IdBaseActiva, 2);
+            valorPagoCreditoTarjeta =await ControladorPagosCreditoTienda.pagoCCBolsilloFecha(VariablesPublicas.IdBaseActiva, 2);
             txtPagosCreditoTarjeta.Text = "$ " + string.Format("{0:#,##0.##}", Convert.ToDouble(valorPagoCreditoTarjeta));
         }
-        private void cargarVentas()
+        private async Task cargarVentas()
         {
-            valorVentasEfectivo = ControladorVenta.HallarTotalVentasEfectivo("CONTADO",   "ANULADA",VariablesPublicas.IdBaseActiva);
+            valorVentasEfectivo =await ControladorVenta.HallarTotalVentasEfectivo("CONTADO",   "ANULADA",VariablesPublicas.IdBaseActiva);
             txtVentasEfectivo.Text = "$ " + string.Format("{0:#,##0.##}", Convert.ToDouble(valorVentasEfectivo));
 
-            valorVentasTarjeta = ControladorVenta.HallarTotalVentasTarjeta("CONTADO", "ANULADA", VariablesPublicas.IdBaseActiva);
+            valorVentasTarjeta =await ControladorVenta.HallarTotalVentasTarjeta("CONTADO", "ANULADA", VariablesPublicas.IdBaseActiva);
             txtVentasTarjeta.Text = "$ " + string.Format("{0:#,##0.##}", Convert.ToDouble(valorVentasTarjeta));
         }
-        private void btnCerrarCaja_Click(object sender, EventArgs e)
+        private async void btnCerrarCaja_Click(object sender, EventArgs e)
         {
             if (MessageBox.Show("¿Esta seguro de hacer el cierre de la caja.?", "Cerrar Caja", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
                 if (IdBaseCaja > 0)
                 {
                     BaseCaja objBase = new BaseCaja();
-                    objBase = ControladorBaseCaja.consultarID(IdBaseCaja);
+                    objBase =await ControladorBaseCaja.consultarID(IdBaseCaja);
                     if (objBase != null)
                     {
                         Cierre = DateTime.Now;
                         objBase.fechaCierre = DateTime.Now;
                         objBase.estadoBase = "CERRADA";
-                        bool sql = ControladorBaseCaja.CrearEditarEliminarBaseCaja(objBase, 1);
+                        bool sql =await ControladorBaseCaja.CrearEditarEliminarBaseCaja(objBase, 1);
                         if (sql == true)
                         {
 
@@ -198,9 +200,9 @@ namespace SERINSI_PC.Formularios.Contabilidad
                             this.Close();
 
                             //en esta parte hallamos los movimientos de banco
-                            movimientosBanco();
+                            await movimientosBanco();
                             //en esta parte hallamos los movimientos de caja menor
-                            movimientosCajaMejor();
+                            await movimientosCajaMejor();
 
                             btnCerrarCaja.Enabled = false;
                             VariablesPublicas.IdBaseActiva = 0;
@@ -251,29 +253,29 @@ namespace SERINSI_PC.Formularios.Contabilidad
                 return false;
             }
         }
-        private void movimientosCajaMejor()
+        private async Task movimientosCajaMejor()
         {
-            decimal comprasCajaMejor = ControladorPagosCompras.pagoCPBolsilloFecha(3,  VariablesPublicas.IdBaseActiva);
-            decimal gastosCajaMenor = ControladorGastos.TotalGastosBolsillo(3, VariablesPublicas.IdBaseActiva);
+            decimal comprasCajaMejor =await ControladorPagosCompras.pagoCPBolsilloFecha(3,  VariablesPublicas.IdBaseActiva);
+            decimal gastosCajaMenor =await ControladorGastos.TotalGastosBolsillo(3, VariablesPublicas.IdBaseActiva);
 
             decimal egresoCajaMenor = comprasCajaMejor + gastosCajaMenor;
 
-            GestionarLibroDiario(3, "cierre de caja", 0, egresoCajaMenor);
+            await GestionarLibroDiario(3, "cierre de caja", 0, egresoCajaMenor);
         }
-        private void movimientosBanco()
+        private async Task movimientosBanco()
         {
-            decimal ventasBando = ControladorVenta.HallarTotalVentasTarjeta("CONTADO", "ANULADA",VariablesPublicas.IdBaseActiva);
-            decimal creditosBanco = ControladorPagosCreditoTienda.pagoCCBolsilloFecha(VariablesPublicas.IdBaseActiva,2);
-            decimal comprasBanco = ControladorPagosCompras.pagoCPBolsilloFecha(2, VariablesPublicas.IdBaseActiva);
-            decimal gastosBanco = ControladorGastos.TotalGastosBolsillo(2,VariablesPublicas.IdBaseActiva);
+            decimal ventasBando =await ControladorVenta.HallarTotalVentasTarjeta("CONTADO", "ANULADA",VariablesPublicas.IdBaseActiva);
+            decimal creditosBanco =await ControladorPagosCreditoTienda.pagoCCBolsilloFecha(VariablesPublicas.IdBaseActiva,2);
+            decimal comprasBanco =await ControladorPagosCompras.pagoCPBolsilloFecha(2, VariablesPublicas.IdBaseActiva);
+            decimal gastosBanco =await ControladorGastos.TotalGastosBolsillo(2,VariablesPublicas.IdBaseActiva);
 
             decimal ingresoBanco = ventasBando + creditosBanco;
             decimal egresoBanco = comprasBanco + gastosBanco;
 
-            GestionarLibroDiario(2,"cierre de caja",ingresoBanco,0);
-            GestionarLibroDiario(2, "cierre de caja", 0, egresoBanco);
+            await GestionarLibroDiario(2,"cierre de caja",ingresoBanco,0);
+            await GestionarLibroDiario(2, "cierre de caja", 0, egresoBanco);
         }
-        private void GestionarLibroDiario(int Bolsillo,string Motivo,decimal Debe,decimal Haber)
+        private async Task GestionarLibroDiario(int Bolsillo,string Motivo,decimal Debe,decimal Haber)
         {
             //en esta parte agregamos el movimiento a la tabla libro diario
             LibroDiario objLibro = new LibroDiario();
@@ -285,7 +287,7 @@ namespace SERINSI_PC.Formularios.Contabilidad
             objLibro.haber = Haber;
             objLibro.idUsuario = VariablesPublicas.IdUsuarioLogueado;
             //en esta parte llamamos la funcion que nos trae el untimo saldo
-            ClassSaldosLibroDiario.hallasUltimoSaldoLibro();
+            await ClassSaldosLibroDiario.hallasUltimoSaldoLibro();
             if (Bolsillo == 1)
             {
                 objLibro.saldoCaja = VariablesPublicas.SaldoCaja + Debe - Haber;
@@ -307,8 +309,8 @@ namespace SERINSI_PC.Formularios.Contabilidad
                 objLibro.saldoCajaMenor = VariablesPublicas.SaldoCajaMenor + Debe - Haber;
                 objLibro.saldoTotal = VariablesPublicas.SaldoTotal + Debe - Haber;
             }
-            bool sql2 = ControladorLibroDiario.CrearEditarEliminarLibroDiario(objLibro, 0);
-            if (sql2 == true)
+            RespuestaCRUD sql2 =await ControladorLibroDiario.CrearEditarEliminarLibroDiario(objLibro, 0);
+            if (sql2.estado == true)
             {
 
                // this.Close();
