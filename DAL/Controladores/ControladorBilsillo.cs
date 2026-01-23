@@ -17,13 +17,8 @@ namespace DAL.Controladores
                 var query = @"select * from Bolsillo";
 
                 var resp = await Conection_SQL.ConsultaSQLServer(query, true, true); // true = lista
-
-                if (!string.IsNullOrEmpty(resp))
-                {
-                    return JsonConvert.DeserializeObject<List<Bolsillo>>(resp);
-                }
-
-                return null;
+                if(resp == null)return new List<Bolsillo>();
+                return JsonConvert.DeserializeObject<List<Bolsillo>>(resp);
             }
             catch (Exception ex)
             {

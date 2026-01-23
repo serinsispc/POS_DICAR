@@ -235,7 +235,6 @@ namespace Invenpol_Parqueadero_Motos.Formularios.Tiemda
                 txtValorAPagar.Text = "";
                 txtBuscadorCliente.Focus();
                 await hallarTotalPendiente();
-  
             }
         }
         int IdVenta = 0;

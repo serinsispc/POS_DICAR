@@ -26,8 +26,9 @@ namespace DAL.Controladores
             try
             {
                 var json = EscapeJsonForSql(JsonConvert.SerializeObject(objGastoP));
-                var query = $"EXEC {SP_CRUD} N'{json}', {Boton}";
+                var query = $"EXEC CRUD_Gastos N'{json}', {Boton}";
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                if(respuesta==null) return new RespuestaCRUD { estado = false, idAfectado = 0, mensaje = "error" };
                 return JsonConvert.DeserializeObject<RespuestaCRUD>(respuesta);
             }
             catch (Exception ex)
@@ -51,8 +52,8 @@ WHERE idSede = {IdSede}
 ORDER BY fecha DESC, id DESC;";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
-                return JsonConvert.DeserializeObject<List<V_Gastos>>(jsonReal);
+                if (respuesta == null) return new List<V_Gastos>();
+                return JsonConvert.DeserializeObject<List<V_Gastos>>(respuesta);
             }
             catch (Exception ex)
             {
@@ -74,9 +75,9 @@ FROM Gastos WITH (NOLOCK)
 WHERE id = {pid};";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
-                var lista = JsonConvert.DeserializeObject<List<Gastos>>(jsonReal);
-                return (lista != null && lista.Count > 0) ? lista[0] : null;
+                if (respuesta == null) return null;
+                var lista = JsonConvert.DeserializeObject<Gastos>(respuesta);
+                return lista;
             }
             catch (Exception ex)
             {
@@ -146,9 +147,9 @@ FROM Gastos WITH (NOLOCK)
 WHERE idSede = {IdSede};";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
-                var row = JsonConvert.DeserializeObject<List<dynamic>>(jsonReal);
-                return Convert.ToInt32(row[0].total);
+                if (respuesta == null) return 0;
+                var row = JsonConvert.DeserializeObject<ClassSumaTotal>(respuesta);
+                return Convert.ToInt32(row.total);
             }
             catch (Exception ex)
             {

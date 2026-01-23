@@ -31,9 +31,9 @@ namespace Invenpol_Parqueadero_Motos.Formularios
         /// <param name="e"></param>
         private async void frmGastos_Load_1(object sender, EventArgs e)
         {
-            cargarBolsillo();
+            await cargarBolsillo();
             await CargarTipoGasto();
-            LLenarDataGrid();
+            await LLenarDataGrid();
             GestionarBotones(0);
             await TotalGastos();
         }
@@ -44,15 +44,15 @@ namespace Invenpol_Parqueadero_Motos.Formularios
             cmbTipoGasto.DisplayMember = "nombreTipoGasto";
             cmbTipoGasto.DataSource =await controladorTipoGasto.ListaCompleta();
         }
-        private void cargarBolsillo()
+        private async Task cargarBolsillo()
         {
             cmbBolsillo.ValueMember = "id";
             cmbBolsillo.DisplayMember = "nombreBolsillo";
-            cmbBolsillo.DataSource = ControladorBilsillo.listaCompleta();
+            cmbBolsillo.DataSource =await ControladorBilsillo.listaCompleta();
         }
-        private void LLenarDataGrid()
+        private async Task LLenarDataGrid()
         {
-            dataGridGastosarqueadero.DataSource = ControladorGastos.ConsultaTodosLosGastos(VariablesPublicas.IdEmpresaLogueada);
+            dataGridGastosarqueadero.DataSource =await ControladorGastos.ConsultaTodosLosGastos(VariablesPublicas.IdEmpresaLogueada);
         }
         /// <summary>
         /// Evento click del boton cerrar
@@ -85,23 +85,25 @@ namespace Invenpol_Parqueadero_Motos.Formularios
             {
                 Gastos objGastop = new Gastos();
                 objGastop =await ControladorGastos.ConsultaGastoXId(IdGasto);
-                
-                if(boton == 0)
+                if (objGastop != null)
                 {
-                    if(objGastop != null)
+                    if (boton == 0)
                     {
                         MessageBox.Show("El gasto ya existe.");
                         return;
                     }
+                    IdGasto = objGastop.id;
+                }
+                else
+                {
                     objGastop = new Gastos();
-
-                    
+                    IdGasto = 0;
                 }
                 objGastop.id = IdGasto;
                 objGastop.fecha = dtFecha.Value;
                 objGastop.idTipoGasto = Convert.ToInt32(cmbTipoGasto.SelectedValue);
                 objGastop.concepto = txtConcepto.Text;
-                objGastop.valor = Convert.ToInt32(txtValor.Text);
+                objGastop.valor = Convert.ToDecimal(txtValor.Text);
                 objGastop.idBolsillo = Convert.ToInt32(cmbBolsillo.SelectedValue);
                 objGastop.idBasecaja = VariablesPublicas.IdBaseActiva;
                 objGastop.idSede = VariablesPublicas.IdEmpresaLogueada;
@@ -120,9 +122,9 @@ namespace Invenpol_Parqueadero_Motos.Formularios
                     {
                         MessageBox.Show("Gasto Emilinado.");
                     }
-                    LLenarDataGrid();
+                    await LLenarDataGrid();
                     LimpiarFormulario();
-                    TotalGastos();
+                    await TotalGastos();
                     txtConcepto.Focus();
                 }
             }            

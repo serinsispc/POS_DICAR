@@ -1,4 +1,8 @@
-﻿using DAL.Controladores;
+﻿using DAL;
+using DAL.Controladores;
+using DAL.Modelo;
+using Invenpol_Parqueadero_Motos.Clases;
+using POS_SERINSIS_PC_2022.Formularios;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -8,9 +12,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using DAL.Modelo;
-using Invenpol_Parqueadero_Motos.Clases;
-using DAL;
 
 namespace SERINSI_PC.Formularios.Inventario
 {
@@ -51,15 +52,40 @@ namespace SERINSI_PC.Formularios.Inventario
         }
         private async void frmGestionarInventario_Load(object sender, EventArgs e)
         {
-            await CargarDG();
-            await CargarPresentacion();
-            GestionarBotones(0);
-            await CargarListaPrecio();
+            FrmLoading loading = null;
+            try
+            {
+                using (OpenFileDialog ofd = new OpenFileDialog())
+                {
+                    loading = FrmLoading.ShowLoading(this, "Cargarndo...");
+                    // inicio
 
-            await SeleccionarInventario();
-            await CargarDGPrecios();
 
-            txtPrecioPublico.Focus();
+                    await CargarDG();
+                    await CargarPresentacion();
+                    GestionarBotones(0);
+                    await CargarListaPrecio();
+
+                    await SeleccionarInventario();
+                    await CargarDGPrecios();
+
+
+                    // fin
+                    FrmLoading.CloseLoading(this, loading);
+                }
+            }
+            catch (Exception ex)
+            {
+                FrmLoading.CloseLoading(this, loading);
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                txtPrecioPublico.Focus();
+            }
+
+
+            
         }
         private async Task CargarListaPrecio()
         {

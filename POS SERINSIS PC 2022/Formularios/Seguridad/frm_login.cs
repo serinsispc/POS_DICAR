@@ -286,7 +286,7 @@ namespace SERINSI_PC.Formularios.Seguridad
             frmMenuPrincipal frm = new frmMenuPrincipal();
             frm.pbLogoCentral.Image = ClassRuta.CargarLogo(VariablesPublicas.RutaImagenes, "\\Logo\\", "Logo" + VariablesPublicas.IdEmpresaLogueada + ".png");
             frm.pbLogo.Image = ClassRuta.CargarLogo(VariablesPublicas.RutaImagenes, "\\Logo\\", "Logo" + VariablesPublicas.IdEmpresaLogueada + ".png");
-            frm.TituloMenu = "  " + VariablesPublicas.NombreEmpresa + " -- Version: " + ClaseVersion.NumeroVersion;
+            frm.TituloMenu = "  " + VariablesPublicas.NombreEmpresa + " -- Version: " + VariablesPublicas.version;
             frm.txtNombreUsuario.Text = VariablesPublicas.NombreUsuarioActivo;
             frm.txtCargoUsuario.Text = VariablesPublicas.TipoUsuarioLogueado;
             frm.Show();

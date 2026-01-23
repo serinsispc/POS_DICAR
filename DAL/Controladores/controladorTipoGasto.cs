@@ -43,7 +43,7 @@ namespace DAL.Controladores
             {
                 var query = "SELECT * FROM V_TipoGasto";
                 var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
-
+                if (resp == null) return new List<V_TipoGasto>();
                 return JsonConvert.DeserializeObject<List<V_TipoGasto>>(resp);
             }
             catch (Exception ex)
