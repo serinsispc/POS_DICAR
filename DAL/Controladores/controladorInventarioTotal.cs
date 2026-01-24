@@ -26,8 +26,9 @@ namespace DAL.Controladores
             try
             {
                 var json = EscapeJsonForSql(JsonConvert.SerializeObject(inventarioTotal));
-                var query = $"EXEC {SP_CRUD} N'{json}', {Boton}";
+                var query = $"EXEC CRUD_InventarioTotal N'{json}', {Boton}";
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                if(respuesta==null) return new RespuestaCRUD { estado = false, idAfectado = 0, mensaje = "error" };
                 return JsonConvert.DeserializeObject<RespuestaCRUD>(respuesta);
             }
             catch (Exception ex)
@@ -52,7 +53,7 @@ WHERE idProducto = {IdProducto}
 ORDER BY id DESC;";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
-         
+         if(respuesta==null)return null;
                 var lista = JsonConvert.DeserializeObject<InventarioTotal>(respuesta);
                 return lista;
             }

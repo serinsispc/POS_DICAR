@@ -64,6 +64,8 @@
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.cbajonMonedero = new System.Windows.Forms.ComboBox();
+            this.label26 = new System.Windows.Forms.Label();
             this.cbGramera = new System.Windows.Forms.CheckBox();
             this.txtTipoCaja = new System.Windows.Forms.TextBox();
             this.label21 = new System.Windows.Forms.Label();
@@ -106,8 +108,6 @@
             this.panel2 = new System.Windows.Forms.Panel();
             this.btnCrearSede = new System.Windows.Forms.Button();
             this.panel3 = new System.Windows.Forms.Panel();
-            this.label26 = new System.Windows.Forms.Label();
-            this.cbajonMonedero = new System.Windows.Forms.ComboBox();
             this.panel1.SuspendLayout();
             this.groupBoxdATOSeMPRESA.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -542,6 +542,25 @@
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Parametros";
             this.tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // cbajonMonedero
+            // 
+            this.cbajonMonedero.FormattingEnabled = true;
+            this.cbajonMonedero.Location = new System.Drawing.Point(783, 188);
+            this.cbajonMonedero.Name = "cbajonMonedero";
+            this.cbajonMonedero.Size = new System.Drawing.Size(93, 21);
+            this.cbajonMonedero.TabIndex = 69;
+            // 
+            // label26
+            // 
+            this.label26.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.label26.AutoSize = true;
+            this.label26.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label26.Location = new System.Drawing.Point(658, 188);
+            this.label26.Name = "label26";
+            this.label26.Size = new System.Drawing.Size(119, 18);
+            this.label26.TabIndex = 68;
+            this.label26.Text = "Cajón Monedero";
             // 
             // cbGramera
             // 
@@ -979,25 +998,6 @@
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(927, 491);
             this.panel3.TabIndex = 34;
-            // 
-            // label26
-            // 
-            this.label26.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.label26.AutoSize = true;
-            this.label26.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label26.Location = new System.Drawing.Point(658, 188);
-            this.label26.Name = "label26";
-            this.label26.Size = new System.Drawing.Size(119, 18);
-            this.label26.TabIndex = 68;
-            this.label26.Text = "Cajón Monedero";
-            // 
-            // cbajonMonedero
-            // 
-            this.cbajonMonedero.FormattingEnabled = true;
-            this.cbajonMonedero.Location = new System.Drawing.Point(783, 188);
-            this.cbajonMonedero.Name = "cbajonMonedero";
-            this.cbajonMonedero.Size = new System.Drawing.Size(93, 21);
-            this.cbajonMonedero.TabIndex = 69;
             // 
             // frmConfiguracionSoftware
             // 

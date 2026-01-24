@@ -76,10 +76,10 @@ namespace DAL.Controladores.Tienda
             try
             {
                 var query = "SELECT * FROM Bodega WITH (NOLOCK) ORDER BY nombreBodega";
-                var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
-
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
-                return JsonConvert.DeserializeObject<List<Bodega>>(jsonReal);
+                var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true);
+                if(respuesta == null)return new List<Bodega>();
+                
+                return JsonConvert.DeserializeObject<List<Bodega>>(respuesta);
             }
             catch (Exception ex)
             {

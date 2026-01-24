@@ -23,11 +23,8 @@ ORDER BY nombre_impresora;";
 
                 // 👈 LISTAS → true, true
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true);
-
-                // Patrón actual: JSON serializado como string
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
-
-                return JsonConvert.DeserializeObject<List<Impresora>>(jsonReal);
+                if (respuesta == null) return new List<Impresora>();
+                return JsonConvert.DeserializeObject<List<Impresora>>(respuesta);
             }
             catch (Exception ex)
             {

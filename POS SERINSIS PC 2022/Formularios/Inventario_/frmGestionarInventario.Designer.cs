@@ -112,6 +112,7 @@
             this.btnGuardar = new FontAwesome.Sharp.IconButton();
             this.btnLimpiar = new FontAwesome.Sharp.IconButton();
             this.bunifuFlatButton1 = new FontAwesome.Sharp.IconButton();
+            this.btnEliminarPrecio = new FontAwesome.Sharp.IconButton();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgPrecentaciones)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dgPrecios)).BeginInit();
@@ -503,10 +504,8 @@
             this.dgPrecios.Name = "dgPrecios";
             this.dgPrecios.ReadOnly = true;
             this.dgPrecios.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgPrecios.Size = new System.Drawing.Size(911, 42);
+            this.dgPrecios.Size = new System.Drawing.Size(911, 81);
             this.dgPrecios.TabIndex = 94;
-            this.dgPrecios.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgPrecios_CellClick);
-            this.dgPrecios.DoubleClick += new System.EventHandler(this.dgPrecios_DoubleClick);
             // 
             // id_v
             // 
@@ -910,12 +909,12 @@
             this.btnEliminar.IconFont = FontAwesome.Sharp.IconFont.Auto;
             this.btnEliminar.IconSize = 40;
             this.btnEliminar.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnEliminar.Location = new System.Drawing.Point(799, 341);
+            this.btnEliminar.Location = new System.Drawing.Point(754, 341);
             this.btnEliminar.Name = "btnEliminar";
             this.btnEliminar.Padding = new System.Windows.Forms.Padding(2, 0, 0, 0);
-            this.btnEliminar.Size = new System.Drawing.Size(124, 45);
+            this.btnEliminar.Size = new System.Drawing.Size(169, 45);
             this.btnEliminar.TabIndex = 116;
-            this.btnEliminar.Text = " Emilinar";
+            this.btnEliminar.Text = " Emilinar Presentacion";
             this.btnEliminar.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
             this.btnEliminar.UseVisualStyleBackColor = true;
             this.btnEliminar.Click += new System.EventHandler(this.btnEliminar_Click);
@@ -977,12 +976,32 @@
             this.bunifuFlatButton1.UseVisualStyleBackColor = true;
             this.bunifuFlatButton1.Click += new System.EventHandler(this.bunifuFlatButton1_Click);
             // 
+            // btnEliminarPrecio
+            // 
+            this.btnEliminarPrecio.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnEliminarPrecio.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnEliminarPrecio.IconChar = FontAwesome.Sharp.IconChar.TrashAlt;
+            this.btnEliminarPrecio.IconColor = System.Drawing.Color.Black;
+            this.btnEliminarPrecio.IconFont = FontAwesome.Sharp.IconFont.Auto;
+            this.btnEliminarPrecio.IconSize = 40;
+            this.btnEliminarPrecio.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.btnEliminarPrecio.Location = new System.Drawing.Point(752, 480);
+            this.btnEliminarPrecio.Name = "btnEliminarPrecio";
+            this.btnEliminarPrecio.Padding = new System.Windows.Forms.Padding(2, 0, 0, 0);
+            this.btnEliminarPrecio.Size = new System.Drawing.Size(169, 45);
+            this.btnEliminarPrecio.TabIndex = 120;
+            this.btnEliminarPrecio.Text = " Emilinar Precio";
+            this.btnEliminarPrecio.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
+            this.btnEliminarPrecio.UseVisualStyleBackColor = true;
+            this.btnEliminarPrecio.Click += new System.EventHandler(this.btnEliminarPrecio_Click);
+            // 
             // frmGestionarInventario
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.AppWorkspace;
-            this.ClientSize = new System.Drawing.Size(935, 447);
+            this.ClientSize = new System.Drawing.Size(935, 537);
+            this.Controls.Add(this.btnEliminarPrecio);
             this.Controls.Add(this.bunifuFlatButton1);
             this.Controls.Add(this.btnLimpiar);
             this.Controls.Add(this.btnGuardar);
@@ -1117,5 +1136,6 @@
         private FontAwesome.Sharp.IconButton btnGuardar;
         private FontAwesome.Sharp.IconButton btnLimpiar;
         private FontAwesome.Sharp.IconButton bunifuFlatButton1;
+        private FontAwesome.Sharp.IconButton btnEliminarPrecio;
     }
 }

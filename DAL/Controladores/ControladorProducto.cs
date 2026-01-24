@@ -100,8 +100,8 @@ FROM V_Producto WITH (NOLOCK)
 WHERE descripcionProducto LIKE N'%{d}%';";
 
                 var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(resp);
-                return JsonConvert.DeserializeObject<List<V_Producto>>(jsonReal);
+                if (resp == null) return new List<V_Producto>();
+                return JsonConvert.DeserializeObject<List<V_Producto>>(resp);
             }
             catch
             {

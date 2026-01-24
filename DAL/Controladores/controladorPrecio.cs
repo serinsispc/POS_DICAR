@@ -26,8 +26,14 @@ namespace DAL.Controladores
             try
             {
                 var json = EscapeJsonForSql(JsonConvert.SerializeObject(objCosto));
-                var query = $"EXEC {SP_CRUD} N'{json}', {Boton}";
+                var query = $"EXEC CRUD_Precios N'{json}', {Boton}";
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
+                if(respuesta == null) return new RespuestaCRUD
+                {
+                    estado = false,
+                    idAfectado = 0,
+                    mensaje = "error"
+                };
                 return JsonConvert.DeserializeObject<RespuestaCRUD>(respuesta);
             }
             catch (Exception ex)
@@ -56,10 +62,9 @@ WHERE idInventario = {IdInventario}
 ORDER BY id DESC;";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
-
-                var lista = JsonConvert.DeserializeObject<List<Precios>>(jsonReal);
-                return (lista != null && lista.Count > 0) ? lista[0] : null;
+if(respuesta==null)return null;
+                var lista = JsonConvert.DeserializeObject<Precios>(respuesta);
+                return lista;
             }
             catch (Exception ex)
             {
@@ -162,10 +167,9 @@ WHERE idProducto = {IdProducto}
 ORDER BY id DESC;";
 
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, false, true);
-                var jsonReal = JsonConvert.DeserializeObject<string>(respuesta);
-
-                var lista = JsonConvert.DeserializeObject<List<Precios>>(jsonReal);
-                return (lista != null && lista.Count > 0) ? lista[0] : null;
+                if (respuesta == null) return null;
+                var lista = JsonConvert.DeserializeObject<Precios>(respuesta);
+                return lista;
             }
             catch (Exception ex)
             {

@@ -317,13 +317,6 @@ namespace SERINSI_PC.Formularios.Inventario
                     GestionarBotones(0);
                     return;
                 }
-                ////consultamos el id del nventario con el guid
-                //DAL.Modelo.Inventario objINV = new DAL.Modelo.Inventario();
-                //objINV = controladorInventario.ConsultarGuid( IdProducto_frm, VariablesPublicas.IdEmpresaLogueada);
-                //if (objINV != null)
-                //{
-                //    IdInventario_frm = objINV.id;
-                //}
 
                 await GestionarPrecios();
             }
@@ -399,7 +392,30 @@ namespace SERINSI_PC.Formularios.Inventario
         }
         private async void btnGuardar_Click(object sender, EventArgs e)
         {
-            await btn_Guardar();
+            FrmLoading loading = null;
+            try
+            {
+                using (OpenFileDialog ofd = new OpenFileDialog())
+                {
+                    loading = FrmLoading.ShowLoading(this, "Cargarndo...");
+                    // inicio
+
+                    await CalcularPrecioPublico();
+                    await btn_Guardar();
+
+
+                    // fin
+                    FrmLoading.CloseLoading(this, loading);
+                }
+            }
+            catch (Exception ex)
+            {
+                FrmLoading.CloseLoading(this, loading);
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
+      
+
         }
         private async Task CargarDG()
         {
@@ -441,7 +457,7 @@ namespace SERINSI_PC.Formularios.Inventario
 
         }
 
-        private void frmGestionarInventario_KeyDown(object sender, KeyEventArgs e)
+        private async void frmGestionarInventario_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.F5)
             {
@@ -453,7 +469,7 @@ namespace SERINSI_PC.Formularios.Inventario
             }
             if (e.KeyCode == Keys.F12)
             {
-                btn_Guardar();
+                await btn_Guardar();
             }
         }
 
@@ -615,11 +631,11 @@ namespace SERINSI_PC.Formularios.Inventario
 
         }
 
-        private void btnCalcularPrecio_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        private async void btnCalcularPrecio_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            CalcularPrecioPublico();
+            await CalcularPrecioPublico();
         }
-        private void CalcularPrecioPublico()
+        private async Task CalcularPrecioPublico()
         {
             if (txtCosto.Text != "")
             {
@@ -660,31 +676,14 @@ namespace SERINSI_PC.Formularios.Inventario
                 MessageBox.Show("Para poder calcular el precio venta debe de ingresar el costo unitario", "¡Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        private void dgPrecios_CellClick(object sender, DataGridViewCellEventArgs e)
-        {
-            if (dgPrecios.RowCount > 0 && e.RowIndex >= 0)
-            {
-                DataGridViewRow fila = dgPrecios.Rows[e.RowIndex];
-                cmbListaPrecios.SelectedValue = Convert.ToInt32(fila.Cells["idListaPrecios_v"].Value);
-                precioPublico_frm = Convert.ToDecimal(fila.Cells["PrecioVenta_v"].Value);
-                valorUtilidad_frm = Convert.ToDecimal(fila.Cells["utilidad_v"].Value);
-                porcentajeUtilidad_frm = Convert.ToDecimal(fila.Cells["porcentajeUtilidad_v"].Value);
 
-                MostarValores();
-            }
-        }
-
-        private void btnLimpiar_Click(object sender, EventArgs e)
+        private async void btnLimpiar_Click(object sender, EventArgs e)
         {
-            CargarDG();
+            await CargarDG();
             LimpiarFormulario();
             GestionarBotones(0);
         }
 
-        private void dgPrecios_DoubleClick(object sender, EventArgs e)
-        {
-
-        }
 
         private void btnCalcularPorcentageIVA_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
@@ -798,6 +797,49 @@ namespace SERINSI_PC.Formularios.Inventario
                     CalcularPrecioPublico();
                     btnGuardar.PerformClick();
                 }
+            }
+        }
+
+        private async void btnEliminarPrecio_Click(object sender, EventArgs e)
+        {
+            if (dgPrecios.CurrentRow == null)
+            {
+                MessageBox.Show("Selecciona un precio para eliminar.");
+                return;
+            }
+
+            // 1) Obtener el objeto seleccionado (porque el DataGrid está enlazado a una lista)
+            var seleccionado = dgPrecios.CurrentRow.DataBoundItem as V_Precios;
+            if (seleccionado == null)
+            {
+                MessageBox.Show("No se pudo obtener el registro seleccionado.");
+                return;
+            }
+
+            // 2) Confirmación
+            var r = MessageBox.Show("¿Seguro que deseas eliminar el precio seleccionado?",
+                                    "Confirmar",
+                                    MessageBoxButtons.YesNo,
+                                    MessageBoxIcon.Warning);
+
+            if (r != DialogResult.Yes) return;
+
+            // 3) Eliminar en EF (usa el Id real de tu entidad)
+            var precio = new Precios { 
+                id=seleccionado.id_v, 
+                idProducto=seleccionado.idProducto_v,
+                idInventario=seleccionado.idInventario_v,
+                idListaPrecios=seleccionado.idListaPrecios_v,
+                utilidad=seleccionado.utilidad_v,
+                PrecioVenta=seleccionado.PrecioVenta_v,
+                porcentajeUtilidad=seleccionado.porcentajeUtilidad_v
+            };
+
+            var resp = await controladorPrecio.CrearEditarEliminarCostoPrecio(precio,2);
+            if (resp.estado)
+            {
+                MessageBox.Show("Precio Eliminado con éxito.","OK",MessageBoxButtons.OK,MessageBoxIcon.Information);
+                await CargarDGPrecios();
             }
         }
     }

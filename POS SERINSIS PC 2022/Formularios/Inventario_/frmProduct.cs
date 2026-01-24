@@ -191,7 +191,7 @@ namespace SERINSI_PC.Formularios.Inventario
             {
                 if (txtDescripcion.Text != "")
                 {
-                    dgLista.DataSource = ControladorProducto.FiltralDescripcion(txtDescripcion.Text);
+                    dgLista.DataSource =await ControladorProducto.FiltralDescripcion(txtDescripcion.Text);
                 }
                 else
                 {
@@ -430,5 +430,6 @@ private async void btnEliminarProducto_Click(object sender, EventArgs e)
             await frm.ListaCostoIventario();
             frm.ShowDialog();
         }
+
     }
 }

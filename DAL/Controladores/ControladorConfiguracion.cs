@@ -47,7 +47,7 @@ namespace DAL.Controladores
                 ";
 
                 var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
-
+                if (resp == null) return null;
                 if (!string.IsNullOrEmpty(resp))
                     return JsonConvert.DeserializeObject<Sede>(resp);
 
@@ -68,15 +68,10 @@ namespace DAL.Controladores
             try
             {
                 var json = JsonConvert.SerializeObject(objConfig);
-
-                // Si usas tu ajustador, déjalo como siempre:
-                // json = AjustarJoson.Ajustar(json);
-
                 json = json.Replace("'", "''");
-
                 var query = $"EXEC dbo.CRUD_Sede N'{json}', {Evento}";
                 var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
-
+                if (resp == null) return false;
                 if (!string.IsNullOrEmpty(resp))
                 {
                     var r = JsonConvert.DeserializeObject<RespuestaCRUD>(resp);
