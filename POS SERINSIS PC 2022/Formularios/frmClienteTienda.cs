@@ -27,10 +27,10 @@ namespace SERINSI_PC.Formularios.Ventas
             InitializeComponent();
         }
 
-        private void frmClienteTienda_Load(object sender, EventArgs e)
+        private async void frmClienteTienda_Load(object sender, EventArgs e)
         {
-            LLenarDGClientes();
-            GestionarBotones(0);
+            await LLenarDGClientes();
+            await GestionarBotones(0);
             txtNombreCliente.Focus();
         }
 
@@ -58,7 +58,7 @@ namespace SERINSI_PC.Formularios.Ventas
                 txtRazonSocial.Focus();
             }
         }
-        private void txtNombreCliente_KeyDown(object sender, KeyEventArgs e)
+        private async void txtNombreCliente_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
             {
@@ -66,7 +66,7 @@ namespace SERINSI_PC.Formularios.Ventas
                 {
                     if (dgClienteVenta.RowCount > 0)
                     {
-                        SeleccionarCliente();
+                       await  SeleccionarCliente();
                         btnAgregarCliente.PerformClick();
                     }
                     else
@@ -84,9 +84,9 @@ namespace SERINSI_PC.Formularios.Ventas
         {
 
         }
-        private void LLenarDGClientes()
+        private async Task LLenarDGClientes()
         {
-            dgClienteVenta.DataSource = ControladorClienteTienda.ListaCompleta();
+            dgClienteVenta.DataSource =await ControladorClienteTienda.ListaCompleta();
         }
         private void txtTelefono_KeyDown(object sender, KeyEventArgs e)
         {
@@ -105,7 +105,7 @@ namespace SERINSI_PC.Formularios.Ventas
         private async void btnCrear_Click(object sender, EventArgs e)
         {
             //Lo primero que debemos hacer es verificar los campos 
-            bool Campos = EvaluarCampos();
+            bool Campos =await EvaluarCampos();
             if (Campos == true)
             {
                 await GestionarCliente(0);
@@ -115,7 +115,7 @@ namespace SERINSI_PC.Formularios.Ventas
                 MessageBox.Show("Hay campos vacíos ", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        private bool EvaluarCampos()
+        private async Task<bool> EvaluarCampos()
         {
             if (txtNombreCliente.Text != "" &&
                 txtTelefono.Text != ""&&
@@ -181,14 +181,14 @@ namespace SERINSI_PC.Formularios.Ventas
                 {
                     MessageBox.Show("El cliente fue editado correctamente", "Cliente Editado", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
-                LLenarDGClientes();
-                LimpiarFormulario();
-                GestionarBotones(0);
+                await LLenarDGClientes();
+                await LimpiarFormulario();
+                await GestionarBotones(0);
                 txtNombreCliente.Focus();
             }
 
         }
-        private void LimpiarFormulario()
+        private async Task LimpiarFormulario()
         {
             txtNombreCliente.Text = "";
             txtNIT.Text = "";
@@ -196,7 +196,7 @@ namespace SERINSI_PC.Formularios.Ventas
             txtDireccion.Text = "";
             IdCliente = 0;
         }
-        private void GestionarBotones(int Boton)
+        private async Task GestionarBotones(int Boton)
         {
             if (Boton == 0)
             {
@@ -212,7 +212,7 @@ namespace SERINSI_PC.Formularios.Ventas
         private async void btnEditar_Click(object sender, EventArgs e)
         {
             //Lo primero que debemos hacer es verificar los campos 
-            bool Campos = EvaluarCampos();
+            bool Campos =await EvaluarCampos();
             if (Campos == true)
             {
                 await GestionarCliente(1);
@@ -222,18 +222,18 @@ namespace SERINSI_PC.Formularios.Ventas
                 MessageBox.Show("Hay campos vacíos ", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        private void btnLimpiar_Click(object sender, EventArgs e)
+        private async void btnLimpiar_Click(object sender, EventArgs e)
         {
-            LLenarDGClientes();
-            LimpiarFormulario();
-            GestionarBotones(0);
+            await LLenarDGClientes();
+            await LimpiarFormulario();
+            await GestionarBotones(0);
             txtNombreCliente.Focus();
         }
-        private void dgClienteVenta_CellClick(object sender, DataGridViewCellEventArgs e)
+        private async void dgClienteVenta_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            SeleccionarCliente();
+            await SeleccionarCliente();
         }
-        private void SeleccionarCliente()
+        private async Task SeleccionarCliente()
         {
             if (dgClienteVenta.RowCount > 0 && dgClienteVenta.CurrentRow.Index >= 0)
             {
@@ -253,7 +253,7 @@ namespace SERINSI_PC.Formularios.Ventas
                 txtCorrero.Text = Convert.ToString(Fila.Cells["correo"].Value);
 
                 btnAgregarCliente.Enabled = true;
-                GestionarBotones(1);
+                await GestionarBotones(1);
             }
             else
             {
@@ -306,7 +306,7 @@ namespace SERINSI_PC.Formularios.Ventas
             }
             else
             {
-                GestionarBotones(1);
+                await GestionarBotones(1);
             }
         }
         private void btnCerrar_Click(object sender, EventArgs e)
@@ -314,11 +314,11 @@ namespace SERINSI_PC.Formularios.Ventas
             this.Close();
         }
 
-        private void dgClienteVenta_KeyDown(object sender, KeyEventArgs e)
+        private async void dgClienteVenta_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
             {
-                SeleccionarCliente();
+                await SeleccionarCliente();
                 btnAgregarCliente.PerformClick();
             }
         }
@@ -339,15 +339,15 @@ namespace SERINSI_PC.Formularios.Ventas
             }
         }
 
-        private void txtBuscarCliente_TextChanged(object sender, EventArgs e)
+        private async void txtBuscarCliente_TextChanged(object sender, EventArgs e)
         {
             if (txtBuscarCliente.Text != "")
             {
-                dgClienteVenta.DataSource = ControladorClienteTienda.FiltarX_Nombre(txtBuscarCliente.Text);
+                dgClienteVenta.DataSource =await ControladorClienteTienda.FiltarX_Nombre(txtBuscarCliente.Text);
             }
             else
             {
-                LLenarDGClientes();
+                await LLenarDGClientes();
             }
         }
     }
