@@ -53,7 +53,7 @@ namespace DAL.Controladores.Tienda
                 var query = @"select * from v_CategoriaProducto";
 
                 var resp = await Conection_SQL.ConsultaSQLServer(query, true, true); // true = lista
-
+                if (resp == null) return new List<v_CategoriaProducto>();
                 if (!string.IsNullOrEmpty(resp))
                 {
                     return JsonConvert.DeserializeObject<List<v_CategoriaProducto>>(resp);

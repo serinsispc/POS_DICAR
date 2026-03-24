@@ -53,7 +53,7 @@ namespace DAL.Controladores.Administrador
                 ";
 
                 var resp = await Conection_SQL.ConsultaSQLServer(query, true, true);
-
+                if (resp == null) return new List<CategoriaProducto>();
                 if (!string.IsNullOrEmpty(resp))
                 {
                     return JsonConvert.DeserializeObject<List<CategoriaProducto>>(resp);

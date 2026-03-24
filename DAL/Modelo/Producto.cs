@@ -15,14 +15,14 @@ namespace DAL.Modelo
     public partial class Producto
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public Producto()
-        {
-            this.DetalleCompra = new HashSet<DetalleCompra>();
-            this.DetallePedido = new HashSet<DetallePedido>();
-            this.Inventario = new HashSet<Inventario>();
-            this.InventarioTotal = new HashSet<InventarioTotal>();
-            this.Precios = new HashSet<Precios>();
-        }
+        //public Producto()
+        //{
+        //    this.DetalleCompra = new HashSet<DetalleCompra>();
+        //    this.DetallePedido = new HashSet<DetallePedido>();
+        //    this.Inventario = new HashSet<Inventario>();
+        //    this.InventarioTotal = new HashSet<InventarioTotal>();
+        //    this.Precios = new HashSet<Precios>();
+        //}
     
         public int id { get; set; }
         public string codigoProducto { get; set; }
@@ -35,18 +35,18 @@ namespace DAL.Modelo
         public Nullable<int> eliminado { get; set; }
         public Nullable<int> gramera { get; set; }
     
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<DetalleCompra> DetalleCompra { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<DetallePedido> DetallePedido { get; set; }
-        public virtual EstadoAI EstadoAI { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Inventario> Inventario { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<InventarioTotal> InventarioTotal { get; set; }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Precios> Precios { get; set; }
-        public virtual Sede Sede { get; set; }
-        public virtual TipoMedida TipoMedida { get; set; }
+        //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        //public virtual ICollection<DetalleCompra> DetalleCompra { get; set; }
+        //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        //public virtual ICollection<DetallePedido> DetallePedido { get; set; }
+        //public virtual EstadoAI EstadoAI { get; set; }
+        //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        //public virtual ICollection<Inventario> Inventario { get; set; }
+        //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        //public virtual ICollection<InventarioTotal> InventarioTotal { get; set; }
+        //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        //public virtual ICollection<Precios> Precios { get; set; }
+        //public virtual Sede Sede { get; set; }
+        //public virtual TipoMedida TipoMedida { get; set; }
     }
 }

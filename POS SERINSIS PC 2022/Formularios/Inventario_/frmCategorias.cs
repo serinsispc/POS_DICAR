@@ -32,10 +32,10 @@ namespace SERINSI_PC.Formularios.Ventas
         string Extencion;
         byte[] Arreglo = null;
         string ArchivoTexto;
-        private void frmCategorias_Load(object sender, EventArgs e)
+        private async void frmCategorias_Load(object sender, EventArgs e)
         {
             GEstionarBotones(0);
-            CargarDG();
+            await CargarDG();
             txtCategoria.Focus();
             try
             {
@@ -48,9 +48,9 @@ namespace SERINSI_PC.Formularios.Ventas
             catch (Exception) { 
 }
         }
-        private void CargarDG()
+        private async Task CargarDG()
         {
-            dgCategorias.DataSource = ConotroladorCategoria.listaCompleta();
+            dgCategorias.DataSource =await ConotroladorCategoria.listaCompleta();
         }
         private void GEstionarBotones(int Boton)
         {
@@ -129,6 +129,7 @@ namespace SERINSI_PC.Formularios.Ventas
             objcat.id = IdCategoria;
             objcat.guidCategoria = guidCat;
             objcat.nombreCategoria = txtCategoria.Text;
+            objcat.idSede = 1;
             bool sqlCat =await ControladorCategoriaProducto.Crear_Editar_Eliminar_Categoria(objcat,Boton);
             if (sqlCat == true)
             {

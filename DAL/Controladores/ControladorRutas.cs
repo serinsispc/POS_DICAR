@@ -52,7 +52,7 @@ namespace DAL.Controladores.Version_Software
             {
                 var query = $"SELECT TOP 1 * FROM RutaActualizacionEquipo WHERE nombre_equipo_local = N'{EscapeSql(nombreEquipo)}'";
                 var resultado = await Conection_SQL.ConsultaSQLServer(query, false, true);
-
+                if (resultado == null) return null;
                 if (string.IsNullOrWhiteSpace(resultado))
                     return null;
 

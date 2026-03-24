@@ -170,6 +170,8 @@ namespace SERINSI_PC.Formularios.Inventario
             {
                 objproducto.gramera = 0;
             }
+            objproducto.idSede = 1;
+            objproducto.eliminado = 0;
             RespuestaCRUD sqlProducto =await ControladorProducto.GuardarEditarEliminarProducto(objproducto,Boton);
             if (sqlProducto.estado == true)
             {
@@ -179,6 +181,7 @@ namespace SERINSI_PC.Formularios.Inventario
             {
                 MessageBox.Show("El producto "+txtDescripcion.Text+" no se pudo "+btnGuardar.Text+" correctamente.","¡Error!",MessageBoxButtons.OK,MessageBoxIcon.Error);
             }
+
             this.Close();
         }
         private async Task<bool> VerificarCodigo(string codigo)

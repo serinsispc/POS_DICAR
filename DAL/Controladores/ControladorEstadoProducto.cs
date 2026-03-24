@@ -23,7 +23,7 @@ ORDER BY id;";
 
                 // 👈 LISTAS → true, true
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true);
-
+                if(respuesta==null)return new List<EstadoAI>();
                 return JsonConvert.DeserializeObject<List<EstadoAI>>(respuesta);
             }
             catch (Exception ex)

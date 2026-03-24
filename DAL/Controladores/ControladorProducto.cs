@@ -28,7 +28,7 @@ namespace DAL.Controladores
             try
             {
                 var json = EscapeJsonForSql(JsonConvert.SerializeObject(objProducto));
-                var query = $"EXEC {SP_CRUD} N'{json}', {Boton}";
+                var query = $"EXEC CRUD_Producto N'{json}', {Boton}";
                 var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
                 return JsonConvert.DeserializeObject<RespuestaCRUD>(resp);
             }
@@ -56,7 +56,7 @@ FROM Producto WITH (NOLOCK)
 WHERE guidProducto = '{guidPro}';";
 
                 var resp = await Conection_SQL.ConsultaSQLServer(query, false, true);
-                if (resp == null) return null;
+                if(resp==null)return null;
                 var lista = JsonConvert.DeserializeObject<Producto>(resp);
                 return lista;
             }

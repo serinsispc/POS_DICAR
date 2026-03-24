@@ -69,6 +69,7 @@ namespace DAL.Controladores
             {
                 var query = "SELECT * FROM V_TipoMedida";
                 var respuesta = await Conection_SQL.ConsultaSQLServer(query, true, true);
+                if (respuesta == null) return new List<V_TipoMedida>();
                 return JsonConvert.DeserializeObject<List<V_TipoMedida>>(respuesta);
             }
             catch (Exception ex)
